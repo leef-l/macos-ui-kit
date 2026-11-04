@@ -23,3 +23,12 @@ Thumbs.db
 .idea
 .vscode
 *.swp
+
+# Scratch files used while verifying the UI kit. These are throwaway harnesses
+# (headless-browser drivers, temporary entry points); keeping them out of the
+# repository stops debug leftovers being published.
+frontend/src/__*
+frontend/__*
+frontend/*.smoke.*
+frontend/dist-smoke
+smoke-dump.html
