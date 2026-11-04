@@ -1,0 +1,70 @@
+/* macOS multi-line text editor. */
+
+.mac-textarea {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-1);
+}
+
+.mac-textarea__label {
+    font-size: var(--mac-text-sm);
+    font-weight: var(--mac-weight-medium);
+    color: var(--mac-text-secondary);
+}
+
+.mac-textarea__control {
+    display: flex;
+    min-width: 0;
+}
+
+.mac-textarea__input {
+    width: 100%;
+    min-height: calc(var(--mac-control-height) * 3);
+    padding: var(--mac-space-2);
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-m);
+    background: var(--mac-bg-input);
+    color: var(--mac-text);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-md);
+    line-height: var(--mac-base-line-height-normal);
+    /* An editor is a text surface: the caret, selection and resize handle all
+       come from the browser, and horizontal resizing stays off so it cannot
+       overflow its row. */
+    resize: vertical;
+    outline: none;
+    transition: border-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-textarea__input::placeholder {
+    color: var(--mac-text-tertiary);
+}
+
+.mac-textarea__control:hover:not(.is-disabled) .mac-textarea__input {
+    border-color: var(--mac-border-strong);
+}
+
+/* Only keyboard focus shows the ring, matching the rest of the kit. */
+.mac-textarea__control:has(.mac-textarea__input:focus-visible) .mac-textarea__input {
+    border-color: var(--mac-accent);
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: calc(var(--mac-hairline) * 2);
+}
+
+.mac-textarea.is-disabled .mac-textarea__input {
+    opacity: 0.45;
+    cursor: default;
+}
+
+/* A character counter under the field. */
+.mac-textarea__meta {
+    display: flex;
+    justify-content: flex-end;
+    font-size: var(--mac-text-sm);
+    color: var(--mac-text-tertiary);
+    font-variant-numeric: tabular-nums;
+}
+
+.mac-textarea__meta.is-over {
+    color: var(--mac-danger);
+}

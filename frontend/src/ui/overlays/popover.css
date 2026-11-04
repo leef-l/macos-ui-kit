@@ -1,0 +1,126 @@
+/* macOS popover: a generic anchored panel (the generalisation of .mac-menu).
+
+   Two elements, deliberately: .mac-popover is the untransformed box that
+   overlay.ts measures and positions, .mac-popover__surface is the painted panel
+   that animates. Putting the entrance transform on the positioned element would
+   make getBoundingClientRect report a scaled box and the popover would place
+   itself against the wrong geometry. */
+
+.mac-popover {
+    position: fixed;
+    z-index: 1000;
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    /* The pointer sits outside the panel box, so nothing here may clip. */
+    pointer-events: none;
+    --wails-draggable: no-drag;
+}
+
+.mac-popover.is-open {
+    pointer-events: auto;
+}
+
+.mac-popover__surface {
+    position: relative;
+    max-width: calc(var(--mac-space-8) * 9);
+    padding: var(--mac-space-3);
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-l);
+    background: var(--mac-bg-overlay);
+    box-shadow: var(--mac-shadow-popover);
+    color: var(--mac-text);
+    line-height: 1.45;
+    /* Transform and opacity only: the entrance stays on the compositor. */
+    opacity: 0;
+    transform: scale(0.97);
+    transition:
+        opacity var(--mac-duration-fast) var(--mac-ease),
+        transform var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-popover.is-open .mac-popover__surface {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Grow from the side the popover is attached to, so it reads as coming out of
+   the anchor rather than out of thin air. */
+.mac-popover[data-side="bottom"] .mac-popover__surface {
+    transform-origin: top center;
+}
+.mac-popover[data-side="top"] .mac-popover__surface {
+    transform-origin: bottom center;
+}
+.mac-popover[data-side="left"] .mac-popover__surface {
+    transform-origin: right center;
+}
+.mac-popover[data-side="right"] .mac-popover__surface {
+    transform-origin: left center;
+}
+
+.mac-popover:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: calc(var(--mac-hairline) * 2);
+}
+
+/* Long content scrolls inside the panel rather than growing past the viewport.
+   The panel's own padding is subtracted so the scrolling box fits inside it. */
+.mac-popover__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-2);
+    min-width: 0;
+    max-height: calc(70vh - var(--mac-space-3) * 2);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+/* The pointer is a rotated square on the panel's edge. Its offset along that
+   edge is written by the component as --mac-popover-arrow-x / -y, so CSS owns
+   the side and JS owns only the measured position. */
+.mac-popover__arrow {
+    position: absolute;
+    width: var(--mac-space-2);
+    height: var(--mac-space-2);
+    background: var(--mac-bg-overlay);
+    border: var(--mac-hairline) solid var(--mac-border);
+    pointer-events: none;
+}
+
+/* Each side keeps the half of the rotated square that pokes outside the panel;
+   the other half is clipped away so it cannot cover the panel's own edge. */
+.mac-popover[data-side="bottom"] .mac-popover__arrow {
+    top: 0;
+    left: var(--mac-popover-arrow-x, 50%);
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.mac-popover[data-side="top"] .mac-popover__arrow {
+    bottom: 0;
+    left: var(--mac-popover-arrow-x, 50%);
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
+    transform: translate(-50%, 50%) rotate(45deg);
+}
+
+.mac-popover[data-side="left"] .mac-popover__arrow {
+    right: 0;
+    top: var(--mac-popover-arrow-y, 50%);
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+    transform: translate(50%, -50%) rotate(45deg);
+}
+
+.mac-popover[data-side="right"] .mac-popover__arrow {
+    left: 0;
+    top: var(--mac-popover-arrow-y, 50%);
+    clip-path: polygon(0 0, 100% 100%, 0 100%);
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* Touch: a popover is a small panel, so its buttons get the roomier control
+   height the design doc requires instead of the desktop one. */
+@media (pointer: coarse) {
+    .mac-popover__body .mac-button {
+        min-height: var(--mac-control-height-l);
+    }
+}

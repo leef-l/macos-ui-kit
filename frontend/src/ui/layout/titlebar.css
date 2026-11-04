@@ -1,0 +1,55 @@
+/* macOS title bar: a drag surface carrying the traffic lights and toolbar. */
+
+.mac-titlebar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    flex: 0 0 auto;
+    height: var(--mac-titlebar-height);
+    padding: 0 var(--mac-space-4);
+    background: var(--mac-bg-titlebar);
+    border-bottom: 1px solid var(--mac-border);
+    /* The title bar is the window's drag surface. Interactive children opt out
+       with --wails-draggable: no-drag, which they inherit from their own rules. */
+    --wails-draggable: drag;
+}
+
+.mac-titlebar__leading,
+.mac-titlebar__trailing {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    flex: 0 0 auto;
+    --wails-draggable: no-drag;
+}
+
+.mac-titlebar__trailing {
+    margin-left: auto;
+}
+
+/* Centred window title, macOS style. Absolutely positioned so the title does
+   not shift when the leading or trailing clusters change width. */
+.mac-titlebar__title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 40%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: var(--mac-text-body);
+    font-weight: var(--mac-weight-semibold);
+    letter-spacing: 0.01em;
+    color: var(--mac-text-secondary);
+    pointer-events: none;
+}
+
+/* Compact variant for narrow windows: hides the centred title. */
+@media (max-width: 680px) {
+    .mac-titlebar__title {
+        display: none;
+    }
+}
+
+

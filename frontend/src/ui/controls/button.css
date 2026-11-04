@@ -1,0 +1,98 @@
+/* macOS push button: the default rounded-rect button and its variants. */
+
+.mac-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--mac-space-1);
+    height: var(--mac-control-height);
+    padding: 0 var(--mac-space-3);
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-m);
+    background: var(--mac-bg-elevated);
+    color: var(--mac-text);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    font-weight: var(--mac-weight-medium);
+    line-height: 1;
+    white-space: nowrap;
+    cursor: default;
+    user-select: none;
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        border-color var(--mac-duration-fast) var(--mac-ease),
+        transform var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-button:hover:not(:disabled) {
+    background: var(--mac-bg-hover);
+}
+
+.mac-button:active:not(:disabled) {
+    background: var(--mac-bg-active);
+    transform: scale(0.98);
+}
+
+.mac-button:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 1px;
+}
+
+.mac-button:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+/* Primary: the blue default button, only one per view. */
+.mac-button--primary {
+    background: var(--mac-accent);
+    border-color: transparent;
+    color: var(--mac-text-on-accent);
+}
+.mac-button--primary:hover:not(:disabled) {
+    filter: brightness(1.08);
+}
+.mac-button--primary:active:not(:disabled) {
+    filter: brightness(0.94);
+}
+
+/* Destructive: red, for delete and other irreversible actions. */
+.mac-button--destructive {
+    background: var(--mac-danger);
+    border-color: transparent;
+    color: var(--mac-text-on-accent);
+}
+.mac-button--destructive:hover:not(:disabled) {
+    filter: brightness(1.08);
+}
+
+/* Plain: no chrome until hovered — toolbar and inline actions. */
+.mac-button--plain {
+    background: transparent;
+    border-color: transparent;
+}
+
+/* Small and large sizes. */
+.mac-button--small {
+    height: var(--mac-control-height-s);
+    padding: 0 calc(var(--mac-space-2) + var(--mac-space-1) / 4);
+    font-size: var(--mac-text-small);
+}
+
+.mac-button--large {
+    height: var(--mac-control-height-l);
+    padding: 0 calc(var(--mac-space-4) + var(--mac-space-1) / 2);
+    font-size: var(--mac-text-title);
+}
+
+/* Full-width variant used in forms and sheets. */
+.mac-button--block {
+    width: 100%;
+}
+
+.mac-button__icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: var(--mac-icon-sm);
+    height: var(--mac-icon-sm);
+}

@@ -1,0 +1,86 @@
+/* macOS disclosure group — a collapsible section with a rotating chevron. */
+
+.mac-disclosure {
+    display: flex;
+    flex-direction: column;
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-l);
+    background: var(--mac-bg-elevated);
+    overflow: hidden;
+}
+
+.mac-disclosure__header {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    width: 100%;
+    min-height: var(--mac-control-height);
+    padding: var(--mac-space-2) var(--mac-space-3);
+    border: none;
+    background: transparent;
+    color: var(--mac-text);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-md);
+    font-weight: var(--mac-weight-medium);
+    text-align: left;
+    cursor: default;
+    transition: background-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-disclosure__header:hover:not(:disabled) {
+    background: var(--mac-bg-hover);
+}
+
+.mac-disclosure__header:disabled {
+    opacity: 0.45;
+}
+
+.mac-disclosure__header:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: calc(var(--mac-hairline) * -2);
+}
+
+/* The chevron rotates to point down when open. Transform only, so the motion
+   stays on the compositor. */
+.mac-disclosure__chevron {
+    flex: 0 0 auto;
+    width: var(--mac-icon-sm);
+    height: var(--mac-icon-sm);
+    color: var(--mac-text-tertiary);
+    transform: rotate(-90deg);
+    transition: transform var(--mac-duration) var(--mac-ease);
+}
+
+.mac-disclosure.is-open .mac-disclosure__chevron {
+    transform: rotate(0deg);
+}
+
+.mac-disclosure__title {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Optional trailing summary, e.g. a count shown while collapsed. */
+.mac-disclosure__meta {
+    flex: 0 0 auto;
+    font-size: var(--mac-text-sm);
+    color: var(--mac-text-tertiary);
+    font-variant-numeric: tabular-nums;
+}
+
+/* The collapsible region. `hidden` is toggled from script rather than animated
+   from height:0, because animating height forces a layout on every frame and
+   cannot know the content's natural height. */
+.mac-disclosure__content {
+    padding: 0 var(--mac-space-3) var(--mac-space-3);
+    color: var(--mac-text-secondary);
+    font-size: var(--mac-text-md);
+    line-height: var(--mac-base-line-height-normal);
+}
+
+.mac-disclosure__content[hidden] {
+    display: none;
+}

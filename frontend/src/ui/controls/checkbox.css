@@ -1,0 +1,108 @@
+/* macOS checkbox: a drawn 14px box over a real, visually hidden input. */
+
+.mac-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    color: var(--mac-text);
+    line-height: 1;
+    vertical-align: middle;
+    cursor: default;
+    user-select: none;
+}
+
+/* The native input keeps its tab stop, its focus ring and its click target;
+   only its paint is removed. Clip rather than `display: none` or
+   `visibility: hidden`, because both of those also drop it from the tab order
+   and from the accessibility tree. */
+.mac-checkbox__input {
+    position: absolute;
+    width: var(--mac-hairline);
+    height: var(--mac-hairline);
+    margin: 0;
+    padding: 0;
+    border: none;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.mac-checkbox__box {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: var(--mac-icon-sm);
+    height: var(--mac-icon-sm);
+    border: var(--mac-hairline) solid var(--mac-border-strong);
+    border-radius: var(--mac-radius-s);
+    background: var(--mac-bg-input);
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        border-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-checkbox:hover .mac-checkbox__box {
+    border-color: var(--mac-accent);
+}
+
+/* Ticked: the accent fill is the same element, so no extra node is needed. */
+.mac-checkbox__input:checked + .mac-checkbox__box,
+.mac-checkbox__input:indeterminate + .mac-checkbox__box {
+    border-color: transparent;
+    background: var(--mac-accent);
+}
+
+/* Both marks occupy the same grid cell and swap through opacity alone. */
+.mac-checkbox__tick,
+.mac-checkbox__dash {
+    grid-area: 1 / 1;
+    color: var(--mac-text-on-accent);
+    opacity: 0;
+    transition: opacity var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-checkbox__input:checked + .mac-checkbox__box .mac-checkbox__tick {
+    opacity: 1;
+}
+
+.mac-checkbox__input:indeterminate + .mac-checkbox__box .mac-checkbox__tick {
+    opacity: 0;
+}
+
+.mac-checkbox__input:indeterminate + .mac-checkbox__box .mac-checkbox__dash {
+    opacity: 1;
+}
+
+/* The ring belongs to the input, so it is drawn where the input would have
+   been: around the box, keyboard-only. `:has()` is not needed because the box
+   is the very next sibling. */
+.mac-checkbox__input:focus-visible + .mac-checkbox__box {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 1px;
+}
+
+.mac-checkbox__label {
+    font-size: var(--mac-text-body);
+    color: var(--mac-text);
+}
+
+/* Disabled: the attribute blocks activation, this only dims it. */
+.mac-checkbox.is-disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.mac-checkbox.is-disabled .mac-checkbox__box {
+    border-color: var(--mac-border);
+    background: transparent;
+}
+
+.mac-checkbox.is-disabled .mac-checkbox__input:checked + .mac-checkbox__box,
+.mac-checkbox.is-disabled .mac-checkbox__input:indeterminate + .mac-checkbox__box {
+    background: var(--mac-bg-active);
+}

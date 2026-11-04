@@ -1,0 +1,83 @@
+/* macOS window toolbar: leading / centre / trailing clusters. */
+
+.mac-toolbar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    flex: 0 0 auto;
+    min-height: var(--mac-control-height-l);
+    padding: var(--mac-space-1) var(--mac-space-3);
+    background: var(--mac-bg-titlebar);
+    color: var(--mac-text);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    /* The bar is a drag surface like the title bar; the controls inside opt out
+       from their own rules, so a toolbar in a frameless window still drags. */
+    --wails-draggable: drag;
+}
+
+/* The separator follows the window edge the bar is docked to. A hairline is
+   physical: it never scales, which is why it uses --mac-hairline. */
+.mac-toolbar--top {
+    border-bottom: var(--mac-hairline) solid var(--mac-border);
+}
+
+.mac-toolbar--bottom {
+    border-top: var(--mac-hairline) solid var(--mac-border);
+}
+
+.mac-toolbar--borderless {
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+}
+
+.mac-toolbar__leading,
+.mac-toolbar__trailing,
+.mac-toolbar__center {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    --wails-draggable: no-drag;
+}
+
+.mac-toolbar__leading {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+/* Pushed to the right edge; the auto margin survives any leading width. */
+.mac-toolbar__trailing {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+
+/* Absolutely centred against the bar, not the leftover space: a wide leading
+   cluster must not shift it. `max-width` bounds it so it cannot overlap the
+   side clusters on a narrow window; the ellipsis then keeps the text honest. */
+.mac-toolbar__center {
+    position: absolute;
+    left: 50%;
+    max-width: 50%;
+    transform: translateX(-50%);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Narrow windows hide the centred cluster first — it is the least essential.
+   The breakpoint is a literal because a custom property is not valid in a media
+   query; it matches the same 680px window breakpoint used by titlebar/sidebar,
+   and it is a layout threshold, not a scalable dimension. */
+@media (max-width: 680px) {
+    .mac-toolbar__center {
+        display: none;
+    }
+}
+
+/* Touch: the bar grows with the controls it holds. */
+@media (pointer: coarse) {
+    .mac-toolbar {
+        padding: var(--mac-space-2) var(--mac-space-3);
+    }
+}

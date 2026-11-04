@@ -1,0 +1,76 @@
+/* macOS segmented control: a pill-shaped row of mutually exclusive options. */
+
+.mac-segmented {
+    position: relative;
+    display: inline-flex;
+    align-items: stretch;
+    padding: calc(var(--mac-space-1) / 2);
+    border-radius: var(--mac-radius-m);
+    background: var(--mac-bg-input);
+    user-select: none;
+    --wails-draggable: no-drag;
+}
+
+/* The selection indicator. It moves with transform so the animation never
+   triggers layout, and its width is a CSS variable the JS keeps in step. */
+.mac-segmented__thumb {
+    position: absolute;
+    top: calc(var(--mac-space-1) / 2);
+    bottom: calc(var(--mac-space-1) / 2);
+    left: calc(var(--mac-space-1) / 2);
+    width: var(--mac-segmented-thumb-width, 0);
+    border-radius: calc(var(--mac-radius-m) - var(--mac-hairline));
+    background: var(--mac-bg-elevated);
+    box-shadow: var(--mac-shadow-control);
+    transform: translateX(var(--mac-segmented-thumb-x, 0));
+    transition:
+        transform var(--mac-duration) var(--mac-ease),
+        width var(--mac-duration) var(--mac-ease);
+    pointer-events: none;
+}
+
+.mac-segmented__item {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--mac-space-1);
+    flex: 1 1 0;
+    height: calc(var(--mac-control-height-s) + var(--mac-space-1) / 2);
+    padding: 0 var(--mac-space-3);
+    border: none;
+    border-radius: calc(var(--mac-radius-m) - var(--mac-hairline));
+    background: transparent;
+    color: var(--mac-text-secondary);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    font-weight: var(--mac-weight-medium);
+    white-space: nowrap;
+    cursor: default;
+    transition: color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-segmented__item:hover:not(.is-selected):not(:disabled) {
+    color: var(--mac-text);
+}
+
+.mac-segmented__item.is-selected {
+    color: var(--mac-text);
+    font-weight: var(--mac-weight-semibold);
+}
+
+.mac-segmented__item:disabled {
+    opacity: 0.4;
+}
+
+.mac-segmented__item:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: -2px;
+}
+
+/* Full-width variant for forms. */
+.mac-segmented--block {
+    display: flex;
+    width: 100%;
+}

@@ -1,0 +1,58 @@
+/* macOS indeterminate spinner — the small rotating arc used while work runs. */
+
+.mac-spinner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--mac-space-2);
+    color: var(--mac-text-secondary);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-md);
+}
+
+.mac-spinner__ring {
+    flex: 0 0 auto;
+    width: var(--mac-spinner-size, var(--mac-icon-md));
+    height: var(--mac-spinner-size, var(--mac-icon-md));
+    /* The arc is drawn with a border where one side is coloured and the rest is
+       faint; rotating the element then reads as the classic spinner. */
+    border: calc(var(--mac-hairline) * 2) solid var(--mac-border-strong);
+    border-top-color: var(--mac-accent);
+    border-radius: 50%;
+    /* 0.8s is the macOS rate: fast enough to read as activity, slow enough not
+       to strobe. */
+    animation: mac-spinner-rotate 800ms linear infinite;
+}
+
+.mac-spinner--large .mac-spinner__ring {
+    --mac-spinner-size: var(--mac-icon-lg);
+    border-width: calc(var(--mac-hairline) * 2);
+}
+
+.mac-spinner--small .mac-spinner__ring {
+    --mac-spinner-size: var(--mac-icon-xs);
+    border-width: calc(var(--mac-hairline) * 2);
+}
+
+.mac-spinner__label {
+    white-space: nowrap;
+    color: var(--mac-text-secondary);
+}
+
+@keyframes mac-spinner-rotate {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* A spinner that animates is exactly what a motion-sensitive user asked not to
+   see. tokens.css zeroes the durations, but an infinite animation needs its own
+   guard: fall back to a static ring, still visible, still communicating state. */
+@media (prefers-reduced-motion: reduce) {
+    .mac-spinner__ring {
+        animation: none;
+        /* Keep it legible without motion: colour the whole ring. */
+        border-color: var(--mac-accent);
+        opacity: 0.6;
+    }
+}

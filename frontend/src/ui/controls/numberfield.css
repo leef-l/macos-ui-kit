@@ -1,0 +1,128 @@
+/* macOS number field: text input with a two-button stepper at the trailing edge. */
+
+.mac-numberfield {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-1);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+}
+
+.mac-numberfield__label {
+    font-size: var(--mac-text-small);
+    font-weight: var(--mac-weight-medium);
+    color: var(--mac-text-secondary);
+}
+
+.mac-numberfield__control {
+    display: flex;
+    align-items: stretch;
+    height: var(--mac-control-height);
+    padding: 0 calc(var(--mac-space-1) / 2) 0 var(--mac-space-2);
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-m);
+    background: var(--mac-bg-input);
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        border-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-numberfield__control:hover {
+    border-color: var(--mac-border-strong);
+}
+
+/* Keyboard-only focus ring around the whole control; engines without :has()
+   still show the accent border from :focus-within. */
+.mac-numberfield__control:focus-within {
+    border-color: var(--mac-accent);
+}
+
+.mac-numberfield__control:has(:focus-visible) {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 1px;
+}
+
+.mac-numberfield__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--mac-text);
+    font-family: inherit;
+    font-size: var(--mac-text-body);
+    line-height: 1;
+    outline: none;
+    /* The native spinner cannot be themed, so the custom stepper replaces it. */
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+.mac-numberfield__input::-webkit-outer-spin-button,
+.mac-numberfield__input::-webkit-inner-spin-button {
+    margin: 0;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+/* Stepper: two stacked chevrons, revealed on hover or focus like macOS. */
+.mac-numberfield__stepper {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    justify-content: center;
+    width: var(--mac-icon-md);
+    opacity: 0;
+    transition: opacity var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-numberfield__control:hover .mac-numberfield__stepper,
+.mac-numberfield__control:focus-within .mac-numberfield__stepper {
+    opacity: 1;
+}
+
+.mac-numberfield__step {
+    display: grid;
+    place-items: center;
+    flex: 1 1 0;
+    min-height: 0;
+    padding: 0;
+    border: none;
+    border-radius: var(--mac-radius-s);
+    background: transparent;
+    color: var(--mac-text-secondary);
+    cursor: default;
+    transition: background-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-numberfield__step:hover:not(:disabled) {
+    background: var(--mac-bg-hover);
+    color: var(--mac-text);
+}
+
+.mac-numberfield__step:active:not(:disabled) {
+    background: var(--mac-bg-active);
+}
+
+.mac-numberfield__step:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 1px;
+}
+
+.mac-numberfield__step:disabled {
+    opacity: 0.35;
+}
+
+/* Disabled field: the native attribute does the blocking, this only dims it. */
+.mac-numberfield.is-disabled .mac-numberfield__control {
+    opacity: 0.45;
+}
+
+.mac-numberfield.is-disabled .mac-numberfield__label {
+    opacity: 0.6;
+}
+
+/* No stepper to offer when the field cannot be edited. */
+.mac-numberfield.is-disabled .mac-numberfield__stepper {
+    opacity: 0;
+}

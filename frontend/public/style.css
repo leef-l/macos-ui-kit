@@ -1,0 +1,385 @@
+/* =============================================================================
+   Application-level layout.
+
+   The reusable pieces — title bar, traffic lights, sidebar, buttons, fields,
+   overlays — live in src/ui/ and bring their own styles when imported. What is
+   left here is the glue for this particular app: the window column, the content
+   panes and the three small content widgets (cards, log rows, settings rows)
+   that are not general enough to belong in the kit.
+
+   NOTE: this file lives in public/, so Vite copies it verbatim and does NOT
+   process it. That rules out `@import` — CSS requires @import to precede every
+   other rule, and a leading comment would push ours out of position, making the
+   browser drop it silently. The kit's foundation (tokens, fonts, scrollbars) is
+   therefore imported from src/main.ts instead, where Vite bundles it properly.
+
+   Every value below comes from the kit's tokens, so the app follows the kit's
+   light/dark appearance automatically.
+   ========================================================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+    color: var(--mac-text);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    /* An app, not a document: nothing is selectable unless it opts back in. */
+    -webkit-user-select: none;
+    user-select: none;
+    --wails-draggable: no-drag;
+}
+
+input,
+textarea,
+.mac-textfield__input {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+#app {
+    height: 100%;
+}
+
+/* -----------------------------------------------------------------------------
+   Window column: title bar / body / status bar.
+   -------------------------------------------------------------------------- */
+
+.window {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    background: var(--mac-bg-window);
+    overflow: hidden;
+
+    /* Mobile safe areas.
+       Wails does not handle insets itself — there is no env() usage anywhere in
+       the Go sources — so a phone build would otherwise draw the title bar under
+       the notch and the status bar under the home indicator. The paddings are
+       zero on every desktop platform, where the insets resolve to 0, so this
+       costs nothing there. */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+
+    /* Corner radius is platform-dependent, because the native window may
+       already round its own corners:
+
+       - macOS: an NSWindow with NSWindowStyleMaskFullSizeContentView still has
+         AppKit's rounded frame and shadow, so drawing our own radius on top
+         produces a visible double edge. We therefore let AppKit own the corner.
+       - Windows/Linux: a frameless window is a plain rectangle. DWM rounds it
+         only on Windows 11, and partially under some drivers, so we round it
+         ourselves for a consistent shape.
+
+       `data-native-chrome` is set by the app on startup from the platform the
+       Go backend reports. */
+    border-radius: var(--mac-radius-xl);
+}
+
+.window[data-native-chrome="appkit"] {
+    /* The native frame already provides the rounded corner and the shadow. */
+    border-radius: 0;
+}
+
+/* A zoomed window loses its rounded corners everywhere, as AppKit does. */
+.window.is-maximised {
+    border-radius: 0;
+}
+
+.body {
+    flex: 1 1 auto;
+    display: flex;
+    min-height: 0;
+}
+
+.content {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--mac-bg-content);
+}
+
+/* -----------------------------------------------------------------------------
+   Panes
+   -------------------------------------------------------------------------- */
+
+.pane {
+    display: none;
+    padding: var(--mac-space-6) var(--mac-space-8) var(--mac-space-8);
+}
+
+.pane.is-active {
+    display: block;
+}
+
+.mac-mobile__pane {
+    padding: var(--mac-space-4);
+}
+
+.pane__head {
+    margin-bottom: var(--mac-space-5);
+}
+
+.pane__title {
+    margin: 0 0 var(--mac-space-1);
+    font-size: var(--mac-text-large);
+    font-weight: var(--mac-weight-bold);
+    letter-spacing: -0.015em;
+    color: var(--mac-text);
+}
+
+.pane__subtitle {
+    margin: 0;
+    font-size: var(--mac-text-body);
+    line-height: 1.5;
+    color: var(--mac-text-secondary);
+}
+
+/* -----------------------------------------------------------------------------
+   Overview cards
+   -------------------------------------------------------------------------- */
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--mac-space-3);
+    margin-bottom: var(--mac-space-6);
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--mac-space-3) var(--mac-space-4);
+    border: 1px solid var(--mac-border);
+    border-radius: var(--mac-radius-l);
+    background: var(--mac-bg-elevated);
+}
+
+.card__label {
+    font-size: var(--mac-text-small);
+    font-weight: var(--mac-weight-semibold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--mac-text-tertiary);
+}
+
+.card__value {
+    font-size: 17px;
+    font-weight: var(--mac-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    color: var(--mac-text);
+}
+
+.card__hint {
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-tertiary);
+}
+
+/* -----------------------------------------------------------------------------
+   Greet form
+   -------------------------------------------------------------------------- */
+
+.greet {
+    max-width: 460px;
+}
+
+/* The kit's TextField and Button sit side by side in one rounded field. */
+.input-box {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    padding: var(--mac-space-1);
+    border: 1px solid var(--mac-border);
+    border-radius: var(--mac-radius-l);
+    background: var(--mac-bg-elevated);
+}
+
+.greet__field {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* The field carries its own border; inside the row it should not. */
+.greet__field .mac-textfield__control {
+    border: none;
+    background: transparent;
+}
+
+/* -----------------------------------------------------------------------------
+   Log rows
+   -------------------------------------------------------------------------- */
+
+.log {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.log__item {
+    display: flex;
+    align-items: baseline;
+    gap: var(--mac-space-3);
+    padding: var(--mac-space-2) var(--mac-space-3);
+    border: 1px solid var(--mac-border);
+    border-radius: var(--mac-radius-l);
+    background: var(--mac-bg-elevated);
+    font-size: var(--mac-text-body);
+}
+
+.log__time {
+    flex: 0 0 auto;
+    font-size: var(--mac-text-small);
+    font-variant-numeric: tabular-nums;
+    color: var(--mac-text-tertiary);
+}
+
+.log__text {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--mac-text);
+    overflow-wrap: anywhere;
+}
+
+.log__badge {
+    flex: 0 0 auto;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--mac-accent-soft);
+    color: var(--mac-accent);
+    font-size: var(--mac-text-small);
+    font-weight: var(--mac-weight-semibold);
+}
+
+/* -----------------------------------------------------------------------------
+   Empty state
+   -------------------------------------------------------------------------- */
+
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--mac-space-1);
+    padding: var(--mac-space-8) var(--mac-space-5);
+    text-align: center;
+}
+
+.empty.is-hidden {
+    display: none;
+}
+
+.empty__title {
+    margin: 0;
+    font-size: var(--mac-text-title);
+    font-weight: var(--mac-weight-semibold);
+    color: var(--mac-text-secondary);
+}
+
+.empty__text {
+    margin: 0;
+    max-width: 300px;
+    font-size: var(--mac-text-body);
+    line-height: 1.55;
+    color: var(--mac-text-tertiary);
+}
+
+/* -----------------------------------------------------------------------------
+   Settings rows
+   -------------------------------------------------------------------------- */
+
+.settings {
+    display: flex;
+    flex-direction: column;
+    max-width: 560px;
+    border: 1px solid var(--mac-border);
+    border-radius: var(--mac-radius-l);
+    background: var(--mac-bg-elevated);
+    overflow: hidden;
+}
+
+.setting {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--mac-space-5);
+    padding: var(--mac-space-3) var(--mac-space-4);
+    border-bottom: 1px solid var(--mac-separator);
+}
+
+.setting:last-child {
+    border-bottom: none;
+}
+
+.setting__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.setting__name {
+    font-size: var(--mac-text-body);
+    font-weight: var(--mac-weight-medium);
+    color: var(--mac-text);
+}
+
+.setting__hint {
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-tertiary);
+}
+
+/* -----------------------------------------------------------------------------
+   Title bar search field, sized for the toolbar.
+   -------------------------------------------------------------------------- */
+
+.mac-titlebar__search {
+    width: 180px;
+}
+
+.mac-titlebar__search .mac-textfield__control {
+    background: var(--mac-bg-input);
+}
+
+/* -----------------------------------------------------------------------------
+   Narrow desktop windows: the sidebar becomes an overlay.
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 820px) {
+    .pane {
+        padding: var(--mac-space-5) var(--mac-space-5) var(--mac-space-6);
+    }
+}
+
+/* -----------------------------------------------------------------------------
+   Touch devices: larger targets, larger field text (prevents iOS focus zoom).
+   -------------------------------------------------------------------------- */
+
+@media (pointer: coarse) {
+    .mac-textfield__input,
+    .mac-numberfield__input {
+        font-size: 16px;
+    }
+
+    .log__item {
+        padding: var(--mac-space-3);
+    }
+}

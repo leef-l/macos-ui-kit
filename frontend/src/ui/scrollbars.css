@@ -1,0 +1,68 @@
+/* =============================================================================
+   Cross-platform scrollbar normalisation.
+
+   macOS draws overlay scrollbars: they float above the content, are ~8px wide,
+   stay hidden until you scroll, and never consume layout width. Windows draws
+   classic 17px scrollbars that occupy space and are always visible.
+
+   That difference alone shifts every layout by up to 17px between platforms, so
+   this file rebuilds the macOS look on top of WebKit's scrollbar pseudo-elements
+   and the standard properties Firefox/Chromium honour.
+
+   Both syntaxes are declared on purpose: WebKit only reads ::-webkit-scrollbar,
+   and modern Chromium/Gecko read scrollbar-width/scrollbar-color. Declaring both
+   keeps the result close on every engine.
+   ========================================================================== */
+
+/* --- Standard properties (Firefox, Chromium 121+) ------------------------- */
+
+* {
+    /* Reserve no gutter; the thin overlay look. */
+    scrollbar-width: thin;
+    /* Transparent track, translucent thumb — the macOS palette. */
+    scrollbar-color: var(--mac-scroll-thumb) transparent;
+}
+
+/* --- WebKit pseudo-elements (WKWebView, older Chromium) ------------------- */
+
+*::-webkit-scrollbar {
+    /* macOS overlay scrollbars are narrow; 10px reads the same as the system. */
+    /* Overlay scrollbar width is a system metric, not a design token. */    width: 10px;
+    height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: var(--mac-scroll-thumb);
+    /* A 3px transparent border plus background-clip insets the thumb inside the
+       track, which is how macOS floats the pill away from the edge. */
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background-color: var(--mac-scroll-thumb-hover);
+}
+
+*::-webkit-scrollbar-thumb:active {
+    background-color: var(--mac-scroll-thumb-active);
+}
+
+*::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* --- macOS overlay behaviour --------------------------------------------- */
+
+/* On macOS the real overlay scrollbars already behave correctly; forcing our
+   own styling there would make them permanent, so we step aside. */
+@supports (-webkit-touch-callout: none) {
+    * {
+        scrollbar-width: auto;
+    }
+}
+

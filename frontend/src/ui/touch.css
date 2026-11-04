@@ -1,0 +1,66 @@
+/* =============================================================================
+   Touch (no-hover) normalisation.
+
+   On a touch device `:hover` is a trap: the browser applies it on touch-down and
+   keeps it applied until the user taps elsewhere, so a button stays in its hover
+   colour long after the finger has gone. That makes a desktop-derived UI feel
+   stuck and unresponsive.
+
+   The fix is applied globally rather than per component, because every component
+   in the kit uses `:hover` for affordance and all of them have the same problem.
+   Wrapping every rule in `@media (hover: hover)` inside 19 stylesheets would be
+   repetitive and easy to miss on the next component; a single global guard
+   cannot be forgotten.
+
+   What replaces hover on touch: `:active`. The rule below makes an active
+   control look like a hovered one, which restores tactile feedback without the
+   sticky state.
+   ========================================================================== */
+
+@media (hover: none) {
+    /* Neutralise the hover affordance. Components that rely on hover for state
+       (rather than affordance) opt back in via their own rules. */
+    .mac-button:hover:not(:disabled) {
+        background: var(--mac-bg-elevated);
+    }
+    .mac-button--primary:hover:not(:disabled),
+    .mac-button--destructive:hover:not(:disabled) {
+        filter: none;
+    }
+    .mac-button--plain:hover:not(:disabled) {
+        background: transparent;
+    }
+
+    .mac-sidebar__item:hover:not(.is-selected):not(:disabled) {
+        background: transparent;
+        color: var(--mac-text-secondary);
+    }
+
+    .mac-menu__item:hover:not(:disabled) {
+        background: transparent;
+        color: var(--mac-text);
+    }
+
+    .mac-select__control:hover:not(:disabled),
+    .mac-textarea__control:hover .mac-textarea__input,
+    .mac-textfield__control:hover .mac-textfield__input {
+        border-color: var(--mac-border);
+        background: var(--mac-bg-input);
+    }
+
+    .mac-disclosure__header:hover:not(:disabled) {
+        background: transparent;
+    }
+
+    .mac-tabview__tab:hover:not(.is-selected):not(:disabled) {
+        color: var(--mac-text-secondary);
+    }
+
+    /* Replace hover feedback with press feedback, which touch can express. */
+    .mac-button:active:not(:disabled),
+    .mac-sidebar__item:active:not(:disabled),
+    .mac-menu__item:active:not(:disabled),
+    .mac-disclosure__header:active:not(:disabled) {
+        background: var(--mac-bg-active);
+    }
+}

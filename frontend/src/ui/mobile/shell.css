@@ -1,0 +1,170 @@
+/* iOS-style mobile shell.
+ *
+ * Desktop and mobile are genuinely different interaction models, not one layout
+ * at two widths, so the kit ships two shells:
+ *
+ *   layout/  — desktop: draggable frameless window, traffic lights, sidebar
+ *   mobile/  — this: full-screen, safe-area aware, bottom tab bar
+ *
+ * The mobile shell has no traffic lights: on iOS/Android the OS owns the
+ * window, and Wails' mobile window methods are no-ops (close/minimise/maximise
+ * are empty functions in webview_window_android.go).
+ */
+
+.mac-mobile {
+    display: flex;
+    flex-direction: column;
+    /* Full viewport including the areas behind the notch and home indicator. */
+    height: 100vh;
+    height: 100dvh;
+    background: var(--mac-bg-window);
+    color: var(--mac-text);
+    font-family: var(--mac-font);
+    overflow: hidden;
+
+    /* Safe-area padding: Wails does not handle insets (no env() usage in the
+       Go sources), so the shell reserves them itself. */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+
+/* Large-title navigation bar, the iOS convention. */
+.mac-mobile__navbar {
+    position: relative;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: flex-end;
+    /* 44px is Apple's minimum tap target — a platform floor, not a design choice. */    min-height: 44px;
+    padding: 0 16px 8px;
+    background: var(--mac-bg-titlebar);
+    border-bottom: 1px solid var(--mac-border);
+}
+
+/* The big title that collapses on scroll. */
+.mac-mobile__title {
+    margin: 0;
+    font-size: calc(28px * var(--mac-scale));
+    font-weight: var(--mac-weight-bold);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--mac-text);
+}
+
+/* Trailing action slot on the navigation bar. */
+.mac-mobile__action {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-3);
+}
+
+/* The scrolling content region between the navbar and tab bar. */
+.mac-mobile__content {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    /* iOS momentum scrolling. */
+    -webkit-overflow-scrolling: touch;
+}
+
+.mac-mobile__pane {
+    display: none;
+    padding: var(--mac-space-4);
+}
+.mac-mobile__pane.is-active {
+    display: block;
+}
+
+/* -----------------------------------------------------------------------------
+   Bottom tab bar, the iOS navigation pattern for top-level sections.
+   -------------------------------------------------------------------------- */
+
+.mac-mobile__tabbar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: stretch;
+    height: var(--mac-tabbar-height);
+    padding: 0 4px;
+    background: var(--mac-bg-titlebar);
+    border-top: 1px solid var(--mac-border);
+}
+
+.mac-mobile__tab {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: calc(2px * var(--mac-scale));
+    /* Apple's HIG wants >= 44px tap targets; the tab bar is 50px so each tab
+       fills it entirely. */
+    /* 44px is Apple's minimum tap target — a platform floor, not a design choice. */    min-height: 44px;
+    border: none;
+    background: transparent;
+    color: var(--mac-text-tertiary);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-2xs);
+    font-weight: var(--mac-weight-medium);
+    cursor: default;
+    /* Touch needs a visible press state, since there is no hover. */
+    transition: color var(--mac-duration-fast) var(--mac-ease);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mac-mobile__tab svg {
+    width: var(--mac-icon-lg);
+    height: var(--mac-icon-lg);
+    flex: 0 0 auto;
+}
+
+.mac-mobile__tab.is-selected {
+    color: var(--mac-accent);
+}
+
+.mac-mobile__tab:active {
+    opacity: 0.6;
+}
+
+.mac-mobile__tab:focus-visible {
+    outline: 2px solid var(--mac-focus-ring);
+    outline-offset: -2px;
+    border-radius: var(--mac-radius-s);
+}
+
+/* -----------------------------------------------------------------------------
+   Touch adaptations applied only where the primary pointer is coarse.
+   A desktop with a touchscreen keeps the desktop shell; only devices whose
+   primary input is a finger get the larger targets.
+   -------------------------------------------------------------------------- */
+
+@media (pointer: coarse) {
+    /* Apple's minimum comfortable tap target. Trailing controls built on Button
+       inherit this, so a toolbar action is as tappable as a tab. */
+    .mac-button {
+        /* 44px is Apple's minimum tap target — a platform floor, not a design choice. */        min-height: 44px;
+    }
+
+    /* 16px keeps iOS Safari/WKWebView from zooming the page when a field gains
+       focus — the single most jarring mobile bug in a desktop-derived UI. It is
+       pinned rather than tokenised because 16px is a platform threshold, not a
+       design choice: a smaller value re-introduces the zoom. */
+    .mac-textfield__input,
+    .mac-numberfield__input,
+    .mac-select__control {
+        font-size: 16px;
+    }
+}
+
+/* There is no hover on touch devices, so hover styling must not stick after a
+   tap. Wrapping hover rules in this query is the standard guard. */
+@media (hover: none) {
+    .mac-button:hover:not(:disabled),
+    .mac-sidebar__item:hover:not(.is-selected):not(:disabled) {
+        background: initial;
+    }
+}
+
+

@@ -1,0 +1,49 @@
+/* macOS bottom status bar. */
+
+.mac-statusbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--mac-space-3);
+    flex: 0 0 auto;
+    height: var(--mac-statusbar-height);
+    padding: 0 var(--mac-space-4);
+    background: var(--mac-bg-titlebar);
+    border-top: 1px solid var(--mac-border);
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-tertiary);
+}
+
+.mac-statusbar__leading,
+.mac-statusbar__trailing {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    min-width: 0;
+}
+
+/* A small coloured dot indicating connection or state. */
+.mac-statusbar__dot {
+    width: var(--mac-dot-size);
+    height: var(--mac-dot-size);
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--mac-success);
+    box-shadow: 0 0 6px var(--mac-success);
+}
+.mac-statusbar__dot--warning { background: var(--mac-warning); box-shadow: 0 0 6px var(--mac-warning); }
+.mac-statusbar__dot--error { background: var(--mac-danger); box-shadow: 0 0 6px var(--mac-danger); }
+.mac-statusbar__dot--idle { background: var(--mac-text-tertiary); box-shadow: none; }
+
+.mac-statusbar__text {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.mac-statusbar__time {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+

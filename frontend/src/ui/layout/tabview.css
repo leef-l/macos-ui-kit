@@ -1,0 +1,129 @@
+/* macOS tab view: a segmented-looking tab strip over a panel region. */
+
+.mac-tabview {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    color: var(--mac-text);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+}
+
+.mac-tabview__list {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-1);
+    flex: 0 0 auto;
+    padding: var(--mac-space-1) var(--mac-space-2);
+    border-bottom: var(--mac-hairline) solid var(--mac-border);
+    /* A long strip scrolls sideways instead of wrapping onto a second line,
+       which would change the panel's height as tabs are added. */
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+
+.mac-tabview__list::-webkit-scrollbar {
+    display: none;
+}
+
+.mac-tabview__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--mac-space-1);
+    height: var(--mac-control-height);
+    padding: 0 var(--mac-space-3);
+    border: var(--mac-hairline) solid transparent;
+    border-radius: var(--mac-radius-m);
+    background: transparent;
+    color: var(--mac-text-secondary);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    font-weight: var(--mac-weight-medium);
+    line-height: 1;
+    white-space: nowrap;
+    cursor: default;
+    user-select: none;
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        color var(--mac-duration-fast) var(--mac-ease),
+        border-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-tabview__tab svg {
+    width: var(--mac-icon-sm);
+    height: var(--mac-icon-sm);
+    flex: 0 0 auto;
+    opacity: 0.9;
+}
+
+.mac-tabview__tab:hover:not(.is-selected):not(:disabled) {
+    background: var(--mac-bg-hover);
+    color: var(--mac-text);
+}
+
+/* Selected tab: the accent-tinted pill macOS uses in a tab view header. */
+.mac-tabview__tab.is-selected {
+    background: var(--mac-accent-soft);
+    border-color: transparent;
+    color: var(--mac-text);
+}
+
+.mac-tabview__tab:active:not(:disabled) {
+    background: var(--mac-bg-active);
+}
+
+.mac-tabview__tab:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.mac-tabview__tab:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: var(--mac-hairline);
+}
+
+.mac-tabview__label {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* The panel region takes the remaining height; each panel fills it. A column
+   flex box is used rather than a percentage height, which needs a definite
+   parent height that a flex item does not always provide. */
+.mac-tabview__panels {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.mac-tabview__panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: var(--mac-space-3);
+}
+
+/* Panels stay mounted so their state survives a switch; `hidden` alone is not
+   enough once a rule sets `display`, so the inactive state is spelled out. */
+.mac-tabview__panel[hidden] {
+    display: none;
+}
+
+.mac-tabview__panel:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    /* Negative offset so the ring sits inside the scrolling box. */
+    outline-offset: calc(var(--mac-hairline) * -2);
+}
+
+/* Touch: the tab strip needs the full tap target, not the desktop height. */
+@media (pointer: coarse) {
+    .mac-tabview__tab {
+        min-height: var(--mac-control-height-l);
+        padding: 0 var(--mac-space-4);
+    }
+}

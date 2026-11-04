@@ -1,0 +1,138 @@
+/* macOS split view: two panes, a draggable divider, keyboard-resizable.
+   The primary pane's flex-basis is driven by --mac-splitview-primary, which
+   SplitView writes; the secondary pane takes whatever is left. */
+
+.mac-splitview {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    /* Initial share before the constructor writes the real value. */
+    --mac-splitview-primary: 50%;
+}
+
+.mac-splitview--horizontal {
+    flex-direction: row;
+}
+
+.mac-splitview--vertical {
+    flex-direction: column;
+}
+
+/* `min-width/height: 0` is what lets a pane shrink below its content's
+   intrinsic size; without it a long line of text would jam the divider. */
+.mac-splitview__pane {
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* `flex: 0 0 auto` plus an explicit basis: the primary pane is sized, never
+   grown or shrunk by its content. */
+.mac-splitview__pane--primary {
+    flex: 0 0 auto;
+    flex-basis: var(--mac-splitview-primary);
+}
+
+/* The remainder. `flex: 1 1 0` (not `auto`) makes the trailing pane ignore its
+   content width, so a wide table inside it cannot push the divider around. */
+.mac-splitview__pane--secondary {
+    flex: 1 1 0;
+}
+
+/* --- Divider -------------------------------------------------------------- */
+
+/* The visible rule is a pseudo-element; the hit area is the full-width strip,
+   because a 1px line is impossible to grab with a mouse. 11px at scale 1 is
+   the AppKit splitter thickness. */
+.mac-splitview__divider {
+    position: relative;
+    flex: 0 0 auto;
+    background: transparent;
+    user-select: none;
+    touch-action: none;
+    transition: background-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-splitview--horizontal > .mac-splitview__divider {
+    width: calc(var(--mac-space-2) + var(--mac-hairline) * 3);
+    cursor: col-resize;
+}
+
+.mac-splitview--vertical > .mac-splitview__divider {
+    height: calc(var(--mac-space-2) + var(--mac-hairline) * 3);
+    cursor: row-resize;
+}
+
+.mac-splitview__divider::before {
+    content: "";
+    position: absolute;
+    background: var(--mac-separator);
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        transform var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-splitview--horizontal > .mac-splitview__divider::before {
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: var(--mac-hairline);
+    transform: translateX(-50%);
+}
+
+.mac-splitview--vertical > .mac-splitview__divider::before {
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: var(--mac-hairline);
+    transform: translateY(-50%);
+}
+
+/* Hover and drag thicken the rule from 1px to 3px — a transform on a 3px-wide
+   box, so the animation stays on the compositor and never re-lays-out. */
+.mac-splitview__divider:hover::before,
+.mac-splitview.is-dragging .mac-splitview__divider::before {
+    background: var(--mac-accent);
+}
+
+.mac-splitview--horizontal > .mac-splitview__divider:hover::before,
+.mac-splitview--horizontal.is-dragging .mac-splitview__divider::before {
+    transform: translateX(-50%) scaleX(3);
+}
+
+.mac-splitview--vertical > .mac-splitview__divider:hover::before,
+.mac-splitview--vertical.is-dragging .mac-splitview__divider::before {
+    transform: translateY(-50%) scaleY(3);
+}
+
+.mac-splitview__divider:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    /* Pulled inside the strip so the ring is not clipped by the panes. */
+    outline-offset: calc(var(--mac-hairline) * -2);
+}
+
+/* While dragging, the cursor must hold its shape even when the pointer leaves
+   the divider, and stray text selection must not start under the drag. Pointer
+   capture already routes the moves to the divider; this stops the panes from
+   showing hover feedback mid-gesture. */
+.mac-splitview.is-dragging {
+    user-select: none;
+}
+
+.mac-splitview.is-dragging .mac-splitview__pane {
+    pointer-events: none;
+}
+
+/* --- Coarse pointers ------------------------------------------------------ */
+
+/* 44px is Apple's minimum tap target: a platform constant, not a design step. */
+@media (pointer: coarse) {
+    .mac-splitview--horizontal > .mac-splitview__divider {
+        width: 44px;
+    }
+
+    .mac-splitview--vertical > .mac-splitview__divider {
+        height: 44px;
+    }
+}

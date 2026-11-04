@@ -1,0 +1,54 @@
+/* =============================================================================
+   Cross-platform font normalisation.
+
+   The single biggest visual gap between Windows and macOS is text rendering:
+   WKWebView draws SF Pro with Core Text, WebView2 draws Segoe UI with
+   DirectWrite. Structure and colour match; the glyphs do not.
+
+   Apple's SF Pro cannot be redistributed, so the closest legal substitute is
+   Inter — the typeface explicitly designed as an SF-alike, and shipped here
+   under the SIL Open Font License (see "Inter Font License.txt").
+
+   Strategy:
+   - macOS/iOS keep the real system font; SF is already there, so we only add
+     Inter as a later fallback.
+   - Windows/Linux put Inter first, so both platforms draw near-identical
+     glyphs. Inter is only downloaded for those platforms via unicode-range
+     style @font-face with `local()` first: no network cost when installed.
+   ========================================================================== */
+
+@font-face {
+    font-family: "Inter Fallback";
+    src:
+        local("Inter Medium"),
+        local("Inter"),
+        url("/Inter-Medium.ttf") format("truetype");
+    font-weight: 400 600;
+    font-style: normal;
+    /* swap: draw with the fallback immediately, swap in Inter when ready, so a
+       slow font never blocks the first paint of a desktop window. */
+    font-display: swap;
+}
+
+:root {
+    /* One stack for every platform. On macOS the first family wins (SF Pro via
+       -apple-system), so mac users see the genuine system font. Everywhere else
+       those entries miss and "Inter Fallback" supplies the same shapes. */
+    --mac-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter Fallback",
+        "Segoe UI", "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+
+    /* Metrics normalisation: Inter and SF Pro differ slightly in x-height, so a
+       couple of optical corrections keep line boxes identical across platforms. */
+    --mac-letter-spacing: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Optical corrections so the same font-size produces the same visual weight on
+   every platform. WebKit renders slightly lighter than Chromium at equal size. */
+@supports (-webkit-touch-callout: none) {
+    :root {
+        --mac-letter-spacing: 0.006em;
+    }
+}

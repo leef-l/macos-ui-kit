@@ -1,0 +1,25 @@
+# Wails build artefacts
+.task
+.wails
+bin
+build/bin
+
+# Frontend build output and dependencies
+frontend/dist
+frontend/node_modules
+frontend/dist-smoke
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.syso
+
+# Editor and OS noise
+.DS_Store
+Thumbs.db
+.idea
+.vscode
+*.swp

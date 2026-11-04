@@ -1,0 +1,120 @@
+/* macOS text field: label, bordered control, optional leading icon and clear. */
+
+.mac-textfield {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-1);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+}
+
+.mac-textfield__label {
+    font-size: var(--mac-text-small);
+    font-weight: var(--mac-weight-medium);
+    color: var(--mac-text-secondary);
+}
+
+/* The border and background live on the wrapper so the leading icon and the
+   clear button sit inside the same box, and the input itself stays a bare
+   native field with no chrome of its own. */
+.mac-textfield__control {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    height: var(--mac-control-height);
+    padding: 0 var(--mac-space-2);
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-m);
+    background: var(--mac-bg-input);
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        border-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-textfield__control:hover {
+    border-color: var(--mac-border-strong);
+}
+
+/* Focus is shown on the wrapper, because the input has no chrome of its own.
+   The ring is keyboard-only: `:has(:focus-visible)` keeps mouse clicks quiet,
+   and engines without :has() simply fall back to the accent border below. */
+.mac-textfield__control:focus-within {
+    border-color: var(--mac-accent);
+}
+
+.mac-textfield__control:has(:focus-visible) {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 1px;
+}
+
+.mac-textfield__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--mac-text);
+    font-family: inherit;
+    font-size: var(--mac-text-body);
+    line-height: 1;
+    outline: none;
+}
+
+.mac-textfield__input::placeholder {
+    color: var(--mac-text-tertiary);
+}
+
+.mac-textfield__input:read-only {
+    color: var(--mac-text-secondary);
+}
+
+.mac-textfield__icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: var(--mac-icon-sm);
+    height: var(--mac-icon-sm);
+    color: var(--mac-text-tertiary);
+}
+
+/* Clear button: only mounted when `clearable`, only visible while there is
+   text to clear. */
+.mac-textfield__clear {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: var(--mac-icon-md);
+    height: var(--mac-icon-md);
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--mac-bg-active);
+    color: var(--mac-text-secondary);
+    cursor: default;
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-textfield__clear[hidden] {
+    display: none;
+}
+
+.mac-textfield__clear:hover {
+    background: var(--mac-bg-hover);
+    color: var(--mac-text);
+}
+
+.mac-textfield__clear:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 1px;
+}
+
+/* Disabled: the native attribute does the blocking, this only dims it. */
+.mac-textfield.is-disabled .mac-textfield__control {
+    opacity: 0.45;
+}
+
+.mac-textfield.is-disabled .mac-textfield__label {
+    opacity: 0.6;
+}

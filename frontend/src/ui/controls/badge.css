@@ -1,0 +1,51 @@
+/* macOS badge: a small pill for tags, counts and states. */
+
+.mac-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--mac-space-1);
+    height: calc(var(--mac-control-height-s) - var(--mac-space-1));
+    padding: 0 var(--mac-space-2);
+    border-radius: var(--mac-radius-s);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-small);
+    font-weight: var(--mac-weight-medium);
+    line-height: 1;
+    white-space: nowrap;
+    vertical-align: middle;
+    user-select: none;
+}
+
+/* Neutral is the default and is deliberately the quietest treatment. */
+.mac-badge,
+.mac-badge--default {
+    background: var(--mac-bg-hover);
+    color: var(--mac-text-secondary);
+}
+
+/* Accent has a dedicated soft token, so it needs no mixing. */
+.mac-badge--accent {
+    background: var(--mac-accent-soft);
+    color: var(--mac-accent);
+}
+
+/* The other system colours have no soft variant in the token set, so the tint
+   is mixed from the colour itself. The first declaration is the fallback for
+   an engine without color-mix(); the second wins wherever it is supported. */
+.mac-badge--success {
+    color: var(--mac-success);
+    background: var(--mac-bg-hover);
+    background: color-mix(in srgb, var(--mac-success) 20%, transparent);
+}
+
+.mac-badge--warning {
+    color: var(--mac-warning);
+    background: var(--mac-bg-hover);
+    background: color-mix(in srgb, var(--mac-warning) 20%, transparent);
+}
+
+.mac-badge--danger {
+    color: var(--mac-danger);
+    background: var(--mac-bg-hover);
+    background: color-mix(in srgb, var(--mac-danger) 20%, transparent);
+}

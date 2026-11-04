@@ -1,0 +1,460 @@
+/* =============================================================================
+   macOS UI Kit — tokens (two layers)
+
+   LAYER 1  BASE        Raw values. Appearance-independent. Not for components.
+   LAYER 2  SEMANTIC    Purpose names. Switches with appearance. Components read
+                        only these.
+
+   A component must never reference a base token directly: doing so would tie it
+   to one appearance and break theme overrides. The indirection is what lets a
+   third-party theme ship 3 overrides instead of 60.
+
+   Sizing: every scalable dimension is expressed as a base value times
+   --mac-scale, so one number resizes the whole kit (see §3 of DESIGN-v2.md).
+   ========================================================================== */
+
+:root {
+    /* =========================================================================
+       LAYER 1 — BASE: palette
+
+       Apple's system colours for the two appearances. Dark and light use
+       different hex values for the *same* semantic colour (Apple does this too:
+       #0a84ff in dark, #007aff in light — the lighter variant reads better on a
+       dark surface).
+       ========================================================================= */
+
+    /* Neutrals — a single ramp both appearances draw from. */
+    --mac-base-gray-950: #1e1e20;
+    --mac-base-gray-900: #252528;
+    --mac-base-gray-850: #2b2b2e;
+    --mac-base-gray-800: #333337;
+    --mac-base-gray-700: #3a3a3e;
+    --mac-base-gray-500: #8e8e93;
+    --mac-base-gray-300: #d4d4d8;
+    --mac-base-gray-200: #e4e4e8;
+    --mac-base-gray-150: #ececee;
+    --mac-base-gray-100: #f2f2f5;
+    --mac-base-white: #ffffff;
+    --mac-base-black: #000000;
+
+    /* Accents — dark variants are the "-D" set, light the "-L" set. */
+    --mac-base-blue-D: #0a84ff;
+    --mac-base-blue-L: #007aff;
+    --mac-base-green-D: #32d74b;
+    --mac-base-green-L: #34c759;
+    --mac-base-red-D: #ff453a;
+    --mac-base-red-L: #ff3b30;
+    --mac-base-orange-D: #ff9f0a;
+    --mac-base-orange-L: #ff9500;
+    --mac-base-yellow-D: #ffd60a;
+    --mac-base-yellow-L: #ffcc00;
+    --mac-base-purple-D: #bf5af2;
+    --mac-base-purple-L: #af52de;
+    --mac-base-pink-D: #ff375f;
+    --mac-base-pink-L: #ff2d55;
+    --mac-base-teal-D: #64d2ff;
+    --mac-base-teal-L: #30b0c7;
+
+    /* Traffic lights are identical in both appearances. */
+    --mac-base-traffic-close: #ff5f57;
+    --mac-base-traffic-minimise: #febc2e;
+    --mac-base-traffic-zoom: #28c840;
+    --mac-base-traffic-idle-D: #4a4a4d;
+    --mac-base-traffic-idle-L: #d4d4d8;
+
+    /* Alpha ramps for translucent surfaces (hover, dividers, borders). */
+    --mac-base-alpha-white-06: rgba(255, 255, 255, 0.06);
+    --mac-base-alpha-white-08: rgba(255, 255, 255, 0.08);
+    --mac-base-alpha-white-10: rgba(255, 255, 255, 0.10);
+    --mac-base-alpha-white-14: rgba(255, 255, 255, 0.14);
+    --mac-base-alpha-white-16: rgba(255, 255, 255, 0.16);
+    --mac-base-alpha-white-22: rgba(255, 255, 255, 0.22);
+    --mac-base-alpha-white-34: rgba(255, 255, 255, 0.34);
+    --mac-base-alpha-white-46: rgba(255, 255, 255, 0.46);
+    --mac-base-alpha-black-06: rgba(0, 0, 0, 0.06);
+    --mac-base-alpha-black-10: rgba(0, 0, 0, 0.10);
+    --mac-base-alpha-black-16: rgba(0, 0, 0, 0.16);
+    --mac-base-alpha-black-24: rgba(0, 0, 0, 0.24);
+    --mac-base-alpha-black-28: rgba(0, 0, 0, 0.28);
+    --mac-base-alpha-black-38: rgba(0, 0, 0, 0.38);
+    --mac-base-alpha-black-50: rgba(0, 0, 0, 0.50);
+    --mac-base-alpha-black-62: rgba(0, 0, 0, 0.62);
+
+    /* Text on dark and on light surfaces. */
+    --mac-base-text-dark-primary: rgba(255, 255, 255, 0.94);
+    --mac-base-text-dark-secondary: rgba(235, 235, 245, 0.62);
+    --mac-base-text-dark-tertiary: rgba(235, 235, 245, 0.40);
+    --mac-base-text-light-primary: rgba(0, 0, 0, 0.88);
+    --mac-base-text-light-secondary: rgba(60, 60, 67, 0.62);
+    --mac-base-text-light-tertiary: rgba(60, 60, 67, 0.40);
+
+    /* =========================================================================
+       LAYER 1 — BASE: scale
+
+       One factor drives every scalable dimension. Density presets below set it.
+       ========================================================================= */
+
+    --mac-scale: 1;
+
+    /* =========================================================================
+       LAYER 1 — BASE: typography
+
+       Apple's macOS type ramp. Line heights are paired so a platform whose
+       font has different default leading (Inter on Windows) still lays out the
+       same box.
+       ========================================================================= */
+
+    --mac-base-font-size-xl: calc(22px * var(--mac-scale));
+    --mac-base-font-size-lg: calc(15px * var(--mac-scale));
+    --mac-base-font-size-md: calc(13px * var(--mac-scale));
+    --mac-base-font-size-sm: calc(11px * var(--mac-scale));
+
+    --mac-base-line-height-tight: 1.15;
+    --mac-base-line-height-normal: 1.45;
+    --mac-base-line-height-loose: 1.55;
+
+    /* SF Pro tightens tracking as size grows; these keep that rhythm when the
+       fallback font is Inter. */
+    --mac-base-tracking-xl: -0.015em;
+    --mac-base-tracking-lg: -0.005em;
+    --mac-base-tracking-md: 0;
+    --mac-base-tracking-sm: 0.006em;
+
+    --mac-base-weight-regular: 400;
+    --mac-base-weight-medium: 500;
+    --mac-base-weight-semibold: 600;
+    --mac-base-weight-bold: 700;
+
+    /* SF Pro on Apple platforms, Inter elsewhere. SF Pro is Apple-licensed and
+       cannot legally ship with the app, so Inter (SIL OFL) stands in on
+       Windows/Linux — see fonts.css. */
+    --mac-base-font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Inter Fallback", "Segoe UI", "Helvetica Neue", "PingFang SC",
+        "Microsoft YaHei", sans-serif;
+    --mac-base-font-family-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo,
+        Consolas, monospace;
+
+    /* =========================================================================
+       LAYER 1 — BASE: spacing, radii, sizes, motion
+       ========================================================================= */
+
+    --mac-base-space-1: calc(4px * var(--mac-scale));
+    --mac-base-space-2: calc(8px * var(--mac-scale));
+    --mac-base-space-3: calc(12px * var(--mac-scale));
+    --mac-base-space-4: calc(16px * var(--mac-scale));
+    --mac-base-space-5: calc(20px * var(--mac-scale));
+    --mac-base-space-6: calc(24px * var(--mac-scale));
+    --mac-base-space-8: calc(32px * var(--mac-scale));
+
+    /* Radii scale, but stay pixel-snapped to avoid sub-pixel corner artefacts. */
+    --mac-base-radius-s: calc(5px * var(--mac-scale));
+    --mac-base-radius-m: calc(7px * var(--mac-scale));
+    --mac-base-radius-l: calc(10px * var(--mac-scale));
+    --mac-base-radius-xl: calc(12px * var(--mac-scale));
+
+    /* Control heights scale with the density factor. */
+    --mac-base-control-h-s: calc(22px * var(--mac-scale));
+    --mac-base-control-h-m: calc(28px * var(--mac-scale));
+    --mac-base-control-h-l: calc(34px * var(--mac-scale));
+    --mac-base-control-h-touch: 44px; /* Apple's minimum tap target. */
+
+    /* Icon sizes, tracking the type scale. */
+    --mac-base-icon-xs: calc(12px * var(--mac-scale));
+    --mac-base-icon-sm: calc(14px * var(--mac-scale));
+    --mac-base-icon-md: calc(16px * var(--mac-scale));
+    --mac-base-icon-lg: calc(22px * var(--mac-scale));
+
+    /* Component-specific sizes that are not part of the generic scale. */
+    --mac-base-row-h: calc(30px * var(--mac-scale));      /* source-list row */
+    --mac-base-dot-size: calc(7px * var(--mac-scale));    /* status dot */
+    --mac-base-traffic-size: calc(12px * var(--mac-scale)); /* window button */
+    --mac-base-tabbar-h: calc(50px * var(--mac-scale));   /* mobile tab bar */
+    --mac-base-track-thin: 4px;                           /* slider groove */
+    --mac-base-track-thick: 6px;                          /* progress bar */
+
+    /* A size below the type ramp: tab-bar captions and other dense labels. */
+    --mac-base-font-size-2xs: calc(10px * var(--mac-scale));
+
+    /* A 1px hairline is physical: it must not scale, or it blurs. */
+    --mac-base-hairline: 1px;
+
+    /* Frame dimensions. */
+    --mac-base-titlebar-h: calc(52px * var(--mac-scale));
+    --mac-base-statusbar-h: calc(26px * var(--mac-scale));
+    --mac-base-sidebar-w: calc(208px * var(--mac-scale));
+
+    --mac-base-duration-fast: 120ms;
+    --mac-base-duration: 180ms;
+    --mac-base-duration-slow: 260ms;
+    --mac-base-ease: cubic-bezier(0.32, 0.72, 0, 1);
+    --mac-base-ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* =============================================================================
+   LAYER 2 — SEMANTIC
+   ========================================================================== */
+
+:root,
+:root[data-appearance="dark"] {
+    /* --- Surfaces --------------------------------------------------------- */
+    --mac-bg-window: var(--mac-base-gray-950);
+    --mac-bg-titlebar: var(--mac-base-gray-850);
+    --mac-bg-sidebar: var(--mac-base-gray-900);
+    --mac-bg-content: var(--mac-base-gray-950);
+    --mac-bg-elevated: var(--mac-base-gray-800);
+    --mac-bg-input: var(--mac-base-alpha-white-08);
+    --mac-bg-hover: var(--mac-base-alpha-white-08);
+    --mac-bg-active: var(--mac-base-alpha-white-14);
+    --mac-bg-selected: var(--mac-base-blue-D);
+    --mac-bg-overlay: var(--mac-base-gray-700);
+
+    /* --- Borders and separators ------------------------------------------- */
+    --mac-border: var(--mac-base-alpha-white-10);
+    --mac-border-strong: var(--mac-base-alpha-white-16);
+    --mac-separator: var(--mac-base-alpha-white-08);
+
+    /* --- Text ------------------------------------------------------------- */
+    --mac-text-primary: var(--mac-base-text-dark-primary);
+    --mac-text-secondary: var(--mac-base-text-dark-secondary);
+    --mac-text-tertiary: var(--mac-base-text-dark-tertiary);
+    --mac-text-on-accent: var(--mac-base-white);
+
+    /* --- Accent and state ------------------------------------------------- */
+    --mac-accent: var(--mac-base-blue-D);
+    --mac-accent-soft: rgba(10, 132, 255, 0.22);
+    --mac-success: var(--mac-base-green-D);
+    --mac-warning: var(--mac-base-orange-D);
+    --mac-danger: var(--mac-base-red-D);
+
+    /* --- Traffic lights --------------------------------------------------- */
+    --mac-traffic-close: var(--mac-base-traffic-close);
+    --mac-traffic-minimise: var(--mac-base-traffic-minimise);
+    --mac-traffic-zoom: var(--mac-base-traffic-zoom);
+    --mac-traffic-idle: var(--mac-base-traffic-idle-D);
+    /* Glyph ink flips with the appearance instead of being hardcoded black. */
+    --mac-traffic-glyph: var(--mac-base-alpha-black-62);
+
+    /* --- Focus ring ------------------------------------------------------- */
+    --mac-focus-ring: rgba(10, 132, 255, 0.85);
+
+    /* --- Shadows ---------------------------------------------------------- */
+    --mac-shadow-popover: 0 10px 34px rgba(0, 0, 0, 0.46),
+        0 0 0 1px var(--mac-base-alpha-white-06);
+    --mac-shadow-sheet: 0 26px 70px rgba(0, 0, 0, 0.58);
+    --mac-shadow-control: 0 1px 3px var(--mac-base-alpha-black-24);
+
+    /* --- Scrim behind modal sheets --------------------------------------- */
+    --mac-scrim: var(--mac-base-alpha-black-28);
+
+    /* --- Scrollbars ------------------------------------------------------- */
+    --mac-scroll-thumb: var(--mac-base-alpha-white-22);
+    --mac-scroll-thumb-hover: var(--mac-base-alpha-white-34);
+    --mac-scroll-thumb-active: var(--mac-base-alpha-white-46);
+
+    /* --- Typography ------------------------------------------------------- */
+    --mac-font: var(--mac-base-font-family);
+    --mac-font-mono: var(--mac-base-font-family-mono);
+
+    --mac-text-xl: var(--mac-base-font-size-xl);
+    --mac-text-lg: var(--mac-base-font-size-lg);
+    --mac-text-md: var(--mac-base-font-size-md);
+    --mac-text-sm: var(--mac-base-font-size-sm);
+    --mac-text-2xs: var(--mac-base-font-size-2xs);
+
+    /* Aliases kept from v1 so existing components and app CSS keep working. */
+    --mac-text-large: var(--mac-text-xl);
+    --mac-text-title: var(--mac-text-lg);
+    --mac-text-body: var(--mac-text-md);
+    --mac-text-small: var(--mac-text-sm);
+    --mac-text: var(--mac-text-primary);
+
+    --mac-weight-regular: var(--mac-base-weight-regular);
+    --mac-weight-medium: var(--mac-base-weight-medium);
+    --mac-weight-semibold: var(--mac-base-weight-semibold);
+    --mac-weight-bold: var(--mac-base-weight-bold);
+
+    /* --- Spacing ---------------------------------------------------------- */
+    --mac-space-1: var(--mac-base-space-1);
+    --mac-space-2: var(--mac-base-space-2);
+    --mac-space-3: var(--mac-base-space-3);
+    --mac-space-4: var(--mac-base-space-4);
+    --mac-space-5: var(--mac-base-space-5);
+    --mac-space-6: var(--mac-base-space-6);
+    --mac-space-8: var(--mac-base-space-8);
+
+    /* --- Radii ------------------------------------------------------------ */
+    --mac-radius-s: var(--mac-base-radius-s);
+    --mac-radius-m: var(--mac-base-radius-m);
+    --mac-radius-l: var(--mac-base-radius-l);
+    --mac-radius-xl: var(--mac-base-radius-xl);
+
+    /* --- Control sizes ---------------------------------------------------- */
+    --mac-control-height-s: var(--mac-base-control-h-s);
+    --mac-control-height: var(--mac-base-control-h-m);
+    --mac-control-height-l: var(--mac-base-control-h-l);
+
+    --mac-icon-xs: var(--mac-base-icon-xs);
+    --mac-icon-sm: var(--mac-base-icon-sm);
+    --mac-icon-md: var(--mac-base-icon-md);
+    --mac-icon-lg: var(--mac-base-icon-lg);
+    --mac-hairline: var(--mac-base-hairline);
+
+    --mac-row-height: var(--mac-base-row-h);
+    --mac-dot-size: var(--mac-base-dot-size);
+    --mac-traffic-size: var(--mac-base-traffic-size);
+    --mac-tabbar-height: var(--mac-base-tabbar-h);
+    --mac-track-thin: var(--mac-base-track-thin);
+    --mac-track-thick: var(--mac-base-track-thick);
+
+    /* --- Frame ------------------------------------------------------------ */
+    --mac-titlebar-height: var(--mac-base-titlebar-h);
+    --mac-statusbar-height: var(--mac-base-statusbar-h);
+    --mac-sidebar-width: var(--mac-base-sidebar-w);
+
+    /* --- Motion ----------------------------------------------------------- */
+    --mac-duration-fast: var(--mac-base-duration-fast);
+    --mac-duration: var(--mac-base-duration);
+    --mac-duration-slow: var(--mac-base-duration-slow);
+    --mac-ease: var(--mac-base-ease);
+    --mac-ease-out: var(--mac-base-ease-out);
+
+    color-scheme: dark;
+}
+
+:root[data-appearance="light"] {
+    --mac-bg-window: var(--mac-base-gray-150);
+    --mac-bg-titlebar: var(--mac-base-gray-100);
+    --mac-bg-sidebar: var(--mac-base-gray-200);
+    --mac-bg-content: var(--mac-base-white);
+    --mac-bg-elevated: var(--mac-base-white);
+    --mac-bg-input: rgba(0, 0, 0, 0.05);
+    --mac-bg-hover: rgba(0, 0, 0, 0.055);
+    --mac-bg-active: rgba(0, 0, 0, 0.10);
+    --mac-bg-selected: var(--mac-base-blue-L);
+    --mac-bg-overlay: rgba(250, 250, 252, 0.99);
+
+    --mac-border: var(--mac-base-alpha-black-10);
+    --mac-border-strong: var(--mac-base-alpha-black-16);
+    --mac-separator: rgba(0, 0, 0, 0.08);
+
+    --mac-text-primary: var(--mac-base-text-light-primary);
+    --mac-text-secondary: var(--mac-base-text-light-secondary);
+    --mac-text-tertiary: var(--mac-base-text-light-tertiary);
+    --mac-text-on-accent: var(--mac-base-white);
+
+    --mac-accent: var(--mac-base-blue-L);
+    --mac-accent-soft: rgba(0, 122, 255, 0.16);
+    --mac-success: var(--mac-base-green-L);
+    --mac-warning: var(--mac-base-orange-L);
+    --mac-danger: var(--mac-base-red-L);
+
+    --mac-traffic-close: var(--mac-base-traffic-close);
+    --mac-traffic-minimise: var(--mac-base-traffic-minimise);
+    --mac-traffic-zoom: var(--mac-base-traffic-zoom);
+    --mac-traffic-idle: var(--mac-base-traffic-idle-L);
+    --mac-traffic-glyph: var(--mac-base-alpha-black-62);
+
+    --mac-focus-ring: rgba(0, 122, 255, 0.80);
+
+    --mac-shadow-popover: 0 10px 34px rgba(0, 0, 0, 0.16),
+        0 0 0 1px var(--mac-base-alpha-black-06);
+    --mac-shadow-sheet: 0 26px 70px rgba(0, 0, 0, 0.22);
+    --mac-shadow-control: 0 1px 3px var(--mac-base-alpha-black-16);
+
+    --mac-scrim: var(--mac-base-alpha-black-16);
+
+    --mac-scroll-thumb: var(--mac-base-alpha-black-24);
+    --mac-scroll-thumb-hover: var(--mac-base-alpha-black-38);
+    --mac-scroll-thumb-active: var(--mac-base-alpha-black-50);
+
+    color-scheme: light;
+}
+
+/* =============================================================================
+   High-contrast themes
+
+   Only the tokens that need to change are overridden: stronger borders, opaque
+   text, and a swappable accent. Everything else inherits from its appearance,
+   which is the payoff of the two-layer split.
+   ========================================================================== */
+
+:root[data-theme="hc-dark"] {
+    --mac-border: rgba(255, 255, 255, 0.34);
+    --mac-border-strong: rgba(255, 255, 255, 0.52);
+    --mac-separator: rgba(255, 255, 255, 0.28);
+    --mac-text-secondary: rgba(255, 255, 255, 0.84);
+    --mac-text-tertiary: rgba(255, 255, 255, 0.62);
+    --mac-focus-ring: rgba(120, 190, 255, 1);
+}
+
+:root[data-theme="hc-light"] {
+    --mac-border: rgba(0, 0, 0, 0.38);
+    --mac-border-strong: rgba(0, 0, 0, 0.58);
+    --mac-separator: rgba(0, 0, 0, 0.30);
+    --mac-text-secondary: rgba(0, 0, 0, 0.82);
+    --mac-text-tertiary: rgba(0, 0, 0, 0.58);
+    --mac-focus-ring: rgba(0, 90, 200, 1);
+}
+
+/* =============================================================================
+   Density presets — each just moves --mac-scale.
+   ========================================================================== */
+
+:root[data-density="compact"] {
+    --mac-scale: 0.92;
+}
+
+:root[data-density="comfortable"] {
+    --mac-scale: 1;
+}
+
+:root[data-density="touch"] {
+    --mac-scale: 1.2;
+}
+
+/* Touch devices get the roomier density by default, but an explicit
+   data-density always wins — hence :not(). */
+@media (pointer: coarse) {
+    :root:not([data-density]) {
+        --mac-scale: 1.15;
+    }
+}
+
+/* Respect the user's reduced-motion setting, as Apple does. */
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --mac-duration-fast: 0ms;
+        --mac-duration: 0ms;
+        --mac-duration-slow: 0ms;
+    }
+}
+
+/* =============================================================================
+   v1 compatibility aliases
+
+   v1 exposed unprefixed accent names (--mac-blue, --mac-green, …). A few
+   component stylesheets and downstream app CSS may still reference them, so
+   they are kept as aliases of the semantic tokens rather than removed. They
+   are defined per appearance via the semantic layer, so an alias always
+   resolves to the correct colour for the active theme.
+   ========================================================================== */
+
+:root,
+:root[data-appearance="dark"] {
+    --mac-blue: var(--mac-accent);
+    --mac-green: var(--mac-success);
+    --mac-red: var(--mac-danger);
+    --mac-orange: var(--mac-warning);
+    --mac-yellow: var(--mac-base-yellow-D);
+    --mac-purple: var(--mac-base-purple-D);
+    --mac-pink: var(--mac-base-pink-D);
+    --mac-teal: var(--mac-base-teal-D);
+    --mac-gray: var(--mac-text-tertiary);
+}
+
+:root[data-appearance="light"] {
+    --mac-yellow: var(--mac-base-yellow-L);
+    --mac-purple: var(--mac-base-purple-L);
+    --mac-pink: var(--mac-base-pink-L);
+    --mac-teal: var(--mac-base-teal-L);
+}

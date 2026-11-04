@@ -1,0 +1,136 @@
+/* macOS source-list sidebar. */
+
+.mac-sidebar {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 var(--mac-sidebar-width);
+    gap: var(--mac-space-3);
+    padding: var(--mac-space-3) var(--mac-space-2) var(--mac-space-3);
+    background: var(--mac-bg-sidebar);
+    border-right: 1px solid var(--mac-border);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    transition:
+        flex-basis var(--mac-duration) var(--mac-ease),
+        opacity var(--mac-duration-fast) var(--mac-ease),
+        padding var(--mac-duration) var(--mac-ease);
+}
+
+/* Collapsed: the width goes to zero and the content pane takes the space. */
+.mac-sidebar.is-collapsed {
+    flex-basis: 0;
+    padding-left: 0;
+    padding-right: 0;
+    opacity: 0;
+    overflow: hidden;
+    border-right-color: transparent;
+    pointer-events: none;
+}
+
+.mac-sidebar__group {
+    display: flex;
+    flex-direction: column;
+    gap: calc(2px * var(--mac-scale));
+}
+
+.mac-sidebar__spacer {
+    flex: 1 1 auto;
+    min-height: var(--mac-space-2);
+}
+
+/* Section heading above a group, like "Favorites" in Finder. */
+.mac-sidebar__heading {
+    padding: var(--mac-space-1) var(--mac-space-2);
+    font-size: var(--mac-text-small);
+    font-weight: var(--mac-weight-semibold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--mac-text-tertiary);
+    user-select: none;
+}
+
+.mac-sidebar__item {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    height: var(--mac-row-height);
+    padding: 0 var(--mac-space-2);
+    border: none;
+    border-radius: var(--mac-radius-m);
+    background: transparent;
+    color: var(--mac-text-secondary);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    font-weight: var(--mac-weight-medium);
+    text-align: left;
+    cursor: default;
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-sidebar__item svg {
+    width: var(--mac-icon-md);
+    height: var(--mac-icon-md);
+    flex: 0 0 auto;
+    opacity: 0.9;
+}
+
+.mac-sidebar__item span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.mac-sidebar__item:hover:not(.is-selected):not(:disabled) {
+    background: var(--mac-bg-hover);
+    color: var(--mac-text);
+}
+
+.mac-sidebar__item.is-selected {
+    background: var(--mac-bg-selected);
+    color: var(--mac-text-on-accent);
+}
+.mac-sidebar__item.is-selected svg {
+    opacity: 1;
+}
+
+.mac-sidebar__item:focus-visible {
+    outline: 2px solid var(--mac-focus-ring);
+    outline-offset: -1px;
+}
+.mac-sidebar__item.is-selected:focus-visible {
+    outline-color: var(--mac-text-on-accent);
+}
+
+/* Optional trailing count, like the number in a Mail mailbox. */
+.mac-sidebar__count {
+    margin-left: auto;
+    flex: 0 0 auto;
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-tertiary);
+    font-variant-numeric: tabular-nums;
+}
+.mac-sidebar__item.is-selected .mac-sidebar__count {
+    color: var(--mac-text-on-accent);
+    opacity: 0.85;
+}
+
+/* Narrow windows turn the sidebar into an overlay over the content. */
+@media (max-width: 680px) {
+    .mac-sidebar {
+        position: absolute;
+        top: var(--mac-titlebar-height);
+        bottom: var(--mac-statusbar-height);
+        left: 0;
+        z-index: 30;
+        box-shadow: var(--mac-shadow-popover);
+    }
+    .mac-sidebar.is-collapsed {
+        transform: translateX(-100%);
+        box-shadow: none;
+    }
+}
+
+

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <link rel="icon" type="image/svg+xml" href="/wails.png"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+    <title>myapp</title>
+</head>
+<body>
+<!-- The shell is built entirely by src/main.ts from the macOS UI kit, so the
+     document only needs an empty mount point. Keeping the markup out of here
+     means the desktop and mobile shells can share one entry document. -->
+<div id="app"></div>
+
+<!-- Base document styles and the app-level layout that sits under the kit. -->
+<link rel="stylesheet" href="/style.css"/>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

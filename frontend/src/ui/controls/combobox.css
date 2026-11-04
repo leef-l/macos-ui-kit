@@ -1,0 +1,183 @@
+/* macOS combo box: a text field plus an in-flow suggestion list.
+   The list is absolutely positioned inside the component box (not portalled),
+   so it inherits the field's width and needs no repositioning on scroll. */
+
+.mac-combobox {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-m);
+    background: var(--mac-bg-input);
+    color: var(--mac-text);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        border-color var(--mac-duration-fast) var(--mac-ease),
+        box-shadow var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-combobox:hover {
+    border-color: var(--mac-border-strong);
+}
+
+/* The focus treatment sits on the wrapper because the input has no chrome of
+   its own; `:has(:focus-visible)` keeps mouse clicks quiet, and engines
+   without :has() fall back to the accent border below. */
+.mac-combobox:focus-within {
+    border-color: var(--mac-accent);
+}
+
+.mac-combobox:has(.mac-combobox__input:focus-visible) {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: var(--mac-hairline);
+}
+
+/* Open: the field and the list must read as one control. */
+.mac-combobox:has(.mac-combobox__input[aria-expanded="true"]) {
+    border-color: var(--mac-accent);
+}
+
+.mac-combobox__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: var(--mac-control-height);
+    padding: 0 var(--mac-space-2);
+    /* Room for the chevron so a long value never runs under it. */
+    padding-right: calc(var(--mac-space-5) + var(--mac-space-1));
+    border: none;
+    border-radius: var(--mac-radius-m);
+    background: transparent;
+    color: var(--mac-text);
+    font-family: inherit;
+    font-size: inherit;
+    line-height: 1;
+    outline: none;
+}
+
+.mac-combobox__input::placeholder {
+    color: var(--mac-text-tertiary);
+}
+
+/* Decorative, and it must never intercept a click meant for the field. */
+.mac-combobox__chevron {
+    position: absolute;
+    right: var(--mac-space-2);
+    top: 50%;
+    display: inline-flex;
+    width: var(--mac-icon-xs);
+    height: var(--mac-icon-xs);
+    color: var(--mac-text-tertiary);
+    pointer-events: none;
+    transform: translateY(-50%);
+    transition: transform var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-combobox:has(.mac-combobox__input[aria-expanded="true"]) .mac-combobox__chevron {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* --- List ----------------------------------------------------------------- */
+
+/* Anchored below the field, matching its width. The max height is a scroll cap
+   (eight rows), not a design size, so it is expressed in token steps. */
+.mac-combobox__list {
+    position: absolute;
+    top: calc(100% + var(--mac-space-1));
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(
+        var(--mac-control-height) * 8 + var(--mac-space-1) * 2 + var(--mac-hairline) * 2
+    );
+    overflow-y: auto;
+    padding: var(--mac-space-1);
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-m);
+    background: var(--mac-bg-elevated);
+    box-shadow: var(--mac-shadow-popover);
+    -webkit-overflow-scrolling: touch;
+    /* Opening is a transform + opacity only, so it stays on the compositor. */
+    transform-origin: top center;
+    animation: mac-combobox-open var(--mac-duration-fast) var(--mac-ease);
+}
+
+/* `hidden` is also enforced against the `display: flex` above: a user-agent
+   `display: none` loses to any author declaration, so the state is restated. */
+.mac-combobox__list[hidden] {
+    display: none;
+}
+
+@keyframes mac-combobox-open {
+    from {
+        opacity: 0;
+        transform: translateY(calc(var(--mac-space-1) * -1)) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.mac-combobox__option {
+    flex: 0 0 auto;
+    padding: var(--mac-space-1) var(--mac-space-2);
+    border-radius: var(--mac-radius-s);
+    color: var(--mac-text);
+    /* List rows get a touch more leading than the single-line field, so a
+       two-word suggestion still reads as a row rather than a paragraph. */
+    line-height: 1.45;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: default;
+    /* Highlight is part of a list, not the page: no text selection on drag. */
+    user-select: none;
+}
+
+.mac-combobox__option.is-active {
+    background: var(--mac-accent-soft);
+}
+
+.mac-combobox__option[aria-selected="true"] {
+    color: var(--mac-accent);
+    font-weight: var(--mac-weight-medium);
+}
+
+.mac-combobox__option[aria-selected="true"].is-active {
+    color: var(--mac-text);
+}
+
+/* Empty filter result: the list element is hidden by the component, so there is
+   no separate "no results" row to style. */
+
+/* --- Coarse pointers ------------------------------------------------------ */
+
+/* 44px is Apple's minimum tap target: a platform constant, not a design step,
+   so it is spelled out instead of being derived from --mac-scale. */
+@media (pointer: coarse) {
+    .mac-combobox__input {
+        height: 44px;
+    }
+
+    .mac-combobox__option {
+        padding-top: var(--mac-space-2);
+        padding-bottom: var(--mac-space-2);
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+}
+
+/* Mobile Safari zooms the page when a focused input is under 16px; the token
+   type scale tops out below that by design, so the field is lifted here. The
+   1rem floor is the browser's own no-zoom threshold, not a design value. */
+@media (pointer: coarse) {
+    .mac-combobox__input {
+        font-size: max(var(--mac-text-body), 1rem);
+    }
+}

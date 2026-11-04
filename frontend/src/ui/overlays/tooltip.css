@@ -1,0 +1,28 @@
+/* macOS tooltip: a small dark bubble with a pointer. */
+
+.mac-tooltip {
+    position: fixed;
+    z-index: 1200;
+    max-width: calc(var(--mac-space-5) * 13);
+    padding: var(--mac-space-1) var(--mac-space-2);
+    border-radius: var(--mac-radius-s);
+    background: var(--mac-bg-overlay);
+    box-shadow: var(--mac-shadow-popover);
+    color: var(--mac-text);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-small);
+    line-height: 1.35;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(calc(var(--mac-hairline) * 2));
+    transition:
+        opacity var(--mac-duration-fast) var(--mac-ease),
+        transform var(--mac-duration-fast) var(--mac-ease);
+    pointer-events: none;
+    --wails-draggable: no-drag;
+}
+
+.mac-tooltip.is-open {
+    opacity: 1;
+    transform: translateY(0);
+}

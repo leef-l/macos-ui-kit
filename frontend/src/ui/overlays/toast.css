@@ -1,0 +1,61 @@
+/* macOS notification-style toast, stacked in the top-right corner. */
+
+.mac-toast-stack {
+    position: fixed;
+    top: calc(var(--mac-titlebar-height) + var(--mac-space-2));
+    right: var(--mac-space-4);
+    z-index: 1300;
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-2);
+    align-items: flex-end;
+    pointer-events: none;
+    --wails-draggable: no-drag;
+}
+
+.mac-toast {
+    display: flex;
+    flex-direction: column;
+    gap: calc(2px * var(--mac-scale));
+    min-width: calc(var(--mac-space-5) * 10);
+    max-width: min(70vw, 380px);
+    padding: var(--mac-space-2) var(--mac-space-3);
+    border-radius: var(--mac-radius-l);
+    background: var(--mac-bg-overlay);
+    box-shadow: var(--mac-shadow-popover);
+    color: var(--mac-text);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    line-height: 1.45;
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+    transition:
+        opacity var(--mac-duration) var(--mac-ease),
+        transform var(--mac-duration) var(--mac-ease);
+    pointer-events: auto;
+}
+
+.mac-toast.is-open {
+    opacity: 1;
+    transform: none;
+}
+
+/* A left accent bar communicates the variant without an extra icon. */
+.mac-toast--success {
+    border-left: 3px solid var(--mac-success);
+}
+.mac-toast--error {
+    border-left: 3px solid var(--mac-danger);
+}
+
+.mac-toast__message {
+    overflow-wrap: anywhere;
+}
+
+.mac-toast__detail {
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-secondary);
+    overflow-wrap: anywhere;
+}
+
+

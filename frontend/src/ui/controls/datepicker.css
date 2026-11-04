@@ -1,0 +1,146 @@
+/* macOS date picker: the native <input type="date"> in the kit's field chrome.
+   The platform keeps its calendar popup, segment editing and mobile picker; only
+   the appearance and a decorative trailing icon are ours. */
+
+.mac-datepicker {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-1);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+}
+
+.mac-datepicker__label {
+    font-size: var(--mac-text-small);
+    font-weight: var(--mac-weight-medium);
+    color: var(--mac-text-secondary);
+}
+
+/* Border and background live on the wrapper so the icon sits inside the same
+   box; the input itself keeps no chrome of its own. */
+.mac-datepicker__control {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    height: var(--mac-control-height);
+    padding: 0 var(--mac-space-2);
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-m);
+    background: var(--mac-bg-input);
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        border-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-datepicker__control:hover {
+    border-color: var(--mac-border-strong);
+}
+
+/* The wrapper owns the focus look because the input has no chrome of its own;
+   `:has(:focus-visible)` keeps a mouse click quiet. */
+.mac-datepicker__control:focus-within {
+    border-color: var(--mac-accent);
+}
+
+.mac-datepicker__control:has(.mac-datepicker__input:focus-visible) {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: var(--mac-hairline);
+}
+
+.mac-datepicker__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    /* Room for the icon, so a long format never sits underneath it. */
+    padding-right: calc(var(--mac-icon-md) + var(--mac-space-2));
+    border: none;
+    background: transparent;
+    color: var(--mac-text);
+    font-family: inherit;
+    font-size: inherit;
+    line-height: 1;
+    outline: none;
+    cursor: default;
+}
+
+/* WebKit draws its own calendar indicator; it stays clickable (that is the
+   native popup) but is made invisible so the SVG icon is the only glyph. It is
+   sized to the icon rather than stretched over the field, so clicking the date
+   segments still starts a segment edit instead of opening the calendar. */
+.mac-datepicker__input::-webkit-calendar-picker-indicator {
+    width: var(--mac-icon-md);
+    height: var(--mac-icon-md);
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: default;
+}
+
+/* Firefox has no indicator to hide; the input stays keyboard- and
+   segment-editable, and the decorative icon simply sits where a date's calendar
+   button would. */
+.mac-datepicker__input::-moz-calendar-picker-indicator {
+    opacity: 0;
+}
+
+/* The empty-state placeholders (`yyyy/mm/dd`) are drawn by the engine in the
+   input's own colour, which reads as an entered value; dim them instead. */
+.mac-datepicker__input::-webkit-datetime-edit-text,
+.mac-datepicker__input::-webkit-datetime-edit-year-field,
+.mac-datepicker__input::-webkit-datetime-edit-month-field,
+.mac-datepicker__input::-webkit-datetime-edit-day-field {
+    color: var(--mac-text);
+}
+
+.mac-datepicker__input:disabled {
+    opacity: 0.45;
+}
+
+/* Decorative only: the click must reach the native picker indicator layered
+   over the input, so this must never capture a pointer. */
+.mac-datepicker__icon {
+    position: absolute;
+    right: var(--mac-space-2);
+    top: 50%;
+    display: inline-flex;
+    width: var(--mac-icon-md);
+    height: var(--mac-icon-md);
+    color: var(--mac-text-secondary);
+    pointer-events: none;
+    transform: translateY(-50%);
+    transition: color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-datepicker__control:hover .mac-datepicker__icon {
+    color: var(--mac-text);
+}
+
+/* Disabled: the native attribute does the blocking, this only dims the chrome. */
+.mac-datepicker.is-disabled .mac-datepicker__control {
+    opacity: 0.45;
+}
+
+.mac-datepicker.is-disabled .mac-datepicker__label {
+    opacity: 0.6;
+}
+
+.mac-datepicker.is-disabled .mac-datepicker__icon {
+    color: var(--mac-text-tertiary);
+}
+
+/* --- Coarse pointers ------------------------------------------------------ */
+
+/* 44px is Apple's minimum tap target: a platform constant, not a design step. */
+@media (pointer: coarse) {
+    .mac-datepicker__control {
+        height: 44px;
+    }
+
+    /* iOS zooms the page when a focused field is under 16px; 1rem is the
+       browser's own threshold, not a design value. */
+    .mac-datepicker__input {
+        font-size: max(var(--mac-text-body), 1rem);
+    }
+}

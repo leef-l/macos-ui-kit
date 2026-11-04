@@ -1,0 +1,111 @@
+/* macOS pop-up menu / context menu. */
+
+.mac-menu {
+    position: fixed;
+    z-index: 1000;
+    min-width: calc(var(--mac-space-5) * 9);
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: var(--mac-space-1);
+    border-radius: var(--mac-radius-l);
+    background: var(--mac-bg-overlay);
+    box-shadow: var(--mac-shadow-popover);
+    /* Never let a menu push the window's scroll position around. */
+    overscroll-behavior: contain;
+    opacity: 0;
+    transform: scale(0.97);
+    transform-origin: top left;
+    transition:
+        opacity var(--mac-duration-fast) var(--mac-ease),
+        transform var(--mac-duration-fast) var(--mac-ease);
+    --wails-draggable: no-drag;
+}
+
+.mac-menu.is-open {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.mac-menu__item {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    width: 100%;
+    /* 26px at scale 1: one control height plus a spacing step. */
+    height: calc(var(--mac-control-height-s) + var(--mac-space-1));
+    padding: 0 var(--mac-space-2);
+    border: none;
+    border-radius: var(--mac-radius-s);
+    background: transparent;
+    color: var(--mac-text);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    text-align: left;
+    cursor: default;
+    transition: background-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-menu__item svg {
+    width: var(--mac-icon-sm);
+    height: var(--mac-icon-sm);
+    flex: 0 0 auto;
+    color: var(--mac-text-secondary);
+}
+
+/* The label flexes so the shortcut sits hard right. */
+.mac-menu__label {
+    flex: 1 1 auto;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.mac-menu__shortcut {
+    flex: 0 0 auto;
+    margin-left: var(--mac-space-4);
+    color: var(--mac-text-tertiary);
+    font-size: var(--mac-text-small);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Hover and keyboard highlight share one look, as on macOS. */
+.mac-menu__item:hover:not(:disabled),
+.mac-menu__item.is-highlighted {
+    background: var(--mac-accent);
+    color: var(--mac-text-on-accent);
+}
+.mac-menu__item:hover:not(:disabled) svg,
+.mac-menu__item.is-highlighted svg {
+    color: var(--mac-text-on-accent);
+}
+.mac-menu__item:hover:not(:disabled) .mac-menu__shortcut,
+.mac-menu__item.is-highlighted .mac-menu__shortcut {
+    color: var(--mac-text-on-accent);
+    opacity: 0.8;
+}
+
+.mac-menu__item:disabled {
+    opacity: 0.4;
+}
+
+.mac-menu__item:focus-visible {
+    outline: none;
+}
+
+.mac-menu__separator {
+    height: var(--mac-hairline);
+    margin: var(--mac-space-1) var(--mac-space-2);
+    background: var(--mac-separator);
+}
+
+/* The checkmark column, reserved so labels line up whether checked or not. */
+.mac-menu__check {
+    width: var(--mac-icon-sm);
+    height: var(--mac-icon-sm);
+    flex: 0 0 auto;
+    color: var(--mac-accent);
+}
+.mac-menu__item.is-highlighted .mac-menu__check,
+.mac-menu__item:hover:not(:disabled) .mac-menu__check {
+    color: var(--mac-text-on-accent);
+}

@@ -1,0 +1,82 @@
+/* macOS alert/sheet dialog. */
+
+.mac-dialog__scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--mac-space-6);
+    background: var(--mac-scrim);
+    opacity: 0;
+    transition: opacity var(--mac-duration) var(--mac-ease);
+}
+
+.mac-dialog__scrim.is-open {
+    opacity: 1;
+}
+
+.mac-dialog {
+    display: flex;
+    flex-direction: column;
+    width: min(420px, 100%);
+    max-height: min(80vh, 560px);
+    padding: var(--mac-space-5);
+    border-radius: var(--mac-radius-xl);
+    background: var(--mac-bg-overlay);
+    box-shadow: var(--mac-shadow-sheet);
+    color: var(--mac-text);
+    font-family: var(--mac-font);
+    /* Always render above the scrim's own stacking context. */
+    transform: scale(0.94);
+    opacity: 0;
+    transition:
+        opacity var(--mac-duration) var(--mac-ease),
+        transform var(--mac-duration) var(--mac-ease);
+}
+
+.mac-dialog__scrim.is-open .mac-dialog {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.mac-dialog__title {
+    margin: 0 0 var(--mac-space-2);
+    font-size: var(--mac-text-title);
+    font-weight: var(--mac-weight-semibold);
+    line-height: 1.3;
+    text-align: center;
+}
+
+.mac-dialog__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    margin-bottom: var(--mac-space-5);
+    color: var(--mac-text-secondary);
+    font-size: var(--mac-text-body);
+    line-height: 1.55;
+    text-align: center;
+}
+
+.mac-dialog__actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--mac-space-2);
+    flex: 0 0 auto;
+}
+
+/* Buttons in a dialog share the width, the macOS alert convention. */
+.mac-dialog__actions .mac-button {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+/* Escape hatch for tall content: let long bodies scroll on a phone. */
+@media (max-height: 480px) {
+    .mac-dialog {
+        max-height: 92vh;
+    }
+}
+

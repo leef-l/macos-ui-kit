@@ -1,0 +1,116 @@
+/* macOS slider: native range input restyled, with an optional value read-out. */
+
+.mac-slider {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-1);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    /* Filled share of the track, written by Slider.syncFill(). */
+    --mac-slider-value: 0%;
+}
+
+.mac-slider__label {
+    font-size: var(--mac-text-small);
+    font-weight: var(--mac-weight-medium);
+    color: var(--mac-text-secondary);
+}
+
+.mac-slider__control {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+}
+
+.mac-slider__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    /* 20px at scale 1 — the hit area sits between the two control heights, so
+       it is composed from spacing tokens rather than snapping to one. */
+    height: calc(var(--mac-space-4) + var(--mac-space-1));
+    margin: 0;
+    padding: 0;
+    border-radius: var(--mac-radius-s);
+    background: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: default;
+}
+
+/* WebKit: the track is a two-stop gradient, so the filled part follows
+   --mac-slider-value without a second element or a JS redraw. */
+.mac-slider__input::-webkit-slider-runnable-track {
+    height: var(--mac-track-thin);
+    border-radius: var(--mac-radius-s);
+    background: linear-gradient(
+        to right,
+        var(--mac-accent) 0,
+        var(--mac-accent) var(--mac-slider-value),
+        var(--mac-bg-active) var(--mac-slider-value),
+        var(--mac-bg-active) 100%
+    );
+}
+
+.mac-slider__input::-webkit-slider-thumb {
+    width: var(--mac-icon-sm);
+    height: var(--mac-icon-sm);
+    /* Centre the thumb on the track: (track - thumb) / 2. */
+    margin-top: calc((var(--mac-track-thin) - var(--mac-icon-sm)) / 2);
+    border: none;
+    border-radius: 50%;
+    background: var(--mac-text-on-accent);
+    box-shadow: var(--mac-shadow-control);
+    appearance: none;
+    -webkit-appearance: none;
+    transition: transform var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-slider__input:hover::-webkit-slider-thumb {
+    transform: scale(1.08);
+}
+
+.mac-slider__input:active::-webkit-slider-thumb {
+    transform: scale(0.96);
+}
+
+/* Firefox: the progress pseudo-element carries the filled part. */
+.mac-slider__input::-moz-range-track {
+    height: var(--mac-track-thin);
+    border-radius: var(--mac-radius-s);
+    background: var(--mac-bg-active);
+}
+
+.mac-slider__input::-moz-range-progress {
+    height: var(--mac-track-thin);
+    border-radius: var(--mac-radius-s);
+    background: var(--mac-accent);
+}
+
+.mac-slider__input::-moz-range-thumb {
+    width: var(--mac-icon-sm);
+    height: var(--mac-icon-sm);
+    border: none;
+    border-radius: 50%;
+    background: var(--mac-text-on-accent);
+    box-shadow: var(--mac-shadow-control);
+}
+
+/* The track cannot carry a readable ring on its own, so the ring wraps the
+   input box; keyboard-only, like every other control in the kit. */
+.mac-slider__input:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 2px;
+}
+
+.mac-slider.is-disabled .mac-slider__input {
+    opacity: 0.45;
+}
+
+.mac-slider__value {
+    flex: 0 0 auto;
+    min-width: 3ch;
+    text-align: right;
+    font-size: var(--mac-text-body);
+    font-variant-numeric: tabular-nums;
+    color: var(--mac-text-secondary);
+}

@@ -1,0 +1,164 @@
+/* =============================================================================
+   Component showcase.
+
+   A demo surface that renders every component in the kit with working
+   interaction. It is deliberately plain: the point is to inspect the components,
+   not to compete with them for attention.
+
+   Everything here reads the same semantic tokens as the kit, so the showcase
+   follows the active theme and density automatically — which is also what makes
+   it useful for checking those two systems.
+   ========================================================================== */
+
+.mac-showcase {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-6);
+}
+
+/* --- Toolbar strip: theme and density switches ---------------------------- */
+
+.mac-showcase__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--mac-space-4);
+    padding: var(--mac-space-3) var(--mac-space-4);
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-l);
+    background: var(--mac-bg-elevated);
+}
+
+.mac-showcase__control {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-1);
+}
+
+.mac-showcase__control-label {
+    font-size: var(--mac-text-sm);
+    font-weight: var(--mac-weight-medium);
+    color: var(--mac-text-secondary);
+}
+
+/* --- One section per component group ------------------------------------- */
+
+.mac-showcase__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-3);
+}
+
+.mac-showcase__heading {
+    display: flex;
+    align-items: baseline;
+    gap: var(--mac-space-2);
+    padding-bottom: var(--mac-space-2);
+    border-bottom: var(--mac-hairline) solid var(--mac-separator);
+}
+
+.mac-showcase__title {
+    margin: 0;
+    font-size: var(--mac-text-lg);
+    font-weight: var(--mac-weight-semibold);
+    color: var(--mac-text);
+}
+
+.mac-showcase__count {
+    font-size: var(--mac-text-sm);
+    color: var(--mac-text-tertiary);
+    font-variant-numeric: tabular-nums;
+}
+
+/* --- Individual component demo cells ------------------------------------- */
+
+/* Each demo is a card with a name and a live specimen. auto-fill keeps the grid
+   responsive on mobile without a media query. */
+.mac-showcase__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: var(--mac-space-3);
+}
+
+.mac-showcase__cell {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-2);
+    min-width: 0;
+    padding: var(--mac-space-3);
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-l);
+    background: var(--mac-bg-content);
+}
+
+/* Demos that need the full row width (table, split view, tab view). */
+.mac-showcase__cell--wide {
+    grid-column: 1 / -1;
+}
+
+.mac-showcase__name {
+    font-size: var(--mac-text-sm);
+    font-weight: var(--mac-weight-semibold);
+    color: var(--mac-text-secondary);
+    font-family: var(--mac-font-mono);
+}
+
+.mac-showcase__demo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--mac-space-2);
+    min-width: 0;
+}
+
+/* A live readout under an interactive demo, so state changes are observable. */
+.mac-showcase__state {
+    font-size: var(--mac-text-sm);
+    color: var(--mac-text-tertiary);
+    font-family: var(--mac-font-mono);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+
+/* Constrain the elements that would otherwise stretch the grid cell. */
+.mac-showcase__demo > .mac-textfield,
+.mac-showcase__demo > .mac-numberfield,
+.mac-showcase__demo > .mac-textarea,
+.mac-showcase__demo > .mac-select,
+.mac-showcase__demo > .mac-combobox,
+.mac-showcase__demo > .mac-datepicker {
+    flex: 1 1 10rem;
+    min-width: 0;
+}
+
+.mac-showcase__demo > .mac-slider {
+    flex: 1 1 12rem;
+    min-width: 0;
+}
+
+.mac-showcase__demo > .mac-splitview {
+    height: calc(var(--mac-control-height) * 5);
+    width: 100%;
+}
+
+.mac-showcase__demo > .mac-tabview {
+    width: 100%;
+}
+
+/* A neutral surface behind layout components so their borders are legible. */
+.mac-showcase__surface {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: calc(var(--mac-control-height) * 4);
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-m);
+    background: var(--mac-bg-elevated);
+    overflow: hidden;
+}
+
+.mac-showcase__surface-body {
+    padding: var(--mac-space-3);
+    color: var(--mac-text-secondary);
+    font-size: var(--mac-text-md);
+}

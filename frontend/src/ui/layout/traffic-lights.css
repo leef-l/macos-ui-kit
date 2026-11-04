@@ -1,0 +1,89 @@
+/* macOS traffic lights: the three window control buttons. */
+
+.mac-traffic-lights {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    flex: 0 0 auto;
+    /* The lights are clickable, so they must not swallow the window drag. */
+    --wails-draggable: no-drag;
+}
+
+.mac-traffic-light {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--mac-traffic-size);
+    height: var(--mac-traffic-size);
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--mac-traffic-idle);
+    cursor: default;
+    transition: background-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-traffic-light--close { background: var(--mac-traffic-close); }
+.mac-traffic-light--minimise { background: var(--mac-traffic-minimise); }
+.mac-traffic-light--zoom { background: var(--mac-traffic-zoom); }
+
+/* Glyphs stay hidden until the pointer enters the group, as on macOS. */
+.mac-traffic-light svg {
+    width: var(--mac-traffic-size);
+    height: var(--mac-traffic-size);
+    overflow: visible;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--mac-duration-fast) var(--mac-ease);
+}
+.mac-traffic-light svg path {
+    stroke: var(--mac-traffic-glyph);
+    stroke-width: 1.35;
+    stroke-linecap: round;
+    fill: none;
+}
+.mac-traffic-light--zoom svg path {
+    stroke: none;
+    fill: var(--mac-traffic-glyph);
+}
+
+.mac-traffic-lights:hover .mac-traffic-light svg,
+.mac-traffic-light:focus-visible svg {
+    opacity: 1;
+}
+
+.mac-traffic-light:active {
+    filter: brightness(0.85);
+}
+
+.mac-traffic-light:focus-visible {
+    outline: 2px solid var(--mac-focus-ring);
+    outline-offset: calc(2px * var(--mac-scale));
+}
+
+/* The zoom button shows the "enter" triangles normally and the "exit" pair
+   once the window is zoomed. */
+.mac-traffic-light__glyph--exit { display: none; }
+.mac-traffic-lights.is-zoomed .mac-traffic-light__glyph--enter { display: none; }
+.mac-traffic-lights.is-zoomed .mac-traffic-light__glyph--exit { display: block; }
+
+/* Unfocused windows grey the lights out, exactly like macOS. */
+.mac-traffic-lights.is-unfocused .mac-traffic-light {
+    background: var(--mac-traffic-idle);
+}
+
+/* But hovering an inactive window brings the colours back, which is what macOS
+   does: the lights stay grey only until the pointer reaches them. Without these
+   rules after the greying rule above, the specific `is-unfocused` selector would
+   win on specificity and the lights would stay grey under the pointer. */
+.mac-traffic-lights.is-unfocused .mac-traffic-light--close:hover {
+    background: var(--mac-traffic-close);
+}
+.mac-traffic-lights.is-unfocused .mac-traffic-light--minimise:hover {
+    background: var(--mac-traffic-minimise);
+}
+.mac-traffic-lights.is-unfocused .mac-traffic-light--zoom:hover {
+    background: var(--mac-traffic-zoom);
+}
+

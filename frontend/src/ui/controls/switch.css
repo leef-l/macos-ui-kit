@@ -1,0 +1,54 @@
+/* macOS switch: a 32x18 track with a white knob that travels on transform. */
+
+.mac-switch {
+    position: relative;
+    display: inline-block;
+    flex: 0 0 auto;
+    /* The track is twice the knob in each direction, so it is expressed from
+       the knob token rather than as its own literal. */
+    width: calc(var(--mac-icon-sm) * 2 + var(--mac-hairline) * 4);
+    height: calc(var(--mac-icon-sm) + var(--mac-hairline) * 4);
+    padding: 0;
+    border: none;
+    border-radius: calc((var(--mac-icon-sm) + var(--mac-hairline) * 4) / 2);
+    background: var(--mac-bg-active);
+    vertical-align: middle;
+    cursor: default;
+    transition:
+        background-color var(--mac-duration) var(--mac-ease),
+        opacity var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-switch[aria-checked="true"] {
+    background: var(--mac-accent);
+}
+
+/* The knob is placed once and then only transformed. Animating `left` or
+   `width` would relayout the control on every frame, which design rule 7
+   forbids; the 14px travel is 32 - 2 * inset - 14. */
+.mac-switch__knob {
+    position: absolute;
+    top: calc(var(--mac-hairline) * 2);
+    left: calc(var(--mac-hairline) * 2);
+    width: var(--mac-icon-sm);
+    height: var(--mac-icon-sm);
+    border-radius: 50%;
+    background: var(--mac-text-on-accent);
+    box-shadow: var(--mac-shadow-control);
+    transition: transform var(--mac-duration) var(--mac-ease);
+}
+
+.mac-switch[aria-checked="true"] .mac-switch__knob {
+    transform: translateX(var(--mac-icon-sm));
+}
+
+.mac-switch:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 2px;
+}
+
+/* Disabled: the attribute blocks activation, this only dims it. */
+.mac-switch:disabled {
+    opacity: 0.45;
+    cursor: default;
+}

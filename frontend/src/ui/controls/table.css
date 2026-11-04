@@ -1,0 +1,176 @@
+/* macOS data table.
+   A real <table> keeps header association and text selection; everything here
+   is presentation. Every dimension is derived from the token scale so the whole
+   grid resizes with --mac-scale. */
+
+.mac-table {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-m);
+    background: var(--mac-bg-content);
+    color: var(--mac-text);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    /* The rounded border must clip the scroller's content on the corners. */
+    overflow: hidden;
+}
+
+/* The horizontal scroller. Kept on its own element rather than on the table so
+   the table itself stays free to size to its content. */
+.mac-table__scroll {
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* `min-width: 100%` plus automatic layout gives the two behaviours a data grid
+   needs: a narrow table fills its container, a wide one overflows and scrolls
+   instead of squeezing its columns into unreadable slivers. */
+.mac-table__table {
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.mac-table__row {
+    transition: background-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+/* --- Header --------------------------------------------------------------- */
+
+.mac-table__th {
+    padding: var(--mac-space-1) var(--mac-space-3);
+    border-bottom: var(--mac-hairline) solid var(--mac-border);
+    background: var(--mac-bg-elevated);
+    color: var(--mac-text-secondary);
+    font-size: var(--mac-text-small);
+    font-weight: var(--mac-weight-semibold);
+    text-align: left;
+    white-space: nowrap;
+    user-select: none;
+}
+
+/* --- Body ----------------------------------------------------------------- */
+
+/* A floor on cell width (64px at scale 1) is what makes a multi-column table
+   overflow its scroller instead of collapsing columns onto each other. */
+.mac-table__cell {
+    min-width: calc(var(--mac-space-8) * 2);
+    padding: var(--mac-space-2) var(--mac-space-3);
+    border-bottom: var(--mac-hairline) solid var(--mac-separator);
+    color: var(--mac-text);
+    vertical-align: middle;
+    transition: background-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+/* Striped rows: the macOS source-list idiom, and it survives both appearances
+   because both colours come from the semantic layer. */
+.mac-table__row:nth-child(even) .mac-table__cell {
+    background: var(--mac-bg-hover);
+}
+
+.mac-table__row:hover .mac-table__cell {
+    background: var(--mac-bg-active);
+}
+
+/* Selection outranks hover and the zebra wash; the accent tint is what makes a
+   checkbox change read as a row-level action rather than a cell-level one. */
+.mac-table--selectable .mac-table__row.is-selected .mac-table__cell,
+.mac-table--selectable .mac-table__row.is-selected:hover .mac-table__cell {
+    background: var(--mac-accent-soft);
+}
+
+/* Last row: no trailing rule, the container border already closes the grid. */
+.mac-table__body > tr:last-child > .mac-table__cell {
+    border-bottom: none;
+}
+
+/* --- Alignment ------------------------------------------------------------ */
+
+.mac-table__align--center {
+    text-align: center;
+}
+
+.mac-table__align--right {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* --- Selection column ----------------------------------------------------- */
+
+/* Narrow, and padded to the same optical centre as the header label. */
+.mac-table__col--select,
+.mac-table__th--select,
+.mac-table__cell--select {
+    width: calc(var(--mac-space-8) + var(--mac-space-2));
+    padding-left: var(--mac-space-3);
+    padding-right: var(--mac-space-1);
+    text-align: center;
+}
+
+/* A native checkbox tinted with the accent instead of redrawn: the tick, the
+   mixed dash and the focus ring then come from the platform for free. */
+.mac-table__checkbox {
+    display: block;
+    width: var(--mac-icon-sm);
+    height: var(--mac-icon-sm);
+    margin: 0 auto;
+    accent-color: var(--mac-accent);
+    cursor: default;
+}
+
+.mac-table__checkbox:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: var(--mac-hairline);
+}
+
+.mac-table__checkbox:disabled {
+    opacity: 0.4;
+}
+
+/* --- Empty state ---------------------------------------------------------- */
+
+.mac-table__empty {
+    padding: var(--mac-space-6) var(--mac-space-3);
+    color: var(--mac-text-tertiary);
+    font-size: var(--mac-text-small);
+    text-align: center;
+}
+
+.mac-table__row--empty:hover .mac-table__cell {
+    background: transparent;
+}
+
+/* --- Coarse pointers ------------------------------------------------------ */
+
+/* 44px is Apple's minimum tap target: a platform constant, not a design step,
+   so it is spelled out rather than derived from --mac-scale. */
+@media (pointer: coarse) {
+    .mac-table__th,
+    .mac-table__cell {
+        /* Rows reach the 44px target through padding, because `min-height` has
+           no effect on a `display: table-cell` box. */
+        padding-top: var(--mac-space-3);
+        padding-bottom: var(--mac-space-3);
+    }
+
+    .mac-table__checkbox {
+        width: var(--mac-icon-md);
+        height: var(--mac-icon-md);
+    }
+}
+
+/* Zebra and hover are pointer affordances. On touch there is no hover to
+   preview, so only the selected tint survives. */
+@media (hover: none) {
+    .mac-table__row:hover .mac-table__cell {
+        background: inherit;
+    }
+
+    .mac-table--selectable .mac-table__row.is-selected .mac-table__cell {
+        background: var(--mac-accent-soft);
+    }
+}
