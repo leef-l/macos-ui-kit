@@ -175,6 +175,7 @@ frontend/
    ├─ main.ts            shell wiring: traffic lights, sidebar, events
    ├─ ui/                THE COMPONENT LIBRARY
    │  ├─ tokens.css        two-layer design tokens
+   │  ├─ base.css          global element rules ([hidden], .visually-hidden)
    │  ├─ theme.ts          runtime theme manager
    │  ├─ fonts.css         cross-platform font normalisation
    │  ├─ scrollbars.css    cross-platform scrollbar normalisation
@@ -189,6 +190,24 @@ frontend/
    ├─ showcase/          live component showcase
    └─ bindings/          GENERATED — do not edit
 ```
+
+### Where each component is used
+
+The demo application exercises the whole library rather than only showing it off
+in one gallery pane, because a component that is only ever rendered in a
+catalogue tends to be wrong in ways a catalogue cannot reveal:
+
+| Pane | Components it puts to work |
+|---|---|
+| Overview | `TextField`, `Button`, `ComboBox`, `TextArea`, `Menu`, `Tooltip`, `Badge` |
+| Greeting | the message history list, fed by the same controls as Overview |
+| Activity | `SegmentedControl`, `Table`, `Badge`, `Spinner`, `Progress`, `Button` |
+| Settings | `TabView`, `SegmentedControl`, `Slider`, `Checkbox`, `Switch`, `Select`, `NumberField`, `DatePicker`, `Disclosure`, `Dialog` |
+| Components | all 30 in the showcase, plus `Toolbar`, `SplitView`, `Popover`, `Sheet` in a composed inspector |
+
+`TrafficLights` is created by `TitleBar` rather than by application code, and
+`Toast` is raised through `showToast()`, so neither appears as a `new` call in
+`main.ts`.
 
 ---
 
@@ -206,6 +225,24 @@ wails3 build
 The component library is additionally verified by instantiating **all 30
 components in a real headless browser** and asserting each mounts with the
 correct root class — a component can type check and still render nothing.
+
+The harness also asserts behaviour, not just presence: that `Table.setRows()`
+re-renders, that `Progress.setValue()` moves the fill, that `TabView.select()`
+changes the selected tab, that `Disclosure` toggles its open state, that all four
+themes produce different background colours, and that the density presets change
+`--mac-scale`.
+
+Two of those checks are regression tests for defects the harness caught and the
+catalogue alone could not:
+
+- **`[hidden]` was being ignored.** A component root that sets `display` beats
+  the user-agent `[hidden] { display: none }` rule, so `element.hidden = true` on
+  a `Spinner` left it visible. Four components had each worked around this
+  locally for an inner part; `base.css` now fixes the category.
+- **The `Disclosure` chevron pointed the wrong way.** The icon path draws a
+  right-pointing chevron at `0deg`, but the stylesheet rotated it `-90deg` when
+  collapsed (pointing *up*) and `0deg` when open (pointing *right*). Collapsed is
+  now `0deg` and open is `90deg`, matching the macOS convention.
 
 ---
 

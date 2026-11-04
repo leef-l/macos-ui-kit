@@ -13,6 +13,7 @@
  */
 
 import "./tokens.css";
+import "./base.css";
 import "./fonts.css";
 import "./scrollbars.css";
 import "./touch.css";

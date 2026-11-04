@@ -42,17 +42,21 @@
 
 /* The chevron rotates to point down when open. Transform only, so the motion
    stays on the compositor. */
+/* The chevron points right when collapsed and down when open — the macOS
+   disclosure convention. The icon path itself draws a right-pointing chevron at
+   0deg, so collapsed is the unrotated state and opening rotates it 90deg.
+   Transform only, so the motion stays on the compositor. */
 .mac-disclosure__chevron {
     flex: 0 0 auto;
     width: var(--mac-icon-sm);
     height: var(--mac-icon-sm);
     color: var(--mac-text-tertiary);
-    transform: rotate(-90deg);
+    transform: rotate(0deg);
     transition: transform var(--mac-duration) var(--mac-ease);
 }
 
 .mac-disclosure.is-open .mac-disclosure__chevron {
-    transform: rotate(0deg);
+    transform: rotate(90deg);
 }
 
 .mac-disclosure__title {

@@ -222,6 +222,87 @@ textarea,
     background: transparent;
 }
 
+/* --- Compose form -------------------------------------------------------- */
+
+/* Recipient picker and template button, side by side above the message body. */
+.compose-row {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    margin-top: var(--mac-space-2);
+}
+
+.compose-row .mac-combobox {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* The message editor spans the form width. */
+.greet .mac-textarea {
+    margin-top: var(--mac-space-2);
+}
+
+/* A short ring buffer showing what the compose controls just did, so a menu
+   selection is visibly confirmed rather than silently applied. */
+.compose-log {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: var(--mac-space-2);
+    min-height: calc(var(--mac-text-small) * 1.6);
+}
+
+.compose-log__line {
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-tertiary);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+
+/* -----------------------------------------------------------------------------
+   Activity pane
+   -------------------------------------------------------------------------- */
+
+.activity {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-3);
+    max-width: 760px;
+}
+
+/* Filter on the left, refresh on the right. */
+.activity__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--mac-space-2);
+    flex-wrap: wrap;
+}
+
+/* The table is the pane's main content, so let it take the width it needs. */
+.activity .mac-table {
+    width: 100%;
+}
+
+/* Capacity bar: label and fill on one line, kept subdued so it reads as a
+   footnote rather than competing with the table. */
+.activity__capacity {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-tertiary);
+}
+
+.activity__capacity-label {
+    flex: 0 0 auto;
+}
+
+.activity__capacity .mac-progress {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
 /* -----------------------------------------------------------------------------
    Log rows
    -------------------------------------------------------------------------- */
@@ -303,8 +384,139 @@ textarea,
 }
 
 /* -----------------------------------------------------------------------------
+   Component workbench
+   -------------------------------------------------------------------------- */
+
+.workbench {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-2);
+    max-width: 760px;
+    margin-top: var(--mac-space-6);
+}
+
+.workbench__title {
+    margin: 0;
+    font-size: var(--mac-text-title);
+    font-weight: 600;
+    color: var(--mac-text);
+}
+
+.workbench__note {
+    margin: 0;
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-secondary);
+}
+
+/* The split view needs a bounded height or it collapses to its content. */
+.workbench .mac-splitview {
+    height: 220px;
+    border: 1px solid var(--mac-border);
+    border-radius: var(--mac-radius-m);
+    overflow: hidden;
+}
+
+/* List pane: one button per entry, stacked and scrollable. */
+.workbench__list {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    padding: var(--mac-space-1);
+    gap: 2px;
+}
+
+.workbench__item {
+    appearance: none;
+    border: none;
+    background: transparent;
+    text-align: left;
+    padding: var(--mac-space-1) var(--mac-space-2);
+    border-radius: var(--mac-radius-s);
+    font: inherit;
+    font-size: var(--mac-text-body);
+    color: var(--mac-text);
+    cursor: default;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.workbench__item:hover {
+    background: var(--mac-bg-hover);
+}
+
+.workbench__item.is-selected {
+    background: var(--mac-accent);
+    color: var(--mac-text-on-accent);
+}
+
+/* Detail pane. */
+.workbench__detail {
+    height: 100%;
+    overflow-y: auto;
+    padding: var(--mac-space-3);
+}
+
+.workbench__detail-title {
+    margin: 0 0 var(--mac-space-1);
+    font-size: var(--mac-text-large);
+    font-weight: 600;
+    color: var(--mac-text);
+}
+
+.workbench__detail-body {
+    margin: 0;
+    font-size: var(--mac-text-body);
+    color: var(--mac-text-secondary);
+    line-height: 1.5;
+}
+
+/* -----------------------------------------------------------------------------
    Settings rows
    -------------------------------------------------------------------------- */
+
+/* Tab shell around the settings panels. */
+.settings-tabs {
+    max-width: 640px;
+}
+
+/* The tab panel supplies its own padding; the row list should not add a frame
+   on top of it, so it drops the border the standalone list used to have. */
+.settings-tabs .settings {
+    max-width: none;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+}
+
+/* The panel's own padding would indent the rows against the page heading above
+   them, so it is removed here and the rows line up with the heading instead. */
+.settings-tabs .mac-tabview__panel {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* Rows carry their own separators; the first one would double up with the tab
+   strip's hairline. */
+.settings-tabs .setting:first-child {
+    border-top: none;
+}
+
+/* Destructive options, kept visually distinct from ordinary settings. */
+.danger-zone {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-2);
+    align-items: flex-start;
+    padding: var(--mac-space-1) 0;
+}
+
+.danger-zone__hint {
+    margin: 0;
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-secondary);
+}
 
 .settings {
     display: flex;
