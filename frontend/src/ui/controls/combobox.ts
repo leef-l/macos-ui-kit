@@ -121,6 +121,23 @@ export class ComboBox extends Component<HTMLDivElement> {
 
         this.listen(this.input, "keydown", (event) => this.onKeyDown(event));
 
+        // Clicking the field opens the list. Without this the only way in was to
+        // type, which meant a user who wanted to *pick* from a pre-filled list
+        // first had to delete the text to make the panel appear.
+        //
+        // Opened on pointerdown rather than click so the panel is already up by
+        // the time the click resolves; the input's focus handler below then sees
+        // an open list and leaves it alone.
+        this.listen(this.input, "pointerdown", () => this.openWithFullList());
+
+        // Keyboard focus must also reveal the suggestions: tabbing into the field
+        // is the same intent as clicking it.
+        //
+        // `focusin` rather than `focus`: focusin bubbles and, unlike focus, is
+        // dispatched even when the document does not hold OS focus — which is the
+        // state a window is in while another app is in front.
+        this.listen(this.input, "focusin", () => this.openWithFullList());
+
         // Keeping focus on the input for the whole click is what stops the
         // input's blur from tearing the list down before the click lands.
         this.listen(this.list, "pointerdown", (event) => event.preventDefault());
@@ -129,6 +146,19 @@ export class ComboBox extends Component<HTMLDivElement> {
         this.listen(this.input, "blur", () => this.close());
 
         this.filter("");
+    }
+
+    /**
+     * Show every option.
+     *
+     * Opening from a click or a focus must not filter by whatever text is
+     * already in the field: a field showing "张三" would otherwise open to a
+     * single row, which reads as a broken control. Typing is the only thing that
+     * narrows the list, and that path filters explicitly.
+     */
+    private openWithFullList(): void {
+        this.filter("");
+        this.open();
     }
 
     /**
@@ -168,9 +198,9 @@ export class ComboBox extends Component<HTMLDivElement> {
 
     /** Move keyboard focus into the field and show the full list. */
     focus(): void {
+        // The `focus` listener opens with the full list; doing it here as well
+        // would filter twice on every call.
         this.input.focus();
-        this.filter("");
-        this.open();
     }
 
     // --- list ----------------------------------------------------------------
