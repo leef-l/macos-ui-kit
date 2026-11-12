@@ -4,11 +4,16 @@
 no virtual DOM — just DOM APIs over two-layer design tokens, with runtime theming
 and density scaling.
 
+**Standalone: no Wails, no Go, no backend, no framework.** It runs in any browser
+tab on its own — Wails is a supported target, not a requirement.
+
 **Live preview → <https://leef-l.github.io/macos-ui-kit/>**
 
 [![npm](https://img.shields.io/npm/v/@leef-l/macos-ui-kit?label=npm&color=0a84ff)](https://www.npmjs.com/package/@leef-l/macos-ui-kit)
 [![preview](https://img.shields.io/badge/preview-live-34c759)](https://leef-l.github.io/macos-ui-kit/)
 [![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
+
+**English** | [简体中文](./README.zh-CN.md)
 
 ![Component preview](./docs/preview.png)
 
