@@ -40,3 +40,6 @@ smoke-dump.html
 
 # Packed tarballs from npm pack
 *.tgz
+
+# Static preview build (GitHub Pages)
+frontend/dist-preview

@@ -1,0 +1,113 @@
+/* Page-level layout for the static preview.
+
+   Everything inside the showcase comes from the kit and needs no styles here;
+   this file only frames the page. All values are tokens, so the preview follows
+   the theme switch like every component does. */
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: var(--mac-bg-window);
+    color: var(--mac-text);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.preview {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: var(--mac-space-6) var(--mac-space-5) var(--mac-space-8);
+}
+
+/* Masthead ---------------------------------------------------------------- */
+
+.preview__masthead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--mac-space-2) var(--mac-space-3);
+    padding-bottom: var(--mac-space-3);
+    border-bottom: var(--mac-hairline) solid var(--mac-border);
+    margin-bottom: var(--mac-space-5);
+}
+
+.preview__title {
+    margin: 0;
+    font-size: calc(var(--mac-text-title) * 1.7);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.preview__lede {
+    margin: 0;
+    flex: 1 1 20rem;
+    color: var(--mac-text-secondary);
+    font-size: var(--mac-text-body);
+}
+
+.preview__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--mac-space-2);
+    align-items: center;
+    width: 100%;
+    margin-top: var(--mac-space-2);
+}
+
+.preview__install {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: var(--mac-text-small);
+    padding: var(--mac-space-1) var(--mac-space-2);
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-s);
+    background: var(--mac-bg-input);
+    color: var(--mac-text-secondary);
+    user-select: all;
+}
+
+.preview__links {
+    display: flex;
+    gap: var(--mac-space-2);
+    margin-left: auto;
+}
+
+.preview__link {
+    font-size: var(--mac-text-small);
+    color: var(--mac-accent);
+    text-decoration: none;
+}
+
+.preview__link:hover {
+    text-decoration: underline;
+}
+
+/* Footer ------------------------------------------------------------------ */
+
+.preview__footer {
+    margin-top: var(--mac-space-8);
+    padding-top: var(--mac-space-3);
+    border-top: var(--mac-hairline) solid var(--mac-border);
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-tertiary);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--mac-space-2);
+}
+
+.preview__footer a {
+    color: var(--mac-text-secondary);
+}
+
+/* On a narrow screen the showcase grids already collapse; the page padding
+   shrinks so the components keep their width. */
+@media (max-width: 680px) {
+    .preview {
+        padding: var(--mac-space-4) var(--mac-space-3) var(--mac-space-6);
+    }
+}
