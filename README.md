@@ -254,18 +254,21 @@ frontend/
 
 ### Using the library in another project
 
-Three ways in, depending on your setup:
+```sh
+npm install @leef-l/macos-ui-kit
+```
+
+Published at <https://www.npmjs.com/package/@leef-l/macos-ui-kit>.
+
+Two other ways in, for pinning an exact build or working offline:
 
 ```sh
-# 1. From a GitHub release — works today, no npm account needed
+# From a GitHub release tarball — no npm account needed
 npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.1.0/leef-l-macos-ui-kit-0.1.0.tgz
 
-# 2. From npm, once the package is published
-npm install @leef-l/macos-ui-kit
-
-# 3. From a local clone, after building it
-git -C macos-ui-kit/packages/macos-ui-kit npm install && \
-  npm --prefix macos-ui-kit/packages/macos-ui-kit run build
+# From a local clone, after building it
+npm --prefix macos-ui-kit/packages/macos-ui-kit install
+npm --prefix macos-ui-kit/packages/macos-ui-kit run build
 npm install /absolute/path/to/macos-ui-kit/packages/macos-ui-kit
 ```
 

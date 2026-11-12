@@ -45,21 +45,20 @@ imports from it.
 
 ## Install
 
-### From npm (after the first publish)
+### From npm
 
 ```sh
 npm install @leef-l/macos-ui-kit
 ```
 
-### Straight from a GitHub release — no npm account, no publish needed
+### Straight from a GitHub release — no npm account needed
 
 ```sh
 npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.1.0/leef-l-macos-ui-kit-0.1.0.tgz
 ```
 
-This is a normal npm install: it lands in `node_modules` with the same files,
-the same types and the same exports. Use it while the package is not on the
-registry yet, or to pin an exact build.
+This is a normal npm install: same files, same types, same exports. Use it to
+pin an exact build, or when the registry is unreachable.
 
 ### From a clone
 

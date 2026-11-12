@@ -1,0 +1,57 @@
+{
+  "name": "@leef-l/macos-ui-kit",
+  "version": "0.1.0",
+  "description": "macOS-style UI components in dependency-free TypeScript, for Wails v3 desktop apps and plain web pages",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "macos",
+    "ui",
+    "components",
+    "vanilla",
+    "typescript",
+    "wails"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leef-l/macos-ui-kit.git",
+    "directory": "packages/macos-ui-kit"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./style.css": {
+      "types": "./dist/style.css.d.ts",
+      "default": "./dist/macos-ui-kit.css"
+    },
+    "./global": "./dist/macos-ui-kit.iife.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": [
+    "**/*.css",
+    "src/index.ts",
+    "dist/index.js"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.build.json && node scripts/finalize-dist.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.2.4"
+  }
+}
