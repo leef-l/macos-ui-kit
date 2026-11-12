@@ -18,9 +18,14 @@ Two things in one repository:
 
 1. **An application** — a working Wails v3 desktop app with a frameless window,
    custom macOS chrome, a native menu bar, and a live component showcase.
-2. **A component library** — `frontend/src/ui/`, 30 components on two-layer design
-   tokens with a runtime theme system. It has no Wails dependency, so it can be
-   lifted into another project or tested in a plain browser.
+2. **A component library** — `packages/macos-ui-kit/`, published as
+   [`@leef-l/macos-ui-kit`](packages/macos-ui-kit). 30 components on two-layer
+   design tokens with a runtime theme system. It has no Wails dependency, so it
+   can be used in any project or tested in a plain browser.
+
+The app consumes the library as a package (`import … from "@leef-l/macos-ui-kit"`)
+rather than by relative path, so the library has to stand on its own: if it only
+worked inside this repository, the packaging would be wrong.
 
 ---
 
@@ -47,7 +52,7 @@ lists) go unused. The trade-off is that state synchronisation and event
 delegation are manual, which is why the library enforces rules like delegated
 listeners, `DocumentFragment` insertion and idempotent setters.
 
-Read [DESIGN-v2.md](frontend/src/ui/DESIGN-v2.md) for the full architecture and
+Read [DESIGN-v2.md](packages/macos-ui-kit/src/DESIGN-v2.md) for the full architecture and
 the reasoning behind each decision, including what was rejected and why.
 
 ### The API convention
@@ -167,11 +172,11 @@ platforms.
 
 | macOS element | Where it lives |
 | --- | --- |
-| Traffic lights | `frontend/src/ui/layout/traffic-lights.*` |
+| Traffic lights | `packages/macos-ui-kit/src/layout/traffic-lights.*` |
 | Draggable title bar | `.mac-titlebar` via the `--wails-draggable: drag` property |
-| Source-list sidebar | `frontend/src/ui/layout/sidebar.*` |
+| Source-list sidebar | `packages/macos-ui-kit/src/layout/sidebar.*` |
 | Toolbar search | `TextField` in the title bar's trailing cluster |
-| Status bar | `frontend/src/ui/layout/statusbar.*` |
+| Status bar | `packages/macos-ui-kit/src/layout/statusbar.*` |
 
 `windowservice.go` exposes window control to the frontend; its exported methods
 become promise-returning TypeScript functions. Because there is no native frame
@@ -202,28 +207,63 @@ menu.go                  native application menu bar
 windowservice.go         window control service + window:state event
 greetservice.go          demo Go service the frontend calls
 
+packages/macos-ui-kit/   THE COMPONENT LIBRARY (published package)
+├─ package.json          name, exports map, build scripts, files list
+├─ vite.config.ts        library build: one ESM bundle + one stylesheet
+├─ tsconfig.build.json   declaration emit only
+├─ assets/               Inter font + its OFL licence
+├─ scripts/
+│  └─ finalize-dist.mjs  post-build: externalise the font, write style.css.d.ts
+└─ src/
+   ├─ tokens.css         two-layer design tokens
+   ├─ base.css           global element rules ([hidden], .visually-hidden)
+   ├─ theme.ts           runtime theme manager
+   ├─ fonts.css          cross-platform font normalisation
+   ├─ scrollbars.css     cross-platform scrollbar normalisation
+   ├─ touch.css          no-hover normalisation
+   ├─ component.ts       base class (listener lifetime)
+   ├─ dom.ts             element builders
+   ├─ overlay.ts         positioning, focus trap, z-index
+   ├─ controls/          17 controls
+   ├─ layout/            6 layout components
+   ├─ overlays/          6 overlays
+   └─ mobile/            mobile shell
+
 frontend/
 ├─ index.html            document shell (an empty #app mount point)
 ├─ public/style.css      app-level layout (the kit supplies the rest)
 └─ src/
    ├─ main.ts            shell wiring: traffic lights, sidebar, events
-   ├─ ui/                THE COMPONENT LIBRARY
-   │  ├─ tokens.css        two-layer design tokens
-   │  ├─ base.css          global element rules ([hidden], .visually-hidden)
-   │  ├─ theme.ts          runtime theme manager
-   │  ├─ fonts.css         cross-platform font normalisation
-   │  ├─ scrollbars.css    cross-platform scrollbar normalisation
-   │  ├─ touch.css         no-hover normalisation
-   │  ├─ component.ts      base class (listener lifetime)
-   │  ├─ dom.ts            element builders
-   │  ├─ overlay.ts        positioning, focus trap, z-index
-   │  ├─ controls/         17 controls
-   │  ├─ layout/           6 layout components
-   │  ├─ overlays/         6 overlays
-   │  └─ mobile/           mobile shell
    ├─ showcase/          live component showcase
    └─ bindings/          GENERATED — do not edit
 ```
+
+### Using the library in another project
+
+```sh
+npm install @leef-l/macos-ui-kit
+```
+
+```ts
+import {Button, themeManager} from "@leef-l/macos-ui-kit";
+import "@leef-l/macos-ui-kit/style.css";
+
+document.body.appendChild(
+    new Button({label: "Hello", variant: "primary", onClick: () => {}}).element,
+);
+```
+
+There are no runtime dependencies and no framework. `dist/` ships one ESM bundle,
+one stylesheet, the type declarations, and the Inter font the stylesheet points
+at.
+
+### Why the app imports source, not `dist`
+
+`frontend/vite.config.ts` aliases `@leef-l/macos-ui-kit` to
+`packages/macos-ui-kit/src/index.ts`, and `frontend/tsconfig.json` maps the same
+path under `paths`. Editing a component therefore takes effect on reload with no
+library build step in between, and there is never a second copy of the code to
+drift out of sync. Consumers outside this repository use the built package.
 
 ### Where each component is used
 
@@ -252,9 +292,22 @@ Every change to this repository is checked with:
 ```sh
 go vet ./...
 gofmt -l *.go
+cd packages/macos-ui-kit && npm run build     # library: dist + types + CSS
 cd frontend && npx tsc --noEmit && npm run build
 wails3 build
 ```
+
+The library build is not optional: it is what proves the package stands alone.
+It has caught two defects that the app build could not:
+
+- **The whole design system was tree-shaken away.** `sideEffects` in the
+  package manifest did not list the entry file, so the bundler dropped the
+  stylesheet imports in `src/index.ts` and shipped 53 KB of component CSS with
+  no tokens, no font and no global rules. The app rendered — unstyled. Listing
+  `src/index.ts` fixed it.
+- **The font was inlined as base64.** Vite's library mode inlines CSS assets
+  regardless of `assetsInlineLimit`, turning a 63 KB stylesheet into 473 KB.
+  `scripts/finalize-dist.mjs` now writes the font back out as a file.
 
 The component library is additionally verified by instantiating **all 30
 components in a real headless browser** and asserting each mounts with the
@@ -277,6 +330,12 @@ catalogue alone could not:
   right-pointing chevron at `0deg`, but the stylesheet rotated it `-90deg` when
   collapsed (pointing *up*) and `0deg` when open (pointing *right*). Collapsed is
   now `0deg` and open is `90deg`, matching the macOS convention.
+
+Finally, the packaged output is verified from the outside: a throwaway project
+installs the tarball with `npm pack`, type checks against the published
+`.d.ts`, bundles with its own Vite, and is loaded in a headless browser to
+confirm the components mount **and** the tokens resolve — a package that only
+works inside its own repository is not a package.
 
 ---
 

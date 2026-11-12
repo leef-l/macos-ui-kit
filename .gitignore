@@ -9,6 +9,11 @@ frontend/dist
 frontend/node_modules
 frontend/dist-smoke
 
+# The UI kit package builds its own dist and installs its own dependencies, so
+# it is consumed as a normal npm package rather than as part of the app build.
+packages/*/dist
+packages/*/node_modules
+
 # Go
 *.exe
 *.exe~

@@ -38,7 +38,7 @@ import {
     Toolbar,
     Tooltip,
     looksLikeMobile,
-} from "./ui";
+} from "@leef-l/macos-ui-kit";
 import {buildShowcase} from "./showcase/showcase";
 
 /* =============================================================================

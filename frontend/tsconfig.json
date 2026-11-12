@@ -17,6 +17,10 @@
       "ESNext",
     ],
 
+    "paths": {
+      "@leef-l/macos-ui-kit": ["../packages/macos-ui-kit/src/index.ts"],
+    },
+
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": false,

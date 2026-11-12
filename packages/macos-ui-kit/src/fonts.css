@@ -22,7 +22,7 @@
     src:
         local("Inter Medium"),
         local("Inter"),
-        url("/Inter-Medium.ttf") format("truetype");
+        url("../assets/Inter-Medium.ttf") format("truetype");
     font-weight: 400 600;
     font-style: normal;
     /* swap: draw with the fallback immediately, swap in Inter when ready, so a

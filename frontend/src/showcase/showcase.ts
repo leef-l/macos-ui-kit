@@ -31,8 +31,8 @@ import {
     setDensity,
     showToast,
     themeManager,
-} from "../ui";
-import type {ThemeDefinition} from "../ui";
+} from "@leef-l/macos-ui-kit";
+import type {ThemeDefinition} from "@leef-l/macos-ui-kit";
 import "./showcase.css";
 
 /**
