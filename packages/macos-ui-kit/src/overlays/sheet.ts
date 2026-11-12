@@ -97,14 +97,22 @@ export class Sheet extends Component<HTMLDivElement> {
             this.bodyNode.appendChild(body);
         }
 
+        // A button with no label renders as a blank rectangle, which reads as a
+        // broken control. Treat an empty label as "this button was not asked
+        // for": Escape and a scrim click still cancel, so nothing is lost.
         const actions = el("div", {class: "mac-sheet__actions"});
-        const cancelButton = new Button({label: cancelLabel, onClick: () => this.cancel()});
-        const confirmButton = new Button({
-            label: confirmLabel,
-            variant: "primary",
-            onClick: () => this.confirm(),
-        });
-        actions.append(cancelButton.element, confirmButton.element);
+        if (cancelLabel.trim() !== "") {
+            const cancelButton = new Button({label: cancelLabel, onClick: () => this.cancel()});
+            actions.appendChild(cancelButton.element);
+        }
+        if (confirmLabel.trim() !== "") {
+            const confirmButton = new Button({
+                label: confirmLabel,
+                variant: "primary",
+                onClick: () => this.confirm(),
+            });
+            actions.appendChild(confirmButton.element);
+        }
 
         this.panel.append(titleNode, this.bodyNode, actions);
         this.root.append(this.scrim, this.panel);
@@ -145,9 +153,26 @@ export class Sheet extends Component<HTMLDivElement> {
         // Force the closed state to be laid out before the open class lands,
         // otherwise the browser coalesces both styles and nothing animates.
         void this.panel.offsetHeight;
+
+        // The body only gets a separator above the buttons once it actually
+        // scrolls; a short sheet does not need a rule cutting it in half.
+        this.syncScrollable();
+
         requestAnimationFrame(() => {
             if (this.opened) this.root.classList.add("is-open");
         });
+    }
+
+    /**
+     * Mark the sheet scrollable when the body overflows.
+     *
+     * Measured on open, because the body has no height until the panel is laid
+     * out. Consumers that change the content afterwards can call `open()` again
+     * to re-measure, or toggle the class themselves.
+     */
+    private syncScrollable(): void {
+        const overflowing = this.bodyNode.scrollHeight > this.bodyNode.clientHeight + 1;
+        this.root.classList.toggle("is-scrollable", overflowing);
     }
 
     /** Slide the sheet out and restore focus. Idempotent. */

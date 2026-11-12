@@ -74,6 +74,20 @@
     margin-bottom: var(--mac-space-4);
     color: var(--mac-text-secondary);
     line-height: 1.5;
+    /* Room for the scrollbar so it does not sit against the rounded corner. */
+    padding-right: var(--mac-space-1);
+    margin-right: calc(var(--mac-space-1) * -1);
+}
+
+/* When the body scrolls, the buttons get their own band: without the rule the
+   content slides under them and the last row looks cut in half. */
+.mac-sheet.is-scrollable .mac-sheet__body {
+    margin-bottom: 0;
+}
+
+.mac-sheet.is-scrollable .mac-sheet__actions {
+    padding-top: var(--mac-space-3);
+    border-top: var(--mac-hairline) solid var(--mac-border);
 }
 
 .mac-sheet__actions {

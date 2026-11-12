@@ -75,13 +75,20 @@ export class Dialog extends Component<HTMLDivElement> {
         }
 
         const actions = el("div", {class: "mac-dialog__actions"});
-        const cancelButton = new Button({label: cancelLabel, onClick: () => this.cancel()});
-        const confirmButton = new Button({
-            label: confirmLabel,
-            variant: "primary",
-            onClick: () => this.confirm(),
-        });
-        actions.append(cancelButton.element, confirmButton.element);
+        // Same rule as the sheet: an empty label means the button was not asked
+        // for. Escape and a scrim click still cancel.
+        if (cancelLabel.trim() !== "") {
+            const cancelButton = new Button({label: cancelLabel, onClick: () => this.cancel()});
+            actions.appendChild(cancelButton.element);
+        }
+        if (confirmLabel.trim() !== "") {
+            const confirmButton = new Button({
+                label: confirmLabel,
+                variant: "primary",
+                onClick: () => this.confirm(),
+            });
+            actions.appendChild(confirmButton.element);
+        }
 
         this.root.append(titleNode, bodyNode, actions);
         this.scrim.appendChild(this.root);
