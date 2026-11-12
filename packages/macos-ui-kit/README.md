@@ -4,6 +4,8 @@ macOS-style UI components in dependency-free TypeScript. No React, no Vue, no
 virtual DOM — just `document.createElement` wrappers over two-layer design
 tokens, so one import gives you the whole design system.
 
+**Live preview: <https://leef-l.github.io/macos-ui-kit/>**
+
 - **30 components** — 17 controls, 6 layout, 6 overlays, 1 mobile shell
 - **Zero runtime dependencies**
 - **Light DOM only** — no Shadow DOM, so native window dragging and screen

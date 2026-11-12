@@ -7,7 +7,10 @@ no framework runtime.
 The window is frameless: the app paints its own title bar, traffic lights and sidebar,
 so the interface looks the same on Windows, macOS and Linux, and adapts to touch devices.
 
-<!-- Replace with a screenshot of your build -->
+**Live preview: <https://leef-l.github.io/macos-ui-kit/>** — all 30 components in a
+browser tab, no install and no Go toolchain. Switch the theme and density there;
+the page is built from the same source as the library.
+
 ![Component showcase](./docs/screenshot.png)
 
 ---
