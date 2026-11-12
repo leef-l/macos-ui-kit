@@ -74,6 +74,9 @@ export type {TextAreaOptions} from "./controls/textarea";
 export {Disclosure} from "./controls/disclosure";
 export type {DisclosureOptions} from "./controls/disclosure";
 
+export {Form, FormRow} from "./controls/form";
+export type {FormOptions, FormRowOptions} from "./controls/form";
+
 export {Table} from "./controls/table";
 export type {TableOptions, TableColumn} from "./controls/table";
 

@@ -54,8 +54,11 @@
     display: flex;
     align-items: center;
     gap: var(--mac-space-2);
-    height: var(--mac-row-height);
-    padding: 0 var(--mac-space-2);
+    /* min-height rather than height: a row with a subtitle is two lines tall and
+       the layout has to follow the content. Single-line rows still resolve to the
+       same height because the content is shorter than the minimum. */
+    min-height: var(--mac-row-height);
+    padding: var(--mac-space-1) var(--mac-space-2);
     border: none;
     border-radius: var(--mac-radius-m);
     background: transparent;
@@ -68,6 +71,42 @@
     transition:
         background-color var(--mac-duration-fast) var(--mac-ease),
         color var(--mac-duration-fast) var(--mac-ease);
+}
+
+/* Label and subtitle share a column so the subtitle sits under the text, not
+   under the icon. */
+.mac-sidebar__text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.mac-sidebar__item--two-line {
+    align-items: flex-start;
+}
+
+.mac-sidebar__subtitle {
+    font-size: var(--mac-text-small);
+    font-weight: var(--mac-weight-regular);
+    color: var(--mac-text-tertiary);
+}
+
+/* Says "this row opens something", the way a settings list does. It pushes
+   itself to the trailing edge so it lines up in every row. */
+.mac-sidebar__chevron {
+    margin-left: auto;
+    flex: 0 0 auto;
+    opacity: 0.55;
+}
+
+.mac-sidebar__item.is-selected .mac-sidebar__subtitle {
+    color: var(--mac-text-on-accent);
+    opacity: 0.8;
+}
+
+.mac-sidebar__item.is-selected .mac-sidebar__chevron {
+    opacity: 0.7;
 }
 
 .mac-sidebar__item svg {

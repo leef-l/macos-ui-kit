@@ -11,6 +11,16 @@ export interface SidebarItem {
     icon?: string;
     /** Optional trailing count badge. */
     count?: number;
+    /**
+     * Second line under the label — a setting's current value, a summary, a path.
+     * A row with a subtitle is taller; the layout follows the content.
+     */
+    subtitle?: string;
+    /**
+     * Chevron at the trailing edge. A settings list uses this to say "this row
+     * opens a detail pane", the way System Settings does.
+     */
+    chevron?: boolean;
     disabled?: boolean;
 }
 
@@ -79,7 +89,9 @@ export class Sidebar extends Component<HTMLElement> {
         const selected = item.id === this.selectedId;
 
         const button = el("button", {
-            class: `mac-sidebar__item${selected ? " is-selected" : ""}`,
+            class: `mac-sidebar__item${selected ? " is-selected" : ""}${
+                item.subtitle ? " mac-sidebar__item--two-line" : ""
+            }`,
             type: "button",
             disabled: item.disabled ?? false,
             dataset: {id: item.id, section: item.id},
@@ -90,13 +102,27 @@ export class Sidebar extends Component<HTMLElement> {
             button.appendChild(svgIcon(item.icon, 16));
         }
 
-        const label = el("span", {text: item.label});
-        button.appendChild(label);
+        // The label and its subtitle share a column so the subtitle lines up under
+        // the text rather than under the icon.
+        const text = el("span", {class: "mac-sidebar__text"});
+        text.appendChild(el("span", {class: "mac-sidebar__label", text: item.label}));
+        if (item.subtitle) {
+            text.appendChild(
+                el("span", {class: "mac-sidebar__subtitle", text: item.subtitle}),
+            );
+        }
+        button.appendChild(text);
 
         if (item.count !== undefined) {
             button.appendChild(
                 el("span", {class: "mac-sidebar__count", text: String(item.count)}),
             );
+        }
+
+        if (item.chevron) {
+            const chevron = svgIcon("M9 6 L15 12 L9 18", 12);
+            chevron.classList.add("mac-sidebar__chevron");
+            button.appendChild(chevron);
         }
 
         return button;

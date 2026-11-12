@@ -1,6 +1,6 @@
 # macOS UI Kit
 
-**30 个 macOS 风格组件，纯 TypeScript，零运行时依赖。** 没有 React，没有 Vue，
+**31 个 macOS 风格组件，纯 TypeScript，零运行时依赖。** 没有 React，没有 Vue，
 没有虚拟 DOM —— 只用 DOM API 加两层设计 token，支持运行时主题与密度缩放。
 
 **在线预览 → <https://leef-l.github.io/macos-ui-kit/>**
@@ -97,7 +97,7 @@ document.body.appendChild(button.element);
 | 渠道 | 命令 | 说明 |
 |---|---|---|
 | **npm** | `npm install @leef-l/macos-ui-kit` | 推荐。零配置、不需要 token。 |
-| **Release tarball** | `npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.1.2/leef-l-macos-ui-kit-0.1.2.tgz` | 锁定精确构建；不经过任何 registry。 |
+| **Release tarball** | `npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.2.0/leef-l-macos-ui-kit-0.2.0.tgz` | 锁定精确构建；不经过任何 registry。 |
 | **GitHub Packages** | `npm install @leef-l/macos-ui-kit`，配 `@leef-l:registry=https://npm.pkg.github.com` | 即使是公开包也**需要 token**。 |
 
 包级别的文档见 [`packages/macos-ui-kit/README.zh-CN.md`](packages/macos-ui-kit/README.zh-CN.md)。
@@ -108,7 +108,7 @@ document.body.appendChild(button.element);
 
 | 分组 | 组件 |
 | --- | --- |
-| **控件（17）** | Button、TextField、TextArea、NumberField、Slider、Progress、Spinner、Badge、Switch、Checkbox、SegmentedControl、Select、ComboBox、DatePicker、Disclosure、Table、SplitView |
+| **控件（18）** | Button、TextField、TextArea、NumberField、Slider、Progress、Spinner、Badge、Switch、Checkbox、SegmentedControl、Select、ComboBox、DatePicker、Disclosure、Table、SplitView、Form |
 | **布局（6）** | TitleBar、TrafficLights、Sidebar、StatusBar、Toolbar、TabView |
 | **浮层（6）** | Menu、Tooltip、Dialog、Popover、Sheet、Toast |
 | **移动端（1）** | MobileShell |
@@ -127,9 +127,24 @@ password.setRevealed(true); // 或者让用户点眼睛图标
 const picker = new ComboBox({options, placeholder: "收件人"});
 ```
 
+`Form` 负责设置页需要的两列对齐 —— 标签一列、控件一列、行间细线 —— 页面不用再手搓网格：
+
+```ts
+new Form({
+    rows: [
+        {label: "实现", control: select.element},
+        {label: "API 地址", control: address.element, wide: true, hint: "留空则自动检测"},
+        {label: "启用", control: toggle.element},
+    ],
+});
+```
+
+`SidebarItem` 支持 `subtitle`（设置的当前值、摘要）和 `chevron`（这一行会打开详情页），
+正是系统设置风格列表需要的。带副标题的行是两行高，单行行高不变。
+
 ## API 约定
 
-三条规则，贯穿全部 30 个组件，让你没用过的控件也符合直觉：
+三条规则，贯穿全部 31 个组件，让你没用过的控件也符合直觉：
 
 | 关注点 | 规则 | 示例 |
 |---|---|---|
@@ -242,7 +257,7 @@ packages/macos-ui-kit/   组件库（发布的包）
    ├─ component.ts       基类（监听器生命周期）
    ├─ dom.ts             元素构造器
    ├─ overlay.ts         定位、焦点陷阱、层级
-   ├─ controls/          17 个控件
+   ├─ controls/          18 个控件
    ├─ layout/            6 个布局组件
    ├─ overlays/          6 个浮层
    └─ mobile/            移动端外壳
@@ -309,7 +324,7 @@ TypeScript 函数。因为没有原生边框可依赖，绘制的红绿灯就是
 | 问候 | 消息历史列表，由概览页同一套控件驱动 |
 | 活动 | `SegmentedControl`、`Table`、`Badge`、`Spinner`、`Progress`、`Button` |
 | 设置 | `TabView`、`SegmentedControl`、`Slider`、`Checkbox`、`Switch`、`Select`、`NumberField`、`DatePicker`、`Disclosure`、`Dialog` |
-| 组件 | 展示页里的全部 30 个，加上 `Toolbar`、`SplitView`、`Popover`、`Sheet` 组成的检查器 |
+| 组件 | 展示页里的全部 31 个，加上 `Toolbar`、`SplitView`、`Popover`、`Sheet` 组成的检查器 |
 
 `TrafficLights` 由 `TitleBar` 内部创建，`Toast` 通过 `showToast()` 触发，
 所以两者在 `main.ts` 里都不会出现 `new` 调用。
@@ -360,7 +375,7 @@ npm publish --registry=https://npm.pkg.github.com
 
 # 3. GitHub Release，让包不经过任何 registry 也能安装。
 npm pack
-gh release create v0.1.2 leef-l-macos-ui-kit-0.1.2.tgz --title "macOS UI Kit v0.1.2" --notes "..."
+gh release create v0.2.0 leef-l-macos-ui-kit-0.2.0.tgz --title "macOS UI Kit v0.2.0" --notes "..."
 ```
 
 首次发布踩到的两个坑：
@@ -395,7 +410,7 @@ wails3 build
 
 组件库还会在**完全没有宿主**的情况下验证：一个纯 HTML 文件，静态服务器提供，
 没有打包器、没有 Go 进程、没有 Wails 运行时。它用 `<script>` 标签加载
-`macos-ui-kit.iife.js`，通过 `window.MacUI` 挂载全部 30 个组件。断言包括 30/30
+`macos-ui-kit.iife.js`，通过 `window.MacUI` 挂载全部 31 个组件。断言包括 30/30
 挂载成功、零控制台错误、`window._wails === undefined`、以及 token 正常解析
 （`--mac-control-height` → `calc(28px * 1)`）。这是「不需要后端」这件事的证据，
 写在文档里不算证据。

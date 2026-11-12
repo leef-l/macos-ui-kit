@@ -128,7 +128,7 @@ function buildPane(section: SectionId): HTMLElement {
             // The showcase builds the whole component kit live, so it is mounted
             // as one block rather than through the small helpers above.
             pane.append(
-                heading("组件", "全部 30 个组件，可直接交互；顶部可切换主题与密度。"),
+                heading("组件", "全部 31 个组件，可直接交互；顶部可切换主题与密度。"),
                 buildShowcase(),
                 componentWorkbench(),
             );

@@ -1,6 +1,6 @@
 # macOS UI Kit
 
-**30 macOS-style components in dependency-free TypeScript.** No React, no Vue,
+**31 macOS-style components in dependency-free TypeScript.** No React, no Vue,
 no virtual DOM — just DOM APIs over two-layer design tokens, with runtime theming
 and density scaling.
 
@@ -65,7 +65,7 @@ HTML, and use the global `MacUI`:
 | Channel | Command | Notes |
 |---|---|---|
 | **npm** | `npm install @leef-l/macos-ui-kit` | Recommended. No config, no token. |
-| **Release tarball** | `npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.1.2/leef-l-macos-ui-kit-0.1.2.tgz` | Pins an exact build; no registry involved. |
+| **Release tarball** | `npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.2.0/leef-l-macos-ui-kit-0.2.0.tgz` | Pins an exact build; no registry involved. |
 | **GitHub Packages** | `npm install @leef-l/macos-ui-kit` with `@leef-l:registry=https://npm.pkg.github.com` | Requires a token **even though the package is public**. |
 
 See [`packages/macos-ui-kit/README.md`](packages/macos-ui-kit/README.md) for the
@@ -117,7 +117,7 @@ this work.
 
 | Group | Components |
 | --- | --- |
-| **Controls (17)** | Button, TextField, TextArea, NumberField, Slider, Progress, Spinner, Badge, Switch, Checkbox, SegmentedControl, Select, ComboBox, DatePicker, Disclosure, Table, SplitView |
+| **Controls (18)** | Button, TextField, TextArea, NumberField, Slider, Progress, Spinner, Badge, Switch, Checkbox, SegmentedControl, Select, ComboBox, DatePicker, Disclosure, Table, SplitView, Form |
 | **Layout (6)** | TitleBar, TrafficLights, Sidebar, StatusBar, Toolbar, TabView |
 | **Overlays (6)** | Menu, Tooltip, Dialog, Popover, Sheet, Toast |
 | **Mobile (1)** | MobileShell |
@@ -138,9 +138,27 @@ password.setRevealed(true); // or let the user click the eye
 const picker = new ComboBox({options, placeholder: "Recipient"});
 ```
 
+`Form` owns the two-column alignment a settings screen needs — labels in one
+column, controls in the other, a hairline between rows — so pages stop
+hand-rolling a grid:
+
+```ts
+new Form({
+    rows: [
+        {label: "Implementation", control: select.element},
+        {label: "API address", control: address.element, wide: true, hint: "Leave empty to detect"},
+        {label: "Enabled", control: toggle.element},
+    ],
+});
+```
+
+`SidebarItem` accepts `subtitle` (a setting's current value, a summary) and
+`chevron` (this row opens a detail pane) — what a System Settings-style list
+needs. A row with a subtitle is two lines tall; single-line rows are unchanged.
+
 ## API convention
 
-Three rules across all 30 components, so a control you have never used behaves
+Three rules across all 31 components, so a control you have never used behaves
 the way you would guess:
 
 | Concern | Rule | Examples |
@@ -262,7 +280,7 @@ packages/macos-ui-kit/   THE COMPONENT LIBRARY (published package)
    ├─ component.ts       base class (listener lifetime)
    ├─ dom.ts             element builders
    ├─ overlay.ts         positioning, focus trap, z-index
-   ├─ controls/          17 controls
+   ├─ controls/          18 controls
    ├─ layout/            6 layout components
    ├─ overlays/          6 overlays
    └─ mobile/            mobile shell
@@ -334,7 +352,7 @@ wrong in ways a catalogue cannot reveal:
 | Greeting | the message history list, fed by the same controls as Overview |
 | Activity | `SegmentedControl`, `Table`, `Badge`, `Spinner`, `Progress`, `Button` |
 | Settings | `TabView`, `SegmentedControl`, `Slider`, `Checkbox`, `Switch`, `Select`, `NumberField`, `DatePicker`, `Disclosure`, `Dialog` |
-| Components | all 30 in the showcase, plus `Toolbar`, `SplitView`, `Popover`, `Sheet` in a composed inspector |
+| Components | all 31 in the showcase, plus `Toolbar`, `SplitView`, `Popover`, `Sheet` in a composed inspector |
 
 `TrafficLights` is created by `TitleBar` and `Toast` is raised through
 `showToast()`, so neither appears as a `new` call in `main.ts`.
@@ -386,7 +404,7 @@ npm publish --registry=https://npm.pkg.github.com
 
 # 3. GitHub release, so the package is installable without any registry.
 npm pack
-gh release create v0.1.2 leef-l-macos-ui-kit-0.1.2.tgz --title "macOS UI Kit v0.1.2" --notes "..."
+gh release create v0.2.0 leef-l-macos-ui-kit-0.2.0.tgz --title "macOS UI Kit v0.2.0" --notes "..."
 ```
 
 Two traps worth remembering, both hit during the first release:
@@ -426,8 +444,8 @@ has caught two defects the app build could not:
 
 The library is also verified **with no host at all**: a plain HTML file served
 statically, no bundler, no Go process, no Wails runtime. It loads
-`macos-ui-kit.iife.js` with a `<script>` tag and mounts all 30 components through
-`window.MacUI`. The check asserts 30/30 mount, zero console errors,
+`macos-ui-kit.iife.js` with a `<script>` tag and mounts all 31 components through
+`window.MacUI`. The check asserts 31/31 mount, zero console errors,
 `window._wails === undefined`, and that tokens still resolve
 (`--mac-control-height` → `calc(28px * 1)`). That is the proof behind "no backend
 required"; prose would not be.

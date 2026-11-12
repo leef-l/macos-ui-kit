@@ -8,7 +8,7 @@ macOS 风格的 UI 组件，纯 TypeScript，零运行时依赖。没有 React�
 
 **English** | 简体中文
 
-- **30 个组件** —— 17 个控件、6 个布局、6 个浮层、1 个移动端外壳
+- **31 个组件** —— 18 个控件、6 个布局、6 个浮层、1 个移动端外壳
 - **零运行时依赖**
 - **只用 Light DOM** —— 没有 Shadow DOM，原生窗口拖拽和读屏软件都能正常工作
 - **运行时主题** —— 四套内置主题，外加自定义 token 覆盖
@@ -55,7 +55,7 @@ npm install @leef-l/macos-ui-kit
 ### 直接从 GitHub Release（不经过任何 registry）
 
 ```sh
-npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.1.2/leef-l-macos-ui-kit-0.1.2.tgz
+npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.2.0/leef-l-macos-ui-kit-0.2.0.tgz
 ```
 
 同样的文件、同样的类型、同样的导出。适合锁定精确构建，或者无法访问 registry 时。
@@ -170,7 +170,7 @@ setDensity("compact");              // compact | comfortable | touch
 
 ## API 约定
 
-三条规则，贯穿全部 30 个组件，让你没用过的控件也符合直觉：
+三条规则，贯穿全部 31 个组件，让你没用过的控件也符合直觉：
 
 | 关注点 | 规则 | 示例 |
 |---|---|---|
@@ -188,7 +188,7 @@ setDensity("compact");              // compact | comfortable | touch
 
 | 分组 | 组件 |
 |---|---|
-| 控件 | `Button` `TextField` `TextArea` `NumberField` `Slider` `Progress` `Spinner` `Badge` `Switch` `Checkbox` `SegmentedControl` `Select` `ComboBox` `DatePicker` `Disclosure` `Table` `SplitView` |
+| 控件 | `Button` `TextField` `TextArea` `NumberField` `Slider` `Progress` `Spinner` `Badge` `Switch` `Checkbox` `SegmentedControl` `Select` `ComboBox` `DatePicker` `Disclosure` `Table` `SplitView` `Form` |
 | 布局 | `TitleBar` `TrafficLights` `Sidebar` `StatusBar` `Toolbar` `TabView` |
 | 浮层 | `Menu` `Tooltip` `Dialog` `Popover` `Sheet` `Toast` |
 | 移动端 | `MobileShell` |

@@ -8,7 +8,7 @@ tokens, so one import gives you the whole design system.
 
 **English** | [简体中文](./README.zh-CN.md)
 
-- **30 components** — 17 controls, 6 layout, 6 overlays, 1 mobile shell
+- **31 components** — 18 controls, 6 layout, 6 overlays, 1 mobile shell
 - **Zero runtime dependencies**
 - **Light DOM only** — no Shadow DOM, so native window dragging and screen
   readers both work
@@ -60,7 +60,7 @@ No configuration, no token. This is the channel to use.
 ### Straight from a GitHub release — no registry at all
 
 ```sh
-npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.1.2/leef-l-macos-ui-kit-0.1.2.tgz
+npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.2.0/leef-l-macos-ui-kit-0.2.0.tgz
 ```
 
 Same files, same types, same exports. Use it to pin an exact build, or when no
@@ -180,7 +180,7 @@ only, so one declaration restyles every component:
 
 ## API convention
 
-Three rules, applied to all 30 components, so a control you have never used
+Three rules, applied to all 31 components, so a control you have never used
 behaves the way you would guess:
 
 | Concern | Rule | Examples |
@@ -201,7 +201,7 @@ makes programmatic writes safe to call from a render path.
 
 | Group | Components |
 |---|---|
-| Controls | `Button` `TextField` `TextArea` `NumberField` `Slider` `Progress` `Spinner` `Badge` `Switch` `Checkbox` `SegmentedControl` `Select` `ComboBox` `DatePicker` `Disclosure` `Table` `SplitView` |
+| Controls | `Button` `TextField` `TextArea` `NumberField` `Slider` `Progress` `Spinner` `Badge` `Switch` `Checkbox` `SegmentedControl` `Select` `ComboBox` `DatePicker` `Disclosure` `Table` `SplitView` `Form` |
 | Layout | `TitleBar` `TrafficLights` `Sidebar` `StatusBar` `Toolbar` `TabView` |
 | Overlays | `Menu` `Tooltip` `Dialog` `Popover` `Sheet` `Toast` |
 | Mobile | `MobileShell` |

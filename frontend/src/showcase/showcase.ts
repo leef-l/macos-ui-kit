@@ -6,6 +6,7 @@ import {
     DatePicker,
     Dialog,
     Disclosure,
+    Form,
     Menu,
     MobileShell,
     NumberField,
@@ -38,7 +39,7 @@ import "./showcase.css";
 /**
  * The component showcase.
  *
- * Every one of the kit's 30 components is instantiated here with working
+ * Every one of the kit's 31 components is instantiated here with working
  * interaction, not merely described. That distinction matters: a component can
  * type check and still mount nothing, and this kit already shipped one whose
  * constructor forgot to assign its rows.
@@ -508,7 +509,30 @@ function buildControlsSection(): HTMLElement {
     splitWrap.appendChild(splitView.element);
     cells.push(cell("SplitView", splitWrap, {wide: true, hint: "拖拽中间分隔条"}));
 
-    return section("控件 Controls", 17, cells);
+    // --- Form (wide) ----------------------------------------------------------
+    // The two-column layout a settings screen needs: labels in one column,
+    // controls in the other, aligned across rows.
+    const formSelect = new Select({
+        options: [
+            {label: "内置浏览器", value: "builtin"},
+            {label: "本机 Chrome", value: "chrome"},
+        ],
+        value: "builtin",
+        ariaLabel: "实现",
+    });
+    const formAddress = new TextField({placeholder: "http://127.0.0.1:9222"});
+    const formToggle = new Switch({checked: true});
+    const form = new Form({
+        ariaLabel: "表单示例",
+        rows: [
+            {label: "实现", control: formSelect.element},
+            {label: "API 地址", control: formAddress.element, wide: true, hint: "留空则自动检测"},
+            {label: "启用", control: formToggle.element},
+        ],
+    });
+    cells.push(cell("Form", form.element, {wide: true, hint: "两列表单：标签 + 控件"}));
+
+    return section("控件 Controls", 18, cells);
 }
 
 /* -----------------------------------------------------------------------------
@@ -562,6 +586,15 @@ function buildLayoutSection(): HTMLElement {
                 items: [
                     {id: "all", label: "全部项目", count: 12},
                     {id: "fav", label: "收藏", count: 3},
+                ],
+            },
+            {
+                // Subtitles carry a setting's current value; the chevron says the
+                // row opens a detail pane, the way System Settings does.
+                heading: "设置",
+                items: [
+                    {id: "browser", label: "浏览器", subtitle: "内置浏览器", chevron: true},
+                    {id: "concurrency", label: "并发", subtitle: "8 个任务", chevron: true},
                 ],
             },
         ],

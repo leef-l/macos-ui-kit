@@ -126,7 +126,8 @@
 .mac-showcase__demo > .mac-textarea,
 .mac-showcase__demo > .mac-select,
 .mac-showcase__demo > .mac-combobox,
-.mac-showcase__demo > .mac-datepicker {
+.mac-showcase__demo > .mac-datepicker,
+.mac-showcase__demo > .mac-form {
     flex: 1 1 10rem;
     min-width: 0;
 }

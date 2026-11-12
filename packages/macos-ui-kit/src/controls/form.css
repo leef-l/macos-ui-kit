@@ -1,0 +1,89 @@
+/* Two-column form: labels leading, controls trailing, hairline between rows.
+
+   The alignment is the whole point. A settings screen needs every label in one
+   column and every control in another; hand-rolling that with a grid on each
+   page is what this replaces. */
+
+.mac-form {
+    display: flex;
+    flex-direction: column;
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-l);
+    background: var(--mac-bg-elevated);
+    overflow: hidden;
+}
+
+.mac-form__row {
+    display: grid;
+    /* The label column is capped so a long label does not squeeze the control,
+       and the control column takes the remainder. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    align-items: center;
+    gap: var(--mac-space-3);
+    padding: var(--mac-space-3);
+    border-top: var(--mac-hairline) solid var(--mac-border);
+}
+
+.mac-form__row:first-child {
+    border-top: none;
+}
+
+.mac-form__labels {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.mac-form__label {
+    font-size: var(--mac-text-body);
+    font-weight: var(--mac-weight-medium);
+    color: var(--mac-text);
+    overflow-wrap: anywhere;
+}
+
+.mac-form__hint {
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-tertiary);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+/* Controls size to their content and hug the trailing edge, the way a switch or
+   a short select does. `wide` opts a row into filling the column instead. */
+.mac-form__control {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    min-width: 0;
+}
+
+.mac-form__control > * {
+    min-width: 0;
+}
+
+.mac-form__row--wide .mac-form__control {
+    justify-content: stretch;
+}
+
+.mac-form__row--wide .mac-form__control > * {
+    width: 100%;
+}
+
+/* A narrow window has no room for two columns: stack them, label above control,
+   and keep the row's separation. */
+@media (max-width: 680px) {
+    .mac-form__row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--mac-space-2);
+        align-items: stretch;
+    }
+
+    .mac-form__control {
+        justify-content: stretch;
+    }
+
+    .mac-form__control > * {
+        width: 100%;
+    }
+}

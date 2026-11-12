@@ -22,7 +22,7 @@ function masthead(): HTMLElement {
     const lede = document.createElement("p");
     lede.className = "preview__lede";
     lede.textContent =
-        "30 个 macOS 风格组件，零运行时依赖，纯 TypeScript。切换主题或密度，整个界面会跟着变。";
+        "31 个 macOS 风格组件，零运行时依赖，纯 TypeScript。切换主题或密度，整个界面会跟着变。";
 
     const meta = document.createElement("div");
     meta.className = "preview__meta";
@@ -31,7 +31,7 @@ function masthead(): HTMLElement {
     install.className = "preview__install";
     install.textContent = "npm install @leef-l/macos-ui-kit";
 
-    const version = new Badge({text: "v0.1.2", variant: "accent"});
+    const version = new Badge({text: "v0.2.0", variant: "accent"});
     const plain = new Badge({text: "无框架", variant: "default"});
     const zero = new Badge({text: "0 依赖", variant: "success"});
 
