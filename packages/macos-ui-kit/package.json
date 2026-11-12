@@ -1,6 +1,6 @@
 {
   "name": "@leef-l/macos-ui-kit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "macOS-style UI components in dependency-free TypeScript, for Wails v3 desktop apps and plain web pages",
   "type": "module",
   "license": "MIT",
