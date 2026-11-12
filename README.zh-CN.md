@@ -41,6 +41,14 @@ Wails v3 是**适配目标**，不是前提条件。凡是涉及宿主行为的�
 | `packages/macos-ui-kit` | 是 | 否 | 否 |
 | 演示应用 | 否 | 是 | 是 |
 
+### 同一套组件跑在真实桌面窗口里
+
+选择接入 Wails 除了宿主本身之外不增加任何成本：下图是**同一份组件代码**，跑在
+无边框 WebView2 窗口里，标题栏、红绿灯、侧边栏、状态栏全部由组件自己绘制。
+组件库一行代码都没有为它改动。
+
+![同一套组件运行在 Wails v3 窗口中](./docs/app.png)
+
 ---
 
 ## 快速开始
@@ -89,7 +97,7 @@ document.body.appendChild(button.element);
 | 渠道 | 命令 | 说明 |
 |---|---|---|
 | **npm** | `npm install @leef-l/macos-ui-kit` | 推荐。零配置、不需要 token。 |
-| **Release tarball** | `npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.1.1/leef-l-macos-ui-kit-0.1.1.tgz` | 锁定精确构建；不经过任何 registry。 |
+| **Release tarball** | `npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.1.2/leef-l-macos-ui-kit-0.1.2.tgz` | 锁定精确构建；不经过任何 registry。 |
 | **GitHub Packages** | `npm install @leef-l/macos-ui-kit`，配 `@leef-l:registry=https://npm.pkg.github.com` | 即使是公开包也**需要 token**。 |
 
 包级别的文档见 [`packages/macos-ui-kit/README.zh-CN.md`](packages/macos-ui-kit/README.zh-CN.md)。
@@ -262,10 +270,8 @@ wails3 dev      # 开发模式，热重载
 wails3 build    # 产出二进制到 bin/
 ```
 
-![演示窗口](./docs/app.png)
-
 窗口是无边框的（`Frameless: true`），原生标题栏隐藏。整个框架由应用自己绘制，
-这也是各平台界面完全一致的原因。
+这也是各平台界面完全一致的原因。截图见[上方](#同一套组件跑在真实桌面窗口里)。
 
 | macOS 元素 | 位置 |
 | --- | --- |

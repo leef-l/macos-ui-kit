@@ -31,7 +31,7 @@ function masthead(): HTMLElement {
     install.className = "preview__install";
     install.textContent = "npm install @leef-l/macos-ui-kit";
 
-    const version = new Badge({text: "v0.1.1", variant: "accent"});
+    const version = new Badge({text: "v0.1.2", variant: "accent"});
     const plain = new Badge({text: "无框架", variant: "default"});
     const zero = new Badge({text: "0 依赖", variant: "success"});
 

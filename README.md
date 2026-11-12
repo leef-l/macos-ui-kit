@@ -65,7 +65,7 @@ HTML, and use the global `MacUI`:
 | Channel | Command | Notes |
 |---|---|---|
 | **npm** | `npm install @leef-l/macos-ui-kit` | Recommended. No config, no token. |
-| **Release tarball** | `npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.1.1/leef-l-macos-ui-kit-0.1.1.tgz` | Pins an exact build; no registry involved. |
+| **Release tarball** | `npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.1.2/leef-l-macos-ui-kit-0.1.2.tgz` | Pins an exact build; no registry involved. |
 | **GitHub Packages** | `npm install @leef-l/macos-ui-kit` with `@leef-l:registry=https://npm.pkg.github.com` | Requires a token **even though the package is public**. |
 
 See [`packages/macos-ui-kit/README.md`](packages/macos-ui-kit/README.md) for the
@@ -101,6 +101,15 @@ The Go code in this repository is a **demo host**, not part of the package.
 |---|---|---|---|
 | `packages/macos-ui-kit` | yes | no | no |
 | The demo app | no | yes | yes |
+
+### The same components in a real desktop window
+
+Opting into Wails costs you nothing beyond the host: the window below is the same
+component code, running in a frameless WebView2 window with a rendered title bar,
+traffic lights, sidebar and status bar. Nothing in the library changed to make
+this work.
+
+![The same components inside a Wails v3 window](./docs/app.png)
 
 ---
 
@@ -281,11 +290,9 @@ wails3 dev      # development, with hot reload
 wails3 build    # production binary into bin/
 ```
 
-![The demo window](./docs/app.png)
-
 The window is frameless (`Frameless: true`) with the native title bar hidden. The
 app draws the entire frame, which is what makes the interface identical across
-platforms.
+platforms. See [the screenshot above](#the-same-components-in-a-real-desktop-window).
 
 | macOS element | Where it lives |
 | --- | --- |
