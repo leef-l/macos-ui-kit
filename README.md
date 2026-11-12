@@ -258,19 +258,56 @@ frontend/
 npm install @leef-l/macos-ui-kit
 ```
 
-Published at <https://www.npmjs.com/package/@leef-l/macos-ui-kit>.
-
-Two other ways in, for pinning an exact build or working offline:
+Published at <https://www.npmjs.com/package/@leef-l/macos-ui-kit> and mirrored to
+GitHub Packages. Three other ways in, for pinning a build or working offline:
 
 ```sh
-# From a GitHub release tarball — no npm account needed
-npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.1.0/leef-l-macos-ui-kit-0.1.0.tgz
+# From a GitHub release tarball — no registry at all
+npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.1.1/leef-l-macos-ui-kit-0.1.1.tgz
+
+# From GitHub Packages — note it needs a token even though the package is public
+#   .npmrc: @leef-l:registry=https://npm.pkg.github.com
+npm install @leef-l/macos-ui-kit
 
 # From a local clone, after building it
 npm --prefix macos-ui-kit/packages/macos-ui-kit install
 npm --prefix macos-ui-kit/packages/macos-ui-kit run build
 npm install /absolute/path/to/macos-ui-kit/packages/macos-ui-kit
 ```
+
+### Releasing a new version
+
+Three destinations, and they are deliberately separate steps — a failed mirror
+must not leave the npm registry on a version nobody else got.
+
+```powershell
+cd packages/macos-ui-kit
+npm version patch        # or minor / major; updates package.json and tags
+
+# 1. npm registry. Needs an OTP from the authenticator app: publishing is a
+#    write action and the account has 2FA on writes.
+npm publish --otp=<code>
+
+# 2. GitHub Packages. Needs a token with write:packages — `gh auth refresh -s
+#    write:packages` grants it to gh's own token.
+npm publish --registry=https://npm.pkg.github.com
+
+# 3. GitHub release, so the package is installable without any registry.
+npm pack
+gh release create v0.1.1 leef-l-macos-ui-kit-0.1.1.tgz --title "macOS UI Kit v0.1.1" --notes "..."
+```
+
+Two traps worth remembering, both hit during the first release:
+
+- **`publishConfig.registry` decides where `npm publish` goes**, not the global
+  `npm config registry`. This machine's global registry is the read-only
+  npmmirror, and publishing works anyway because `package.json` pins
+  `registry.npmjs.org`.
+- **A 2FA-bypass token is not a password.** `NODE_AUTH_TOKEN` on its own does
+  nothing: `.npmrc` has to reference it, or the token has to be written into a
+  config file passed with `--userconfig`. Without that npm falls back to the
+  logged-in account and rejects the publish with `EOTP`, which reads as "the
+  token is broken" when it was never used.
 
 Then, with a bundler:
 

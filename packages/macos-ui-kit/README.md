@@ -45,20 +45,38 @@ imports from it.
 
 ## Install
 
-### From npm
+### From npm — recommended
 
 ```sh
 npm install @leef-l/macos-ui-kit
 ```
 
-### Straight from a GitHub release — no npm account needed
+No configuration, no token. This is the channel to use.
+
+### Straight from a GitHub release — no registry at all
 
 ```sh
-npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.1.0/leef-l-macos-ui-kit-0.1.0.tgz
+npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.1.1/leef-l-macos-ui-kit-0.1.1.tgz
 ```
 
-This is a normal npm install: same files, same types, same exports. Use it to
-pin an exact build, or when the registry is unreachable.
+Same files, same types, same exports. Use it to pin an exact build, or when no
+registry is reachable.
+
+### From GitHub Packages
+
+Published there too, but **GitHub Packages requires a token even for public
+packages**, so this is not a drop-in replacement for npm. Point the scope at the
+GitHub registry and supply a personal access token with `read:packages`:
+
+```ini
+# .npmrc
+@leef-l:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
+
+```sh
+npm install @leef-l/macos-ui-kit
+```
 
 ### From a clone
 
