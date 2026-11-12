@@ -16,12 +16,26 @@ so the interface looks the same on Windows, macOS and Linux, and adapts to touch
 
 Two things in one repository:
 
-1. **An application** — a working Wails v3 desktop app with a frameless window,
-   custom macOS chrome, a native menu bar, and a live component showcase.
-2. **A component library** — `packages/macos-ui-kit/`, published as
+1. **A component library** — `packages/macos-ui-kit/`, published as
    [`@leef-l/macos-ui-kit`](packages/macos-ui-kit). 30 components on two-layer
-   design tokens with a runtime theme system. It has no Wails dependency, so it
-   can be used in any project or tested in a plain browser.
+   design tokens with a runtime theme system.
+2. **An application** — a working Wails v3 desktop app with a frameless window,
+   custom macOS chrome, a native menu bar, and a live component showcase. It
+   exists to *host* the library and prove it in a real window.
+
+The split matters: **the library is frontend only.** It has no backend, no Go,
+no Wails runtime and no network calls — `package.json` declares zero
+dependencies and the built bundle has no imports at all. Nothing in it reads a
+`_wails` global, an IPC bridge or a native API.
+
+The Go code in this repository (`main.go`, `menu.go`, `windowservice.go`,
+`greetservice.go`) belongs to the demo host, not to the package. You do not need
+it to use the components.
+
+| | Ships to consumers | Needs Go | Needs Wails |
+|---|---|---|---|
+| `packages/macos-ui-kit` | yes (npm / release tarball) | no | no |
+| The demo app in this repo | no | yes | yes |
 
 The app consumes the library as a package (`import … from "@leef-l/macos-ui-kit"`)
 rather than by relative path, so the library has to stand on its own: if it only
@@ -346,6 +360,14 @@ It has caught two defects that the app build could not:
 The component library is additionally verified by instantiating **all 30
 components in a real headless browser** and asserting each mounts with the
 correct root class — a component can type check and still render nothing.
+
+Because the library is frontend only, it is also verified **with no host at
+all**: a plain HTML file, opened by a static server, with no bundler, no Go
+process and no Wails runtime. It loads `macos-ui-kit.iife.js` with a `<script>`
+tag and mounts all 30 components through `window.MacUI`. The check asserts
+30/30 mount, zero console errors, `window._wails === undefined`, and that the
+tokens still resolve (`--mac-control-height` → `calc(28px * 1)`). That is the
+proof behind "no backend required"; stating it in prose would not be.
 
 The harness also asserts behaviour, not just presence: that `Table.setRows()`
 re-renders, that `Progress.setValue()` moves the fill, that `TabView.setSelected()`

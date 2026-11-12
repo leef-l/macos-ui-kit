@@ -4,15 +4,42 @@ macOS-style UI components in dependency-free TypeScript. No React, no Vue, no
 virtual DOM — just `document.createElement` wrappers over two-layer design
 tokens, so one import gives you the whole design system.
 
-Built for [Wails](https://wails.io) v3 desktop apps, but it has no Wails
-dependency: it runs in any browser, with or without a bundler.
-
 - **30 components** — 17 controls, 6 layout, 6 overlays, 1 mobile shell
 - **Zero runtime dependencies**
 - **Light DOM only** — no Shadow DOM, so native window dragging and screen
   readers both work
 - **Runtime theming** — four built-in themes plus custom token overrides
 - **Density scaling** — one `--mac-scale` factor resizes the whole interface
+
+## Scope: frontend only
+
+This package is **UI components and nothing else**. It contains no backend, no
+server, no data layer and no build-time code generation.
+
+- **No Go, no Wails runtime.** `package.json` declares no `dependencies` and no
+  `peerDependencies`; the built bundle has no imports at all. Nothing in `src/`
+  reads a `_wails` global, an IPC bridge, or a native API.
+- **No framework.** Just DOM APIs. It runs in any browser, in an Electron or
+  Tauri webview, in a Wails window, or in a plain HTML page opened from disk.
+- **No network calls.** Components never fetch anything. What you render is what
+  you pass in.
+
+Wails v3 is a *target*, not a requirement: the drag regions and the mobile shell
+were tuned for a frameless desktop window, and that is where the kit looks best.
+In a normal browser those behaviours simply do nothing instead of failing.
+
+Where the kit does touch host behaviour, it is through standard web APIs only:
+
+| Behaviour | How it works | Outside a desktop shell |
+|---|---|---|
+| Window dragging | `--wails-draggable` is a CSS custom property on the title bar | Ignored; nothing to drag |
+| Double-click to zoom | Listens for `dblclick` | Does nothing |
+| Mobile detection | `matchMedia("(pointer: coarse)")` + a width query | Works everywhere |
+| Sidebar / overlays | Plain DOM + CSS | Works everywhere |
+
+The Go application in this repository is a separate thing: a demo host that
+happens to use these components. You do not need it, and nothing in this package
+imports from it.
 
 ---
 
