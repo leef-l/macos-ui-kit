@@ -1,11 +1,11 @@
 # @leef-l/macos-ui-kit
 
 macOS-style UI components in dependency-free TypeScript. No React, no Vue, no
-virtual DOM — just `document.createElement` wrappers with two-layer design
-tokens, so one `import` gives you the whole design system.
+virtual DOM — just `document.createElement` wrappers over two-layer design
+tokens, so one import gives you the whole design system.
 
 Built for [Wails](https://wails.io) v3 desktop apps, but it has no Wails
-dependency: it runs in any browser and any bundler.
+dependency: it runs in any browser, with or without a bundler.
 
 - **30 components** — 17 controls, 6 layout, 6 overlays, 1 mobile shell
 - **Zero runtime dependencies**
@@ -14,11 +14,57 @@ dependency: it runs in any browser and any bundler.
 - **Runtime theming** — four built-in themes plus custom token overrides
 - **Density scaling** — one `--mac-scale` factor resizes the whole interface
 
+---
+
 ## Install
+
+### From npm (after the first publish)
 
 ```sh
 npm install @leef-l/macos-ui-kit
 ```
+
+### Straight from a GitHub release — no npm account, no publish needed
+
+```sh
+npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.1.0/leef-l-macos-ui-kit-0.1.0.tgz
+```
+
+This is a normal npm install: it lands in `node_modules` with the same files,
+the same types and the same exports. Use it while the package is not on the
+registry yet, or to pin an exact build.
+
+### From a clone
+
+```sh
+git clone https://github.com/leef-l/macos-ui-kit
+cd macos-ui-kit/packages/macos-ui-kit
+npm install
+npm run build
+
+# in your project
+npm install /absolute/path/to/packages/macos-ui-kit
+```
+
+### No build tooling at all
+
+Download `dist/macos-ui-kit.iife.js` and `dist/macos-ui-kit.css` from a release
+(or open the files in `packages/macos-ui-kit/dist/` after building) and use the
+global `MacUI`:
+
+```html
+<link rel="stylesheet" href="./macos-ui-kit.css" />
+<script src="./macos-ui-kit.iife.js"></script>
+<script>
+    const button = new MacUI.Button({label: "Hello", variant: "primary"});
+    document.body.appendChild(button.element);
+</script>
+```
+
+The IIFE build needs the `assets/` folder next to the stylesheet, because the
+stylesheet references the Inter font by relative path.
+
+---
 
 ## Use
 
@@ -41,6 +87,28 @@ document.body.appendChild(button.element);
 Every component exposes `element`, which is the node you mount. Construct it,
 append `element`, and keep the instance for the methods.
 
+### Whole kit or a single component
+
+Both are the same import — take only what you use:
+
+```ts
+// Whole kit, when you want everything
+import * as ui from "@leef-l/macos-ui-kit";
+
+// One component, when you want one
+import {Button} from "@leef-l/macos-ui-kit";
+```
+
+There is one entry point, and the ESM build is tree-shakeable: a bundler drops
+every component you do not reference, provided the package's `sideEffects` field
+is respected (Vite, Rollup, webpack and esbuild all do).
+
+**Honest caveat:** the JavaScript is tree-shaken, the **stylesheet is not**. CSS
+ships as a single 63 KB file and every component's rules are in it. Splitting it
+per component is not worth the extra requests for a desktop window, but if you
+are shipping to a slow network and use three components, know that you still
+download the rules for thirty.
+
 ### Theming
 
 ```ts
@@ -60,11 +128,7 @@ only, so one declaration restyles every component:
 }
 ```
 
-### Dark and light
-
-Built-in themes are pure CSS: `themeManager.apply()` toggles a `data-appearance`
-attribute and the token layer does the rest. Calling it is enough — no stylesheet
-swap.
+---
 
 ## API convention
 
@@ -83,6 +147,8 @@ makes programmatic writes safe to call from a render path.
 `Toast` is the one exception: it is a notification, not an overlay, so it uses
 `show()` / `hide()`.
 
+---
+
 ## Components
 
 | Group | Components |
@@ -91,6 +157,21 @@ makes programmatic writes safe to call from a render path.
 | Layout | `TitleBar` `TrafficLights` `Sidebar` `StatusBar` `Toolbar` `TabView` |
 | Overlays | `Menu` `Tooltip` `Dialog` `Popover` `Sheet` `Toast` |
 | Mobile | `MobileShell` |
+
+Every component also exposes `element`, `destroy()` (releases listeners and any
+observer), and `focus()` where focusing makes sense.
+
+---
+
+## Files
+
+```
+dist/index.js               ESM bundle            (import in a bundler)
+dist/macos-ui-kit.iife.js   IIFE, global MacUI    (<script> tag)
+dist/macos-ui-kit.css       one stylesheet
+dist/index.d.ts             type declarations
+dist/assets/                Inter font + its OFL licence
+```
 
 ## Fonts
 

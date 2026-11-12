@@ -1,8 +1,16 @@
 import {defineConfig} from "vite";
 import {resolve} from "node:path";
 
-// Library build: one ESM bundle, one stylesheet, and the assets (the Inter font)
-// next to it. Consumers import the JS and the CSS separately — see README.md.
+// Library build.
+//
+// Two outputs, because there are two ways to consume this kit:
+//
+//   index.js             ESM, for a bundler (`import {Button} from "…"`)
+//   macos-ui-kit.iife.js IIFE exposing `window.MacUI`, for a plain <script>
+//
+// Both share one stylesheet and the assets next to it. The ESM build is the one
+// to prefer; the IIFE exists so the kit is usable without any build tooling at
+// all, which is most of its audience.
 export default defineConfig({
     build: {
         outDir: "dist",
@@ -18,8 +26,9 @@ export default defineConfig({
         assetsInlineLimit: 0,
         lib: {
             entry: resolve(import.meta.dirname, "src/index.ts"),
-            formats: ["es"],
-            fileName: () => "index.js",
+            formats: ["es", "iife"],
+            name: "MacUI",
+            fileName: (format) => (format === "iife" ? "macos-ui-kit.iife.js" : "index.js"),
             cssFileName: "macos-ui-kit",
         },
         rollupOptions: {

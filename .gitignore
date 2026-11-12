@@ -37,3 +37,6 @@ frontend/__*
 frontend/*.smoke.*
 frontend/dist-smoke
 smoke-dump.html
+
+# Packed tarballs from npm pack
+*.tgz

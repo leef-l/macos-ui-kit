@@ -240,11 +240,28 @@ frontend/
 
 ### Using the library in another project
 
+Three ways in, depending on your setup:
+
 ```sh
+# 1. From a GitHub release — works today, no npm account needed
+npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.1.0/leef-l-macos-ui-kit-0.1.0.tgz
+
+# 2. From npm, once the package is published
 npm install @leef-l/macos-ui-kit
+
+# 3. From a local clone, after building it
+git -C macos-ui-kit/packages/macos-ui-kit npm install && \
+  npm --prefix macos-ui-kit/packages/macos-ui-kit run build
+npm install /absolute/path/to/macos-ui-kit/packages/macos-ui-kit
 ```
 
+Then, with a bundler:
+
 ```ts
+// Whole kit
+import * as ui from "@leef-l/macos-ui-kit";
+
+// Or a single component — same import, take only what you use
 import {Button, themeManager} from "@leef-l/macos-ui-kit";
 import "@leef-l/macos-ui-kit/style.css";
 
@@ -253,9 +270,26 @@ document.body.appendChild(
 );
 ```
 
+And with no build tooling at all — copy `dist/macos-ui-kit.iife.js`,
+`dist/macos-ui-kit.css` and `dist/assets/` next to your HTML:
+
+```html
+<link rel="stylesheet" href="./macos-ui-kit.css" />
+<script src="./macos-ui-kit.iife.js"></script>
+<script>
+    document.body.appendChild(
+        new MacUI.Button({label: "Hello", variant: "primary"}).element,
+    );
+</script>
+```
+
 There are no runtime dependencies and no framework. `dist/` ships one ESM bundle,
-one stylesheet, the type declarations, and the Inter font the stylesheet points
-at.
+one IIFE bundle, one stylesheet, the type declarations, and the Inter font the
+stylesheet points at.
+
+**Tree-shaking, honestly:** a bundler drops unused components from the
+JavaScript, but the stylesheet is one 63 KB file containing every component's
+rules. There is no per-component CSS split.
 
 ### Why the app imports source, not `dist`
 

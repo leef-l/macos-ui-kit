@@ -29,6 +29,7 @@
       "types": "./dist/style.css.d.ts",
       "default": "./dist/macos-ui-kit.css"
     },
+    "./global": "./dist/macos-ui-kit.iife.js",
     "./package.json": "./package.json"
   },
   "files": [
@@ -40,9 +41,14 @@
     "src/index.ts",
     "dist/index.js"
   ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
   "scripts": {
     "build": "vite build && tsc -p tsconfig.build.json && node scripts/finalize-dist.mjs",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "typescript": "^7.0.2",
