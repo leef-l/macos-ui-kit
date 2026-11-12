@@ -360,7 +360,7 @@ function buildControlsSection(): HTMLElement {
         },
     });
     cells.push(
-        cell("Slider", slider.element, {hint: "拖动会同步下方进度条"}),
+        cell("Slider", slider.element, {state: sliderState, hint: "拖动会同步下方进度条"}),
         cell("Progress", progress.element, {hint: "由上方滑块驱动"}),
         cell("Spinner", new Spinner({label: "加载中…"}).element),
     );
@@ -391,7 +391,7 @@ function buildControlsSection(): HTMLElement {
         cell(
             "Checkbox",
             stack(checkbox.element, new Checkbox({indeterminate: true, label: "半选"}).element),
-            {hint: "含半选态"},
+            {state: checkState, hint: "含半选态"},
         ),
     );
 
@@ -407,7 +407,10 @@ function buildControlsSection(): HTMLElement {
         onChange: (value) => segmentState.set(`选中: ${value}`),
     });
     cells.push(
-        cell("SegmentedControl", segmented.element, {hint: "方向键可切换"}),
+        cell("SegmentedControl", segmented.element, {
+            state: segmentState,
+            hint: "方向键可切换",
+        }),
     );
 
     const selectState = readout("选中: a");
@@ -422,7 +425,7 @@ function buildControlsSection(): HTMLElement {
         onChange: (value) => selectState.set(`选中: ${value}`),
     });
     cells.push(
-        cell("Select", select.element, {hint: "含禁用项"}),
+        cell("Select", select.element, {state: selectState, hint: "含禁用项"}),
     );
 
     const comboState = readout("尚未选择");
@@ -436,7 +439,7 @@ function buildControlsSection(): HTMLElement {
         onChange: (value) => comboState.set(`选中: ${value}`),
     });
     cells.push(
-        cell("ComboBox", comboBox.element, {hint: "键盘可导航"}),
+        cell("ComboBox", comboBox.element, {state: comboState, hint: "键盘可导航"}),
     );
 
     const dateState = readout("日期: 2026-01-01");
