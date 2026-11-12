@@ -115,6 +115,18 @@ document.body.appendChild(button.element);
 
 去 <https://leef-l.github.io/macos-ui-kit/> 直接试，页面顶部可以切换主题和密度。
 
+有两个选项值得单独提一句，因为不提供的话大家都会自己手搓一遍：
+
+```ts
+// 密码框：自动掩码，显示/隐藏按钮内置在控件里。
+const password = new TextField({type: "password", clearable: true});
+password.isRevealed;        // false
+password.setRevealed(true); // 或者让用户点眼睛图标
+
+// ComboBox 点击、聚焦、输入都能展开 —— 不只是在打字时。
+const picker = new ComboBox({options, placeholder: "收件人"});
+```
+
 ## API 约定
 
 三条规则，贯穿全部 30 个组件，让你没用过的控件也符合直觉：

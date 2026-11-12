@@ -209,6 +209,19 @@ makes programmatic writes safe to call from a render path.
 Every component also exposes `element`, `destroy()` (releases listeners and any
 observer), and `focus()` where focusing makes sense.
 
+`TextField` covers password entry without extra wiring:
+
+```ts
+const password = new TextField({type: "password", clearable: true});
+password.isRevealed;        // false — masked
+password.setRevealed(true); // or let the user click the eye icon
+```
+
+The reveal toggle lives inside the control: it keeps the value across the
+type swap, announces itself with `aria-pressed`, and is in the tab order. A plain
+`type: "text"` field has no toggle, and `setRevealed()` on one is a no-op rather
+than a silent type change.
+
 ---
 
 ## Files

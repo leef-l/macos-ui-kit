@@ -301,6 +301,28 @@ function buildControlsSection(): HTMLElement {
         cell("TextField", textField.element, {state: textState, hint: "带清除按钮"}),
     );
 
+    // Password field: the reveal toggle is part of the control, not a separate
+    // button a caller has to wire up.
+    const passwordState = readout("已隐藏");
+    const passwordField = new TextField({
+        type: "password",
+        placeholder: "密码",
+        value: "correct horse",
+        onInput: () => passwordState.set(passwordField.isRevealed ? "已显示" : "已隐藏"),
+    });
+    const passwordCell = cell("TextField · password", passwordField.element, {
+        state: passwordState,
+        hint: "点眼睛图标切换显示",
+    });
+    // The toggle is inside the control, so the readout needs to follow its click
+    // rather than the input event (which does not fire when only the type flips).
+    passwordField.element
+        .querySelector(".mac-textfield__reveal")
+        ?.addEventListener("click", () => {
+            passwordState.set(passwordField.isRevealed ? "已显示" : "已隐藏");
+        });
+    cells.push(passwordCell);
+
     const areaState = readout("长度: 0/120");
     const textArea = new TextArea({
         placeholder: "多行文本…",

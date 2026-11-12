@@ -110,6 +110,45 @@
     outline-offset: 1px;
 }
 
+/* Reveal toggle for password fields.
+
+   A bare glyph rather than the filled circle the clear button uses: the two can
+   sit side by side, and two filled circles at the same edge read as one control.
+   It stays in the tab order, unlike the clear button, because showing a password
+   is a real action a keyboard user may need. */
+.mac-textfield__reveal {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: var(--mac-icon-md);
+    height: var(--mac-icon-md);
+    padding: 0;
+    border: none;
+    border-radius: var(--mac-radius-s);
+    background: transparent;
+    color: var(--mac-text-tertiary);
+    cursor: default;
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-textfield__reveal:hover {
+    background: var(--mac-bg-hover);
+    color: var(--mac-text);
+}
+
+.mac-textfield__reveal:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 1px;
+}
+
+/* While the value is visible the toggle stays lit, so the state is legible
+   without relying on the icon swap alone. */
+.mac-textfield.is-revealed .mac-textfield__reveal {
+    color: var(--mac-accent);
+}
+
 /* Disabled: the native attribute does the blocking, this only dims it. */
 .mac-textfield.is-disabled .mac-textfield__control {
     opacity: 0.45;

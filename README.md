@@ -125,6 +125,19 @@ this work.
 Try them at <https://leef-l.github.io/macos-ui-kit/> — theme and density switches
 are at the top of that page.
 
+Two options worth knowing about, because they are the ones people otherwise
+rebuild by hand:
+
+```ts
+// Password field: masked, with a reveal toggle built into the control.
+const password = new TextField({type: "password", clearable: true});
+password.isRevealed;        // false
+password.setRevealed(true); // or let the user click the eye
+
+// Combobox opens on click, focus or typing — not only while you type.
+const picker = new ComboBox({options, placeholder: "Recipient"});
+```
+
 ## API convention
 
 Three rules across all 30 components, so a control you have never used behaves

@@ -196,6 +196,18 @@ setDensity("compact");              // compact | comfortable | touch
 每个组件还暴露 `element`、`destroy()`（释放监听器与 observer）、以及适用时的
 `focus()`。
 
+`TextField` 自带密码输入，不需要额外接线：
+
+```ts
+const password = new TextField({type: "password", clearable: true});
+password.isRevealed;        // false —— 已掩码
+password.setRevealed(true); // 或者让用户点眼睛图标
+```
+
+显示/隐藏按钮属于控件本身：切换类型时值不会丢、用 `aria-pressed` 向读屏软件
+说明状态、并且在 Tab 顺序里。普通 `type: "text"` 的字段没有这个按钮，对它调用
+`setRevealed()` 是空操作，而不是悄悄改变输入类型。
+
 ---
 
 ## 产物

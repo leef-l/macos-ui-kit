@@ -2,6 +2,17 @@ import {Component} from "../component";
 import {append, el, svgIcon, uid, type Child} from "../dom";
 import "./textfield.css";
 
+/**
+ * Icons for the password reveal toggle.
+ *
+ * One path each, several subpaths, because `svgIcon` draws a single `d`. The
+ * slash is a subpath rather than a second element so the button holds one node
+ * and the swap is a single `d` assignment.
+ */
+const EYE = "M2 12 C7 5.5 17 5.5 22 12 C17 18.5 7 18.5 2 12 Z M12 9.4 a2.6 2.6 0 1 0 0 5.2 a2.6 2.6 0 1 0 0 -5.2";
+const EYE_OFF =
+    "M2 12 C7 5.5 17 5.5 22 12 C17 18.5 7 18.5 2 12 Z M12 9.4 a2.6 2.6 0 1 0 0 5.2 a2.6 2.6 0 1 0 0 -5.2 M4 20 L20 4";
+
 export interface TextFieldOptions {
     /** Label rendered above the field; it is wired to the input through `for`/`id`. */
     label?: Child;
@@ -11,6 +22,11 @@ export interface TextFieldOptions {
     icon?: string;
     /** Show a clear button at the trailing edge once the field holds text. */
     clearable?: boolean;
+    /**
+     * `password` masks the value and adds a reveal toggle at the trailing edge,
+     * the way a macOS secure field does. Defaults to `text`.
+     */
+    type?: "text" | "password";
     disabled?: boolean;
     readOnly?: boolean;
     /** Initial value. */
@@ -40,6 +56,7 @@ export class TextField extends Component<HTMLElement> {
 
     private readonly input: HTMLInputElement;
     private readonly clearButton: HTMLButtonElement | null = null;
+    private readonly revealButton: HTMLButtonElement | null = null;
     private readonly onInput?: (value: string) => void;
     private readonly onChange?: (value: string) => void;
     /** True while the value has changed since the last commit. */
@@ -53,6 +70,7 @@ export class TextField extends Component<HTMLElement> {
             placeholder = "",
             icon,
             clearable = false,
+            type = "text",
             disabled = false,
             readOnly = false,
             value = "",
@@ -86,13 +104,13 @@ export class TextField extends Component<HTMLElement> {
 
         this.input = el("input", {
             class: "mac-textfield__input",
-            type: "text",
+            type,
             id: inputId,
             placeholder,
             value,
             disabled,
             readOnly,
-            autocomplete: "off",
+            autocomplete: type === "password" ? "current-password" : "off",
         });
 
         // `el` skips falsy values, so the spellchecker is switched off here.
@@ -110,6 +128,19 @@ export class TextField extends Component<HTMLElement> {
             });
             this.clearButton.appendChild(svgIcon("M6 6 L12 12 M12 6 L6 12", 10));
             control.appendChild(this.clearButton);
+        }
+
+        if (type === "password") {
+            this.revealButton = el("button", {
+                class: "mac-textfield__reveal",
+                type: "button",
+                "aria-label": "显示密码",
+                "aria-pressed": "false",
+                title: "显示密码",
+            });
+            this.revealButton.appendChild(svgIcon(EYE, 14));
+            control.appendChild(this.revealButton);
+            this.root.classList.add("mac-textfield--password");
         }
 
         this.root.appendChild(control);
@@ -142,7 +173,40 @@ export class TextField extends Component<HTMLElement> {
             });
         }
 
+        if (this.revealButton) {
+            const button = this.revealButton;
+            this.listen(button, "click", () => {
+                this.setRevealed(!this.isRevealed);
+                // Keep the caret where the user left it: swapping the input type
+                // resets selection in some engines.
+                const at = this.input.value.length;
+                this.input.focus();
+                this.input.setSelectionRange(at, at);
+            });
+        }
+
         this.syncClearState();
+    }
+
+    /** Whether a password field is currently showing its value in plain text. */
+    get isRevealed(): boolean {
+        return this.input.type === "text";
+    }
+
+    /**
+     * Show or mask a password field.
+     *
+     * No-op on a text field: there is nothing to reveal, and silently changing
+     * a normal input's type would be a surprise.
+     */
+    setRevealed(revealed: boolean): void {
+        if (!this.revealButton) return;
+        this.input.type = revealed ? "text" : "password";
+        this.revealButton.setAttribute("aria-pressed", String(revealed));
+        this.revealButton.setAttribute("aria-label", revealed ? "隐藏密码" : "显示密码");
+        this.revealButton.title = revealed ? "隐藏密码" : "显示密码";
+        this.revealButton.replaceChildren(svgIcon(revealed ? EYE_OFF : EYE, 14));
+        this.root.classList.toggle("is-revealed", revealed);
     }
 
     /** The current value. */
