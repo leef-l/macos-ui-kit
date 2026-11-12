@@ -55,7 +55,7 @@ npm install @leef-l/macos-ui-kit
 ### 直接从 GitHub Release（不经过任何 registry）
 
 ```sh
-npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.2.0/leef-l-macos-ui-kit-0.2.0.tgz
+npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.3.0/leef-l-macos-ui-kit-0.3.0.tgz
 ```
 
 同样的文件、同样的类型、同样的导出。适合锁定精确构建，或者无法访问 registry 时。
@@ -181,6 +181,26 @@ setDensity("compact");              // compact | comfortable | touch
 `setX()` 永远不触发变更回调 —— 只有用户交互才触发。这样从渲染路径里调用是安全的。
 
 `Toast` 是唯一例外：它是通知，不是浮层，所以用 `show()` / `hide()`。
+
+两者都能装内容，不只是纯文本 —— 否则每个调用方都会自己包一层同样的东西：
+
+```ts
+// 带按钮的提示条
+new Toast({
+    message: "已删除 3 条记录",
+    detail: "可以在 30 秒内撤销",
+    action: {label: "撤销", onClick: () => restore()},
+}).show();
+
+// 表格里的操作列，一行一组按钮
+{key: "", title: "", align: "right", actions: (row) => [
+    {label: row.running ? "停止" : "启动", onClick: (r) => toggle(r)},
+]}
+```
+
+`message` 和 `detail` 除了字符串也接受节点。`action` 点击后默认关闭提示条，
+除非设了 `keepOpen`。表格的 `actions` 是 `render` 手搓按钮组的简写；
+`disabled` 可以是布尔值，也可以是按行判断的函数。
 
 ---
 

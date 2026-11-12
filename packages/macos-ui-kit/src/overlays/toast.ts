@@ -1,16 +1,35 @@
 import {Component} from "../component";
-import {el} from "../dom";
+import {append, el, type Child} from "../dom";
+import {Button, type ButtonVariant} from "../controls/button";
 import "./toast.css";
 
 export type ToastVariant = "default" | "success" | "error";
 
+/** One button in a toast, e.g. "Undo". */
+export interface ToastAction {
+    label: string;
+    onClick: () => void;
+    variant?: ButtonVariant;
+    /**
+     * Keep the toast open after the click. Default false: acting on a toast
+     * normally dismisses it.
+     */
+    keepOpen?: boolean;
+}
+
 export interface ToastOptions {
-    message?: string;
-    /** Secondary line under the message. */
-    detail?: string;
+    /**
+     * Body. A string renders as text; a node is adopted as-is, so a toast can
+     * carry a link, a code snippet or a small list.
+     */
+    message?: Child;
+    /** Secondary line under the message. Same rules. */
+    detail?: Child;
     /** Auto-dismiss delay in ms; 0 keeps it until dismissed. */
     duration?: number;
     variant?: ToastVariant;
+    /** A button rendered with the message, e.g. undo or open. */
+    action?: ToastAction;
 }
 
 /**
@@ -53,6 +72,7 @@ export class Toast extends Component<HTMLDivElement> {
 
     private readonly messageNode: HTMLDivElement;
     private readonly detailNode: HTMLDivElement;
+    private readonly actionNode: HTMLDivElement;
     private duration: number;
     private timer: ReturnType<typeof setTimeout> | null = null;
     private visible = false;
@@ -73,26 +93,28 @@ export class Toast extends Component<HTMLDivElement> {
             "aria-live": "polite",
         });
 
-        this.messageNode = el("div", {
-            class: "mac-toast__message",
-            text: options.message ?? "",
-        });
-        this.detailNode = el("div", {
-            class: "mac-toast__detail",
-            text: options.detail ?? "",
-        });
-        if (!options.detail) this.detailNode.style.display = "none";
+        this.messageNode = el("div", {class: "mac-toast__message"});
+        this.detailNode = el("div", {class: "mac-toast__detail"});
+        this.actionNode = el("div", {class: "mac-toast__actions"});
 
-        this.root.append(this.messageNode, this.detailNode);
+        const text = el("div", {class: "mac-toast__text"});
+        text.append(this.messageNode, this.detailNode);
+
+        this.root.append(text, this.actionNode);
+
+        if (options.message !== undefined) append(this.messageNode, [options.message]);
+        this.setDetail(options.detail);
+        if (options.action) this.setAction(options.action);
+        else this.actionNode.style.display = "none";
     }
 
-    /** Show the toast, replacing its text. Mounts itself into the shared stack. */
-    show(message?: string, detail?: string): void {
-        if (message !== undefined) this.messageNode.textContent = message;
-        if (detail !== undefined) {
-            this.detailNode.textContent = detail;
-            this.detailNode.style.display = detail ? "" : "none";
+    /** Show the toast, replacing its content. Mounts itself into the shared stack. */
+    show(message?: Child, detail?: Child): void {
+        if (message !== undefined) {
+            this.messageNode.replaceChildren();
+            append(this.messageNode, [message]);
         }
+        if (detail !== undefined) this.setDetail(detail);
 
         if (!this.visible) {
             ensureStack().appendChild(this.root);
@@ -107,6 +129,39 @@ export class Toast extends Component<HTMLDivElement> {
     /** Update the auto-dismiss delay for subsequent shows. */
     setDuration(duration: number): void {
         this.duration = duration;
+    }
+
+    /** Set or replace the action button. Pass `null` to remove it. */
+    setAction(action: ToastAction | null): void {
+        this.actionNode.replaceChildren();
+        if (!action) {
+            this.actionNode.style.display = "none";
+            return;
+        }
+
+        const button = new Button({
+            label: action.label,
+            variant: action.variant ?? "default",
+            size: "small",
+            onClick: () => {
+                action.onClick();
+                if (!action.keepOpen) this.hide();
+            },
+        });
+        this.actionNode.appendChild(button.element);
+        this.actionNode.style.display = "";
+        // The button's own listeners go with it when the toast is destroyed.
+        this.onDestroy(() => button.destroy());
+    }
+
+    private setDetail(detail: Child): void {
+        this.detailNode.replaceChildren();
+        if (detail === undefined || detail === null || detail === false || detail === "") {
+            this.detailNode.style.display = "none";
+            return;
+        }
+        append(this.detailNode, [detail]);
+        this.detailNode.style.display = "";
     }
 
     /** Dismiss immediately. */

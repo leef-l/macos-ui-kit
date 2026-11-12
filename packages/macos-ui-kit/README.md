@@ -60,7 +60,7 @@ No configuration, no token. This is the channel to use.
 ### Straight from a GitHub release — no registry at all
 
 ```sh
-npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.2.0/leef-l-macos-ui-kit-0.2.0.tgz
+npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.3.0/leef-l-macos-ui-kit-0.3.0.tgz
 ```
 
 Same files, same types, same exports. Use it to pin an exact build, or when no
@@ -194,6 +194,28 @@ makes programmatic writes safe to call from a render path.
 
 `Toast` is the one exception: it is a notification, not an overlay, so it uses
 `show()` / `hide()`.
+
+Both accept more than text, because the alternative is every caller inventing the
+same wrapper:
+
+```ts
+// A toast with a link, a code sample, or an action button.
+new Toast({
+    message: "Deleted 3 records",
+    detail: "You can undo for 30 seconds",
+    action: {label: "Undo", onClick: () => restore()},
+}).show();
+
+// A table column of buttons, one set per row.
+{key: "", title: "", align: "right", actions: (row) => [
+    {label: row.running ? "Stop" : "Start", onClick: (r) => toggle(r)},
+]}
+```
+
+`message` and `detail` take a node as well as a string. `action` dismisses the
+toast unless `keepOpen` is set. In a table, `actions` is the shorthand for the
+row of buttons `render` would otherwise build by hand; `disabled` may be a
+boolean or a per-row predicate.
 
 ---
 

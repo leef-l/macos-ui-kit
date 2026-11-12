@@ -1,5 +1,6 @@
 import {Component} from "../component";
 import {append, el} from "../dom";
+import {Button, type ButtonVariant} from "./button";
 import "./table.css";
 
 /** Horizontal alignment of a column's header and cells. */
@@ -24,6 +25,28 @@ export interface TableColumn {
      * Omit it to get the default `String(value)` treatment.
      */
     render?: (value: any, row: any, index: number) => Node | string;
+    /**
+     * Buttons for this cell — one set per row.
+     *
+     * `render` can already return a button, but every table that has an actions
+     * column writes the same wrapper, so this states the shape once. Use one or
+     * the other, not both: `actions` wins when present.
+     */
+    actions?: (row: any, index: number) => TableAction[];
+}
+
+/** One button inside an action column. */
+export interface TableAction {
+    /** Visible text. */
+    label: string;
+    /** Called with the row that was clicked. */
+    onClick: (row: any) => void;
+    /** Button style. Default `default`. */
+    variant?: ButtonVariant;
+    /** Disable the button, or decide per row. */
+    disabled?: boolean | ((row: any) => boolean);
+    /** Accessible name when the label is short or an icon substitute. */
+    ariaLabel?: string;
 }
 
 export interface TableOptions {
@@ -279,6 +302,31 @@ export class Table extends Component<HTMLDivElement> {
     ): HTMLTableCellElement {
         const cell = el("td", {class: `mac-table__cell${alignClass(column.align)}`});
         const value = row?.[column.key];
+
+        // An action column is a row of buttons; `actions` is `render` for the
+        // shape almost every table ends up writing by hand.
+        if (column.actions) {
+            const group = el("div", {class: "mac-table__actions"});
+            for (const action of column.actions(row, index)) {
+                const disabled =
+                    typeof action.disabled === "function"
+                        ? action.disabled(row)
+                        : (action.disabled ?? false);
+                const button = new Button({
+                    label: action.label,
+                    variant: action.variant ?? "default",
+                    size: "small",
+                    disabled,
+                    onClick: () => action.onClick(row),
+                });
+                if (action.ariaLabel) {
+                    button.element.setAttribute("aria-label", action.ariaLabel);
+                }
+                group.appendChild(button.element);
+            }
+            cell.appendChild(group);
+            return cell;
+        }
 
         if (column.render) {
             // `append` takes a Node or a string, so a renderer can return

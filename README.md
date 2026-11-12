@@ -65,7 +65,7 @@ HTML, and use the global `MacUI`:
 | Channel | Command | Notes |
 |---|---|---|
 | **npm** | `npm install @leef-l/macos-ui-kit` | Recommended. No config, no token. |
-| **Release tarball** | `npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.2.0/leef-l-macos-ui-kit-0.2.0.tgz` | Pins an exact build; no registry involved. |
+| **Release tarball** | `npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.3.0/leef-l-macos-ui-kit-0.3.0.tgz` | Pins an exact build; no registry involved. |
 | **GitHub Packages** | `npm install @leef-l/macos-ui-kit` with `@leef-l:registry=https://npm.pkg.github.com` | Requires a token **even though the package is public**. |
 
 See [`packages/macos-ui-kit/README.md`](packages/macos-ui-kit/README.md) for the
@@ -404,7 +404,7 @@ npm publish --registry=https://npm.pkg.github.com
 
 # 3. GitHub release, so the package is installable without any registry.
 npm pack
-gh release create v0.2.0 leef-l-macos-ui-kit-0.2.0.tgz --title "macOS UI Kit v0.2.0" --notes "..."
+gh release create v0.3.0 leef-l-macos-ui-kit-0.3.0.tgz --title "macOS UI Kit v0.3.0" --notes "..."
 ```
 
 Two traps worth remembering, both hit during the first release:

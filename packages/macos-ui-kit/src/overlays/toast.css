@@ -15,7 +15,9 @@
 
 .mac-toast {
     display: flex;
-    flex-direction: column;
+    /* Text and an optional action sit side by side; the text column wraps. */
+    flex-direction: row;
+    align-items: center;
     gap: calc(2px * var(--mac-scale));
     min-width: calc(var(--mac-space-5) * 10);
     max-width: min(70vw, 380px);
@@ -59,3 +61,21 @@
 }
 
 
+
+/* The text column shrinks before the action does, so a long message wraps
+   instead of pushing the button out of the toast. */
+.mac-toast__text {
+    display: flex;
+    flex-direction: column;
+    gap: calc(2px * var(--mac-scale));
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.mac-toast__actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-1);
+    margin-left: var(--mac-space-2);
+}

@@ -26,6 +26,7 @@ import {
     TextArea,
     TextField,
     TitleBar,
+    Toast,
     Toolbar,
     Tooltip,
     getDensity,
@@ -483,6 +484,18 @@ function buildControlsSection(): HTMLElement {
                     }).element,
             },
             {key: "cpu", title: "CPU", align: "right"},
+            {
+                // Action column: the shorthand for "a row of buttons per row".
+                key: "",
+                title: "",
+                align: "right",
+                actions: (row) => [
+                    {
+                        label: row.status === "运行中" ? "停止" : "启动",
+                        onClick: (r) => showToast(`${r.name} → ${r.status === "运行中" ? "已停止" : "已启动"}`),
+                    },
+                ],
+            },
         ],
         rows: [
             {id: "1", name: "web-01", status: "运行中", cpu: "42%"},
@@ -724,12 +737,33 @@ function buildOverlaysSection(): HTMLElement {
         cell("Sheet", stack(sheetButton.element, sheetState.node), {hint: "从顶部滑入"}),
     );
 
-    // Toast.
+    // Toast. Two buttons: a plain one, and one whose body is a node and which
+    // carries an action, which is what "a toast with a link or a button" means.
     const toastButton = new Button({label: "显示提示条"});
     toastButton.element.addEventListener("click", () => {
         showToast("操作已完成", {variant: "success", duration: 2500});
     });
-    cells.push(cell("Toast", toastButton.element, {hint: "右上角，自动消失"}));
+
+    const toastActionButton = new Button({label: "带操作"});
+    toastActionButton.element.addEventListener("click", () => {
+        const toast = new Toast({
+            variant: "default",
+            duration: 6000,
+            message: "已删除 3 条记录",
+            detail: "可以在 30 秒内撤销",
+            action: {
+                label: "撤销",
+                onClick: () => showToast("已撤销", {variant: "success"}),
+            },
+        });
+        toast.show();
+    });
+
+    cells.push(
+        cell("Toast", stack(toastButton.element, toastActionButton.element), {
+            hint: "右上角；第二个带按钮",
+        }),
+    );
 
     return section("浮层 Overlays", 6, cells);
 }

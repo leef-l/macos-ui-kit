@@ -174,3 +174,17 @@
         background: var(--mac-accent-soft);
     }
 }
+
+/* Action column: the row of buttons sits tight and hugs the trailing edge, so
+   two tables on one page line their buttons up. */
+.mac-table__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--mac-space-1);
+    flex-wrap: nowrap;
+}
+
+.mac-table__actions .mac-button {
+    flex: 0 0 auto;
+}
