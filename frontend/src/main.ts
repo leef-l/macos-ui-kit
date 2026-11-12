@@ -294,7 +294,7 @@ function greetForm(): HTMLElement {
     });
 
     templateButton.element.addEventListener("click", () => {
-        templateMenu?.show(templateButton.element);
+        templateMenu?.open(templateButton.element);
     });
     composeRow.appendChild(templateButton.element);
 
@@ -513,7 +513,7 @@ function advancedSettings(): HTMLElement {
                 recordActivity("backend", "活动历史已清空");
             },
         });
-        dialog.show();
+        dialog.open();
     });
 
     dangerContent.append(dangerHint, clearButton.element);
@@ -741,9 +741,9 @@ function activityPane(): HTMLElement {
 let toast: Toast | null = null;
 
 async function sendGreeting(): Promise<void> {
-    const name = nameField?.getValue().trim() || "anonymous";
-    const body = messageArea?.getValue().trim() ?? "";
-    const recipient = templateCombo?.getValue() ?? "";
+    const name = nameField?.value.trim() || "anonymous";
+    const body = messageArea?.value.trim() ?? "";
+    const recipient = templateCombo?.value ?? "";
 
     greetButton?.setDisabled(true);
     try {

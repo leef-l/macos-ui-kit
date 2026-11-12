@@ -100,6 +100,11 @@ export class Slider extends Component<HTMLElement> {
         this.syncFill();
     }
 
+    /** The current value, clamped to the configured range. */
+    get value(): number {
+        return Number(this.input.value);
+    }
+
     /** Replace the value; out-of-range input is clamped rather than committed as-is. */
     setValue(value: number): void {
         if (!Number.isFinite(value)) return;

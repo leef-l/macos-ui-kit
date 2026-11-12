@@ -42,14 +42,14 @@ export class MobileShell extends Component<HTMLElement> {
     private readonly contentNode: HTMLDivElement;
     private readonly tabBar: HTMLElement | null;
     private readonly onTabChange?: (id: string) => void;
-    private selected: string | null;
+    private currentId: string | null;
 
     constructor(options: MobileShellOptions) {
         super();
 
         const {title, tabs = [], selected, onTabChange, action} = options;
 
-        this.selected = selected ?? tabs[0]?.id ?? null;
+        this.currentId = selected ?? tabs[0]?.id ?? null;
         this.onTabChange = onTabChange;
 
         this.root = el("div", {class: "mac-mobile"});
@@ -76,10 +76,10 @@ export class MobileShell extends Component<HTMLElement> {
         if (tabBar) {
             for (const tab of tabs) {
                 const button = el("button", {
-                    class: `mac-mobile__tab${tab.id === this.selected ? " is-selected" : ""}`,
+                    class: `mac-mobile__tab${tab.id === this.currentId ? " is-selected" : ""}`,
                     type: "button",
                     role: "tab",
-                    "aria-selected": String(tab.id === this.selected),
+                    "aria-selected": String(tab.id === this.currentId),
                     dataset: {id: tab.id},
                 });
                 button.append(svgIcon(tab.icon, 22), el("span", {text: tab.label}));
@@ -114,8 +114,8 @@ export class MobileShell extends Component<HTMLElement> {
 
     /** Switch the active tab. */
     setSelected(id: string, notify = false): void {
-        if (this.selected === id) return;
-        this.selected = id;
+        if (this.currentId === id) return;
+        this.currentId = id;
 
         if (this.tabBar) {
             for (const node of this.tabBar.querySelectorAll<HTMLButtonElement>(".mac-mobile__tab")) {
@@ -129,8 +129,8 @@ export class MobileShell extends Component<HTMLElement> {
     }
 
     /** The active tab id, or null when the shell has no tabs. */
-    get selection(): string | null {
-        return this.selected;
+    get selected(): string | null {
+        return this.currentId;
     }
 }
 

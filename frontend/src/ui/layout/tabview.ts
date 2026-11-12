@@ -153,7 +153,7 @@ export class TabView extends Component<HTMLDivElement> {
     }
 
     /** Select a tab programmatically. Does not fire `onSelect`. */
-    select(id: string): void {
+    setSelected(id: string): void {
         if (id === this.selectedId) return;
         const tab = this.tabs.find((entry) => entry.id === id);
         if (!tab || tab.disabled) return;

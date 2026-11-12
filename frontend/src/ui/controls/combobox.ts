@@ -169,7 +169,7 @@ export class ComboBox extends Component<HTMLDivElement> {
      * `selectedValue` is what keeps a field showing "Apricot" answering with its
      * machine value "b".
      */
-    getValue(): string {
+    get value(): string {
         const option = this.filtered[this.active];
         if (option) return option.value;
         return this.selectedValue ?? this.input.value;

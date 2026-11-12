@@ -36,7 +36,7 @@ export class Dialog extends Component<HTMLDivElement> {
     private readonly onConfirm?: () => void;
 
     private releaseFocus: (() => void) | null = null;
-    private open = false;
+    private opened = false;
 
     constructor(options: DialogOptions) {
         super();
@@ -93,7 +93,7 @@ export class Dialog extends Component<HTMLDivElement> {
 
         // Escape is captured on the document so it works regardless of focus.
         this.listen(document, "keydown", (event) => {
-            if (this.open && event.key === "Escape") {
+            if (this.opened && event.key === "Escape") {
                 event.preventDefault();
                 this.cancel();
             }
@@ -101,9 +101,9 @@ export class Dialog extends Component<HTMLDivElement> {
     }
 
     /** Show the dialog modally. */
-    show(): void {
-        if (this.open) return;
-        this.open = true;
+    open(): void {
+        if (this.opened) return;
+        this.opened = true;
 
         document.body.appendChild(this.scrim);
         this.releaseFocus = trapFocus(this.root);
@@ -112,9 +112,9 @@ export class Dialog extends Component<HTMLDivElement> {
     }
 
     /** Hide the dialog and restore focus. */
-    hide(): void {
-        if (!this.open) return;
-        this.open = false;
+    close(): void {
+        if (!this.opened) return;
+        this.opened = false;
 
         this.scrim.classList.remove("is-open");
         this.releaseFocus?.();
@@ -122,25 +122,25 @@ export class Dialog extends Component<HTMLDivElement> {
 
         // Remove after the fade; also handle a rapid re-open.
         setTimeout(() => {
-            if (!this.open) this.scrim.remove();
+            if (!this.opened) this.scrim.remove();
         }, 200);
     }
 
     /** Confirm and close. */
     confirm(): void {
         this.onConfirm?.();
-        this.hide();
+        this.close();
     }
 
     /** Cancel and close. */
     cancel(): void {
         this.onCancel?.();
-        this.hide();
+        this.close();
     }
 
     /** Whether the dialog is on screen. */
     get isOpen(): boolean {
-        return this.open;
+        return this.opened;
     }
 
     override destroy(): void {

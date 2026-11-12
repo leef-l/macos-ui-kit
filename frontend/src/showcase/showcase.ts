@@ -594,7 +594,7 @@ function buildOverlaysSection(): HTMLElement {
         ],
         onSelect: (value) => menuState.set(`已选择: ${value}`),
     });
-    menuButton.element.addEventListener("click", () => menu.show(menuButton.element));
+    menuButton.element.addEventListener("click", () => menu.open(menuButton.element));
     cells.push(
         cell("Menu", stack(menuButton.element, menuState.node), {
             hint: "方向键 + Enter + Esc",
@@ -619,7 +619,7 @@ function buildOverlaysSection(): HTMLElement {
             onConfirm: () => dialogState.set("已确认"),
             onCancel: () => dialogState.set("已取消"),
         });
-        dialog.show();
+        dialog.open();
     });
     cells.push(
         cell("Dialog", stack(dialogButton.element, dialogState.node), {

@@ -46,7 +46,7 @@ export class Menu extends Component<HTMLDivElement> {
     private readonly onSelect?: (value: string) => void;
     private readonly menuItems: HTMLButtonElement[] = [];
 
-    private open = false;
+    private opened = false;
     private disposeTracking: (() => void) | null = null;
     private restoreFocusTo: HTMLElement | null = null;
     private highlighted = -1;
@@ -129,14 +129,14 @@ export class Menu extends Component<HTMLDivElement> {
 
         // Close on any click that lands outside the menu.
         this.listen(document, "mousedown", (event) => {
-            if (!this.open) return;
+            if (!this.opened) return;
             const target = event.target as Node;
             if (!this.root.contains(target)) this.close();
         });
 
         // Escape closes no matter which element holds focus.
         this.listen(document, "keydown", (event) => {
-            if (this.open && event.key === "Escape") {
+            if (this.opened && event.key === "Escape") {
                 event.preventDefault();
                 this.close();
             }
@@ -144,8 +144,8 @@ export class Menu extends Component<HTMLDivElement> {
     }
 
     /** Open the menu anchored to an element. */
-    show(anchor: HTMLElement): void {
-        if (this.open) return;
+    open(anchor: HTMLElement): void {
+        if (this.opened) return;
 
         this.restoreFocusTo = document.activeElement as HTMLElement | null;
         this.root.style.display = "block";
@@ -159,7 +159,7 @@ export class Menu extends Component<HTMLDivElement> {
             placement: (this.root.dataset.placement as Placement) ?? "bottom-start",
         });
 
-        this.open = true;
+        this.opened = true;
         // Force a frame so the scale/opacity transition runs from its start.
         requestAnimationFrame(() => {
             this.root.classList.add("is-open");
@@ -170,8 +170,8 @@ export class Menu extends Component<HTMLDivElement> {
 
     /** Close the menu and restore focus to whatever opened it. */
     close(): void {
-        if (!this.open) return;
-        this.open = false;
+        if (!this.opened) return;
+        this.opened = false;
         this.root.classList.remove("is-open");
 
         this.disposeTracking?.();
@@ -179,7 +179,7 @@ export class Menu extends Component<HTMLDivElement> {
 
         const cleanup = () => {
             // A nested menu may have been opened from inside the transition.
-            if (!this.open) this.root.remove();
+            if (!this.opened) this.root.remove();
         };
         // Wait for the fade-out, but never rely on it firing.
         window.setTimeout(cleanup, 140);
@@ -192,7 +192,7 @@ export class Menu extends Component<HTMLDivElement> {
 
     /** Whether the menu is currently open. */
     get isOpen(): boolean {
-        return this.open;
+        return this.opened;
     }
 
     private choose(value: string): void {
@@ -280,6 +280,6 @@ export class Menu extends Component<HTMLDivElement> {
 /** Convenience: build a menu, open it at an anchor, and release it on close. */
 export function showMenu(anchor: HTMLElement, options: MenuOptions): Menu {
     const menu = new Menu(options);
-    menu.show(anchor);
+    menu.open(anchor);
     return menu;
 }

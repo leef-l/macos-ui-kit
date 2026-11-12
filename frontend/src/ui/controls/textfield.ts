@@ -146,7 +146,7 @@ export class TextField extends Component<HTMLElement> {
     }
 
     /** The current value. */
-    getValue(): string {
+    get value(): string {
         return this.input.value;
     }
 

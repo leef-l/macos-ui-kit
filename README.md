@@ -50,6 +50,40 @@ listeners, `DocumentFragment` insertion and idempotent setters.
 Read [DESIGN-v2.md](frontend/src/ui/DESIGN-v2.md) for the full architecture and
 the reasoning behind each decision, including what was rejected and why.
 
+### The API convention
+
+Three rules, applied to all 30 components, so that a control you have never used
+behaves the way you would guess:
+
+| Concern | Rule | Examples |
+|---|---|---|
+| **Read state** | property getter, no `get` prefix in the name | `field.value`, `toggle.checked`, `sidebar.selected`, `sheet.isOpen` |
+| **Write state** | `setX()` method, always silent | `setValue()`, `setChecked()`, `setSelected()`, `setOpen()` |
+| **Dismissible overlays** | `open(anchor?)` / `close()` / `isOpen` | `dialog.open()`, `menu.open(btn)`, `popover.open(btn)` |
+
+```ts
+const field = new TextField();
+field.setValue("hello");   // silent: does not fire onChange
+field.value;               // "hello"
+
+const sheet = new Sheet({title: "Licence"});
+sheet.open();              // not show()
+sheet.isOpen;              // true
+```
+
+Two deliberate details:
+
+- **`setX()` never fires the change callback.** Only a user interaction does.
+  That is what makes `setX()` safe to call from a render path: it cannot loop
+  back into your handler. Where a component needs to distinguish the two
+  internally it uses a private `applySelection(value, notify)`.
+- **`Toast` keeps `show()` / `hide()`.** It is a notification, not an overlay:
+  it has no anchor, no dismissal state and no `isOpen`. Everything you can open
+  and close is `open()` / `close()`.
+
+Every component also exposes `element`, `destroy()` (releases listeners and any
+observer), and `focus()` where focusing makes sense.
+
 ### Two-layer tokens
 
 ```
@@ -227,7 +261,7 @@ components in a real headless browser** and asserting each mounts with the
 correct root class — a component can type check and still render nothing.
 
 The harness also asserts behaviour, not just presence: that `Table.setRows()`
-re-renders, that `Progress.setValue()` moves the fill, that `TabView.select()`
+re-renders, that `Progress.setValue()` moves the fill, that `TabView.setSelected()`
 changes the selected tab, that `Disclosure` toggles its open state, that all four
 themes produce different background colours, and that the density presets change
 `--mac-scale`.

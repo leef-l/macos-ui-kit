@@ -88,7 +88,7 @@ export class SegmentedControl extends Component<HTMLDivElement> {
             );
             if (!button || button.disabled) return;
             const value = button.dataset.value;
-            if (value) this.select(value, true);
+            if (value) this.applySelection(value, true);
         });
 
         // Arrow keys move the selection, matching the native control.
@@ -115,7 +115,7 @@ export class SegmentedControl extends Component<HTMLDivElement> {
             const target = enabled[next];
             const value = target.dataset.value;
             if (!value) return;
-            this.select(value, true);
+            this.applySelection(value, true);
             target.focus();
         });
 
@@ -136,8 +136,14 @@ export class SegmentedControl extends Component<HTMLDivElement> {
         }
     }
 
-    /** Select a segment. */
-    select(value: string, notify = false): void {
+    /**
+     * Apply a selection.
+     *
+     * `notify` is true only for a user-initiated change (click or arrow key), so
+     * the programmatic `setValue` below stays silent — the same contract every
+     * other setter in the kit has.
+     */
+    private applySelection(value: string, notify: boolean): void {
         if (this.current === value) return;
         this.current = value;
 
@@ -200,7 +206,7 @@ export class SegmentedControl extends Component<HTMLDivElement> {
 
     /** Change the selection programmatically. */
     setValue(value: string): void {
-        this.select(value, false);
+        this.applySelection(value, false);
     }
 
     /** Disable every segment. */

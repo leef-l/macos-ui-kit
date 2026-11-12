@@ -71,11 +71,11 @@ export class Tooltip extends Component<HTMLDivElement> {
         };
 
         bind("mouseenter", () => this.schedule());
-        bind("mouseleave", () => this.hide());
+        bind("mouseleave", () => this.close());
         bind("focus", () => this.schedule());
-        bind("blur", () => this.hide());
+        bind("blur", () => this.close());
         // A click means the user committed; the tooltip is in the way.
-        bind("mousedown", () => this.hide());
+        bind("mousedown", () => this.close());
     }
 
     /** Unbind from the current trigger and remove the tooltip. */
@@ -85,13 +85,13 @@ export class Tooltip extends Component<HTMLDivElement> {
             this.trigger = null;
         }
         this.cancelTimer();
-        this.hide();
+        this.close();
         for (const cleanup of this.triggerListeners.splice(0)) cleanup();
     }
 
     private schedule(): void {
         this.cancelTimer();
-        this.showTimer = setTimeout(() => this.show(), this.delay);
+        this.showTimer = setTimeout(() => this.open(), this.delay);
     }
 
     private cancelTimer(): void {
@@ -102,7 +102,7 @@ export class Tooltip extends Component<HTMLDivElement> {
     }
 
     /** Show the bubble next to the trigger. */
-    show(): void {
+    open(): void {
         if (this.visible || !this.trigger) return;
 
         this.root.style.display = "block";
@@ -122,7 +122,7 @@ export class Tooltip extends Component<HTMLDivElement> {
     }
 
     /** Hide the bubble. */
-    hide(): void {
+    close(): void {
         this.cancelTimer();
         if (!this.visible) return;
         this.visible = false;

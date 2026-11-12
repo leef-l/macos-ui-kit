@@ -119,7 +119,7 @@ export class Sidebar extends Component<HTMLElement> {
     }
 
     /** The currently selected item id. */
-    get selection(): string | null {
+    get selected(): string | null {
         return this.selectedId;
     }
 

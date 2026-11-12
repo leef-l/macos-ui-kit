@@ -110,7 +110,7 @@ export class TextArea extends Component<HTMLDivElement> {
     }
 
     /** The current text. */
-    getValue(): string {
+    get value(): string {
         return this.control.value;
     }
 

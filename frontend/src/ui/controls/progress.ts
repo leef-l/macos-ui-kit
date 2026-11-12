@@ -22,7 +22,7 @@ export class Progress extends Component<HTMLElement> {
 
     private readonly fill: HTMLDivElement;
     private indeterminate: boolean;
-    private value: number;
+    private current: number;
 
     constructor(options: ProgressOptions = {}) {
         super();
@@ -30,7 +30,7 @@ export class Progress extends Component<HTMLElement> {
         const {value = 0, indeterminate = false} = options;
 
         this.indeterminate = indeterminate;
-        this.value = this.constrain(value);
+        this.current = this.constrain(value);
 
         this.root = el("div", {
             class: "mac-progress",
@@ -40,18 +40,23 @@ export class Progress extends Component<HTMLElement> {
         });
 
         this.fill = el("div", {class: "mac-progress__fill"});
-        this.fill.style.setProperty("--mac-progress-scale", String(this.value / 100));
+        this.fill.style.setProperty("--mac-progress-scale", String(this.current / 100));
 
         this.root.appendChild(this.fill);
         this.syncState();
     }
 
+    /** The percentage currently shown, 0–100. */
+    get value(): number {
+        return this.current;
+    }
+
     /** Set the percentage; values outside 0–100 are folded into the range. */
     setValue(value: number): void {
         const next = this.constrain(value);
-        if (next === this.value) return;
+        if (next === this.current) return;
 
-        this.value = next;
+        this.current = next;
         // The fill is scaled, not resized: motion stays on the compositor and
         // the bar never triggers layout. See progress.css.
         this.fill.style.setProperty("--mac-progress-scale", String(next / 100));
@@ -76,7 +81,7 @@ export class Progress extends Component<HTMLElement> {
         if (this.indeterminate) {
             this.root.removeAttribute("aria-valuenow");
         } else {
-            this.root.setAttribute("aria-valuenow", String(this.value));
+            this.root.setAttribute("aria-valuenow", String(this.current));
         }
     }
 

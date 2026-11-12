@@ -91,7 +91,7 @@ export class DatePicker extends Component<HTMLDivElement> {
     }
 
     /** The current date as `YYYY-MM-DD`, or "" when empty. */
-    getValue(): string {
+    get value(): string {
         return this.input.value;
     }
 

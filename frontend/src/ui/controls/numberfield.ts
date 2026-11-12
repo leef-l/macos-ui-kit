@@ -123,7 +123,7 @@ export class NumberField extends Component<HTMLElement> {
     }
 
     /** The last committed value. A blank or illegal entry is not reported. */
-    getValue(): number {
+    get value(): number {
         return this.committed;
     }
 
