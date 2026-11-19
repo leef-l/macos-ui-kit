@@ -1,6 +1,6 @@
 {
   "name": "@leef-l/macos-ui-kit",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "macOS-style UI components in dependency-free TypeScript, for Wails v3 desktop apps and plain web pages",
   "type": "module",
   "license": "MIT",
@@ -49,7 +49,8 @@
   "scripts": {
     "build": "vite build && tsc -p tsconfig.build.json && node scripts/finalize-dist.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "prepublishOnly": "npm run build"
+    "check:versions": "node scripts/check-versions.mjs",
+    "prepublishOnly": "node scripts/check-versions.mjs && npm run build"
   },
   "devDependencies": {
     "typescript": "^7.0.2",

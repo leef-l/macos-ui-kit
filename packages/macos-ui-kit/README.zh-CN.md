@@ -55,7 +55,7 @@ npm install @leef-l/macos-ui-kit
 ### 直接从 GitHub Release（不经过任何 registry）
 
 ```sh
-npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.4.1/leef-l-macos-ui-kit-0.4.1.tgz
+npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.4.2/leef-l-macos-ui-kit-0.4.2.tgz
 ```
 
 同样的文件、同样的类型、同样的导出。适合锁定精确构建，或者无法访问 registry 时。
