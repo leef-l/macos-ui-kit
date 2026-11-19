@@ -60,7 +60,7 @@ No configuration, no token. This is the channel to use.
 ### Straight from a GitHub release — no registry at all
 
 ```sh
-npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.4.0/leef-l-macos-ui-kit-0.4.0.tgz
+npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.4.1/leef-l-macos-ui-kit-0.4.1.tgz
 ```
 
 Same files, same types, same exports. Use it to pin an exact build, or when no
@@ -225,10 +225,12 @@ columns: [
 ]
 ```
 
-A declared `width` is exact — the table switches to fixed layout and sizes to the
-sum of its widths, so it overflows and scrolls instead of squeezing columns.
-Without `width`, a column sizes to its content. Several columns can pin to the
-same edge; their offsets stack in visual order.
+A declared `width` holds: once the table is wider than its box, the columns are
+exactly the widths you asked for and the table scrolls rather than squeezing them.
+A table narrower than its box still fills it, so declared widths stretch
+proportionally while there is spare room — the widths are floors, not a cap.
+Without `width`, a column takes an equal share of what is left. Several columns
+can pin to the same edge; their offsets stack in visual order.
 
 `message` and `detail` take a node as well as a string. `action` dismisses the
 toast unless `keepOpen` is set. In a table, `actions` is the shorthand for the

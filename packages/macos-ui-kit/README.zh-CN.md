@@ -55,7 +55,7 @@ npm install @leef-l/macos-ui-kit
 ### 直接从 GitHub Release（不经过任何 registry）
 
 ```sh
-npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.4.0/leef-l-macos-ui-kit-0.4.0.tgz
+npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.4.1/leef-l-macos-ui-kit-0.4.1.tgz
 ```
 
 同样的文件、同样的类型、同样的导出。适合锁定精确构建，或者无法访问 registry 时。
@@ -210,8 +210,9 @@ columns: [
 ]
 ```
 
-声明了 `width` 的列是**精确宽度**——表格切到固定布局、按宽度之和撑开，超出就横向滚动，
-而不是把列挤扁。不写 `width` 的列按内容撑开。多个列可以固定在同一侧，偏移按视觉顺序叠加。
+声明了 `width` 的列会守住宽度：一旦表格比容器宽，列就是你要的精确宽度，超出部分横向滚动，
+而不是把列挤扁。比容器窄的表格仍然会填满容器，所以有余量时声明的宽度会按比例拉伸——
+宽度是下限，不是上限。不写 `width` 的列平分剩余空间。多个列可以固定在同一侧，偏移按视觉顺序叠加。
 
 `message` 和 `detail` 除了字符串也接受节点。`action` 点击后默认关闭提示条，
 除非设了 `keepOpen`。表格的 `actions` 是 `render` 手搓按钮组的简写；

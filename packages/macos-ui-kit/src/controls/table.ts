@@ -111,6 +111,8 @@ export class Table extends Component<HTMLDivElement> {
     protected readonly root: HTMLDivElement;
 
     private readonly body: HTMLTableSectionElement;
+    /** Horizontal scroller; the fixed-width pass measures the available box from it. */
+    private readonly scroll: HTMLDivElement;
 
     private readonly columns: TableColumn[];
     private readonly rowKey: (row: any, index: number) => string;
@@ -160,6 +162,7 @@ export class Table extends Component<HTMLDivElement> {
         const table = el("table", {class: "mac-table__table"});
         const head = el("thead", {class: "mac-table__head"});
 
+        this.scroll = scroll;
         this.body = el("tbody", {class: "mac-table__body"});
 
         table.append(this.makeColGroup(), head, this.body);
@@ -177,11 +180,60 @@ export class Table extends Component<HTMLDivElement> {
         // Pinned offsets depend on the rendered column widths, so they are
         // measured after layout and re-measured whenever the scroller changes
         // size (a window resize reflows the columns).
+        if (this.columns.some((column) => column.width !== undefined)) {
+            const observer = new ResizeObserver(() => {
+                this.applyFixedWidths();
+                this.applyPinnedOffsets();
+            });
+            observer.observe(scroll);
+            this.onDestroy(() => observer.disconnect());
+            this.applyFixedWidths();
+        }
         if (this.columns.some((column) => column.pinned)) {
             const observer = new ResizeObserver(() => this.applyPinnedOffsets());
             observer.observe(scroll);
             this.onDestroy(() => observer.disconnect());
         }
+    }
+
+    /**
+     * Give the table an explicit width when columns declare one.
+     *
+     * `table-layout: fixed` uses declared widths exactly, but the table itself
+     * still sizes to its container unless told otherwise — and if the container is
+     * narrower than the sum, the columns get scaled down instead of overflowing.
+     * So the width is computed here: the declared sum, plus an equal share of what
+     * is left for the columns that did not declare one.
+     *
+     * The share never drops below the cell floor (`min-width` plus padding from
+     * the stylesheet), so a table with many flexible columns still scrolls rather
+     * than collapsing them onto each other.
+     */
+    private applyFixedWidths(): void {
+        const table = this.root.querySelector<HTMLElement>(".mac-table__table");
+        if (!table) return;
+
+        const declared = this.columns.reduce((sum, column) => sum + (column.width ?? 0), 0);
+        const flexible = this.columns.filter((column) => column.width === undefined).length;
+
+        const selectCell = this.root.querySelector<HTMLElement>(".mac-table__cell--select");
+        const selectWidth = selectCell ? selectCell.getBoundingClientRect().width : 0;
+
+        let floor = 0;
+        const sample = this.root.querySelector<HTMLElement>(".mac-table__th");
+        if (sample) {
+            const style = getComputedStyle(sample);
+            floor =
+                (parseFloat(style.minWidth) || 0) +
+                (parseFloat(style.paddingLeft) || 0) +
+                (parseFloat(style.paddingRight) || 0);
+        }
+
+        const available = Math.max(0, this.scroll.clientWidth - selectWidth);
+        const share =
+            flexible > 0 ? Math.max(floor, (available - declared) / flexible) : 0;
+
+        table.style.width = `${Math.ceil(declared + share * flexible + selectWidth)}px`;
     }
 
     /**

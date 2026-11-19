@@ -246,13 +246,11 @@
    left, so a table can mix a fixed actions column with flexible content. */
 .mac-table--fixed .mac-table__table {
     table-layout: fixed;
-    /* `max-content` is what makes a declared column width exact rather than
-       proportional: with `width: auto` the table is locked to the container and
-       the browser scales the preferred widths to fill it, so a 140px column
-       renders narrower. Safe here because fixed layout sizes columns from the
-       declarations, not from the content, so a long cell cannot blow the table
-       out — it ellipsizes instead. */
-    width: max-content;
+    /* The table width itself is set per render by applyFixedWidths(): declared
+       sum + an equal share for flexible columns. Leaving it to the stylesheet
+       does not work — `auto` locks the table to its container and scales the
+       declared widths down, while `max-content` sizes from the text and lets a
+       long cell stretch a 120px column to 179px. */
 }
 
 /* Fixed widths mean content must not set the width, so it is clipped the way a
