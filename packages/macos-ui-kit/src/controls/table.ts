@@ -26,6 +26,17 @@ export interface TableColumn {
      */
     render?: (value: any, row: any, index: number) => Node | string;
     /**
+     * Keep this column in view while the table scrolls horizontally.
+     *
+     * Pin the actions column to `"right"` and the checkbox or identifier column
+     * to `"left"`; everything between them scrolls. Several columns can be
+     * pinned to the same edge — their offsets stack in visual order.
+     *
+     * Works with or without `width`: a width fixes the column, no width lets the
+     * column size to its content.
+     */
+    pinned?: "left" | "right";
+    /**
      * Buttons for this cell — one set per row.
      *
      * `render` can already return a button, but every table that has an actions
@@ -135,6 +146,13 @@ export class Table extends Component<HTMLDivElement> {
 
         const classes = ["mac-table"];
         if (this.selectable) classes.push("mac-table--selectable");
+        // A declared `width` is a promise; `table-layout: auto` treats it as a
+        // hint and equalises the columns when the content is short. Switching to
+        // fixed only when widths are declared keeps content-sized tables as they
+        // were, and makes declared widths exact.
+        if (this.columns.some((column) => column.width !== undefined)) {
+            classes.push("mac-table--fixed");
+        }
 
         this.root = el("div", {class: classes.join(" ")});
 
@@ -155,6 +173,71 @@ export class Table extends Component<HTMLDivElement> {
         this.listen(this.body, "change", (event) => this.onBodyChange(event));
 
         this.renderRows();
+
+        // Pinned offsets depend on the rendered column widths, so they are
+        // measured after layout and re-measured whenever the scroller changes
+        // size (a window resize reflows the columns).
+        if (this.columns.some((column) => column.pinned)) {
+            const observer = new ResizeObserver(() => this.applyPinnedOffsets());
+            observer.observe(scroll);
+            this.onDestroy(() => observer.disconnect());
+        }
+    }
+
+    /**
+     * Push the pinned columns to their edge and stack their offsets.
+     *
+     * Widths come from the header cells: with automatic table layout the header
+     * and body share one column geometry, and the header always exists even when
+     * the body is empty. Offsets are written as `left`/`right` on every cell of
+     * the column, because `position: sticky` needs a distinct inset per column
+     * once more than one is pinned to the same edge.
+     */
+    private applyPinnedOffsets(): void {
+        if (!this.columns.some((column) => column.pinned)) return;
+
+        const headerCells = Array.from(
+            this.root.querySelectorAll<HTMLElement>(".mac-table__th[data-pin]"),
+        );
+        if (headerCells.length === 0) return;
+
+        const widths = new Map<number, number>();
+        for (const cell of headerCells) {
+            widths.set(Number(cell.dataset.col), cell.getBoundingClientRect().width);
+        }
+
+        const offsets = new Map<number, number>();
+
+        // Right edge: accumulate from the rightmost pinned column leftwards, so
+        // the last column sits flush against the edge.
+        let right = 0;
+        const rightPinned = this.columns
+            .map((column, index) => ({column, index}))
+            .filter((entry) => entry.column.pinned === "right")
+            .sort((a, b) => b.index - a.index);
+        for (const {index} of rightPinned) {
+            offsets.set(index, right);
+            right += widths.get(index) ?? 0;
+        }
+
+        // Left edge: accumulate from the leftmost outwards.
+        let left = 0;
+        const leftPinned = this.columns
+            .map((column, index) => ({column, index}))
+            .filter((entry) => entry.column.pinned === "left")
+            .sort((a, b) => a.index - b.index);
+        for (const {index} of leftPinned) {
+            offsets.set(index, left);
+            left += widths.get(index) ?? 0;
+        }
+
+        for (const cell of this.root.querySelectorAll<HTMLElement>("[data-pin]")) {
+            const index = Number(cell.dataset.col);
+            const offset = offsets.get(index);
+            if (offset === undefined) continue;
+            if (cell.dataset.pin === "right") cell.style.right = `${offset}px`;
+            else cell.style.left = `${offset}px`;
+        }
     }
 
     /**
@@ -232,14 +315,18 @@ export class Table extends Component<HTMLDivElement> {
             row.appendChild(cell);
         }
 
-        for (const column of this.columns) {
+        this.columns.forEach((column, columnIndex) => {
             const cell = el("th", {
                 class: `mac-table__th${alignClass(column.align)}`,
                 scope: "col",
             });
+            if (column.pinned) {
+                cell.dataset.pin = column.pinned;
+                cell.dataset.col = String(columnIndex);
+            }
             cell.textContent = column.title;
             row.appendChild(cell);
-        }
+        });
 
         return row;
     }
@@ -263,6 +350,8 @@ export class Table extends Component<HTMLDivElement> {
 
         this.body.replaceChildren(fragment);
         this.syncHeaderCheck();
+        // New cells carry no offsets; measure again now that they exist.
+        requestAnimationFrame(() => this.applyPinnedOffsets());
     }
 
     private makeRow(row: any, index: number): HTMLTableRowElement {
@@ -288,19 +377,24 @@ export class Table extends Component<HTMLDivElement> {
             tr.appendChild(cell);
         }
 
-        for (const column of this.columns) {
-            tr.appendChild(this.makeCell(column, row, index));
-        }
+        this.columns.forEach((column, columnIndex) => {
+            tr.appendChild(this.makeCell(column, columnIndex, row, index));
+        });
 
         return tr;
     }
 
     private makeCell(
         column: TableColumn,
+        columnIndex: number,
         row: any,
         index: number,
     ): HTMLTableCellElement {
         const cell = el("td", {class: `mac-table__cell${alignClass(column.align)}`});
+        if (column.pinned) {
+            cell.dataset.pin = column.pinned;
+            cell.dataset.col = String(columnIndex);
+        }
         const value = row?.[column.key];
 
         // An action column is a row of buttons; `actions` is `render` for the

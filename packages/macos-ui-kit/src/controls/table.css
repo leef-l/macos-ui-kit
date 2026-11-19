@@ -188,3 +188,81 @@
 .mac-table__actions .mac-button {
     flex: 0 0 auto;
 }
+/* --- Pinned columns -------------------------------------------------------
+   A pinned column stays at its edge while the rest of the table scrolls. Two
+   things are needed beyond `position: sticky`:
+
+   1. An opaque background. The state tints (zebra, hover, selection) are
+      translucent, so scrolled content would show through them. The opaque colour
+      goes on `background-color` and the tint rides on `background-image`, which
+      composites over it.
+   2. A per-column inset. `left: 0` on two pinned columns stacks them on top of
+      each other; the offsets are computed in JS from the measured widths.
+
+   The hairline on the inner edge is what tells the user the column is pinned
+   rather than just the last one. */
+
+.mac-table__th[data-pin],
+.mac-table__cell[data-pin] {
+    position: sticky;
+    z-index: 2;
+}
+
+.mac-table__th[data-pin] {
+    z-index: 3;
+}
+
+.mac-table__cell[data-pin] {
+    background-color: var(--mac-bg-content);
+}
+
+.mac-table__row:nth-child(even) .mac-table__cell[data-pin] {
+    background-color: var(--mac-bg-content);
+    background-image: linear-gradient(var(--mac-bg-hover), var(--mac-bg-hover));
+}
+
+.mac-table__row:hover .mac-table__cell[data-pin] {
+    background-image: linear-gradient(var(--mac-bg-active), var(--mac-bg-active));
+}
+
+.mac-table--selectable .mac-table__row.is-selected .mac-table__cell[data-pin],
+.mac-table--selectable .mac-table__row.is-selected:hover .mac-table__cell[data-pin] {
+    background-image: linear-gradient(var(--mac-accent-soft), var(--mac-accent-soft));
+}
+
+/* Inner edge: left for a right-pinned column, right for a left-pinned one. */
+.mac-table__th[data-pin="right"],
+.mac-table__cell[data-pin="right"] {
+    box-shadow: inset var(--mac-hairline) 0 0 0 var(--mac-border);
+}
+
+.mac-table__th[data-pin="left"],
+.mac-table__cell[data-pin="left"] {
+    box-shadow: inset calc(var(--mac-hairline) * -1) 0 0 0 var(--mac-border);
+}
+/* Declared column widths are exact in this mode. Auto layout treats `width` on a
+   `col` as a hint and equalises columns when the content is short, which is the
+   opposite of what "fixed width" promises. Undeclared columns share what is
+   left, so a table can mix a fixed actions column with flexible content. */
+.mac-table--fixed .mac-table__table {
+    table-layout: fixed;
+    /* `max-content` is what makes a declared column width exact rather than
+       proportional: with `width: auto` the table is locked to the container and
+       the browser scales the preferred widths to fill it, so a 140px column
+       renders narrower. Safe here because fixed layout sizes columns from the
+       declarations, not from the content, so a long cell cannot blow the table
+       out — it ellipsizes instead. */
+    width: max-content;
+}
+
+/* Fixed widths mean content must not set the width, so it is clipped the way a
+   macOS table clips it rather than spilling into the next column. */
+.mac-table--fixed .mac-table__cell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mac-table--fixed .mac-table__th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

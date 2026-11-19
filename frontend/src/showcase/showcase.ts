@@ -484,11 +484,18 @@ function buildControlsSection(): HTMLElement {
                     }).element,
             },
             {key: "cpu", title: "CPU", align: "right"},
+            {key: "region", title: "区域", width: 120},
+            {key: "uptime", title: "运行时长", width: 110},
+            {key: "memory", title: "内存", width: 100},
+            {key: "image", title: "镜像", width: 260},
             {
-                // Action column: the shorthand for "a row of buttons per row".
+                // Action column: pinned to the right so it stays reachable while
+                // the middle columns scroll.
                 key: "",
                 title: "",
+                width: 96,
                 align: "right",
+                pinned: "right",
                 actions: (row) => [
                     {
                         label: row.status === "运行中" ? "停止" : "启动",
@@ -498,17 +505,22 @@ function buildControlsSection(): HTMLElement {
             },
         ],
         rows: [
-            {id: "1", name: "web-01", status: "运行中", cpu: "42%"},
-            {id: "2", name: "api-01", status: "运行中", cpu: "18%"},
-            {id: "3", name: "db-01", status: "已停止", cpu: "—"},
+            {id: "1", name: "web-01", status: "运行中", cpu: "42%", region: "us-east-1", uptime: "12d 4h", memory: "1.2 GB", image: "nginx:1.27-alpine"},
+            {id: "2", name: "api-01", status: "运行中", cpu: "18%", region: "eu-west-2", uptime: "3d 1h", memory: "760 MB", image: "ghcr.io/acme/api:2024.11"},
+            {id: "3", name: "db-01", status: "已停止", cpu: "—", region: "ap-south-1", uptime: "—", memory: "—", image: "postgres:16-bookworm"},
         ],
         selectable: true,
         onSelectionChange: (keys) => tableState.set(`已选: ${keys.join(", ") || "无"}`),
     });
     const tableWrap = document.createElement("div");
     tableWrap.style.width = "100%";
+    // Narrower than the table, so the middle columns scroll and the pinned
+    // actions column stays put — the behaviour this demo is here to show.
+    tableWrap.style.maxWidth = "860px";
     tableWrap.append(table.element, tableState.node);
-    cells.push(cell("Table", tableWrap, {wide: true, hint: "列渲染回调 + 行选择"}));
+    cells.push(
+        cell("Table", tableWrap, {wide: true, hint: "操作列固定，其余横向滚动"}),
+    );
 
     // --- SplitView (wide) -----------------------------------------------------
     const splitView = new SplitView({

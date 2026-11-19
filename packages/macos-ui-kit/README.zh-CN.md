@@ -55,7 +55,7 @@ npm install @leef-l/macos-ui-kit
 ### 直接从 GitHub Release（不经过任何 registry）
 
 ```sh
-npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.3.0/leef-l-macos-ui-kit-0.3.0.tgz
+npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.4.0/leef-l-macos-ui-kit-0.4.0.tgz
 ```
 
 同样的文件、同样的类型、同样的导出。适合锁定精确构建，或者无法访问 registry 时。
@@ -197,6 +197,21 @@ new Toast({
     {label: row.running ? "停止" : "启动", onClick: (r) => toggle(r)},
 ]}
 ```
+
+固定列是**列上的标记**，不是表格开关。操作列固定右边、标识列固定左边，中间滚动：
+
+```ts
+columns: [
+    {key: "name", title: "名称", width: 160, pinned: "left"},
+    {key: "cpu", title: "CPU", width: 90},
+    {key: "image", title: "镜像", width: 260},
+    {key: "", title: "", width: 96, align: "right", pinned: "right",
+     actions: (row) => [{label: "停止", onClick: () => stop(row)}]},
+]
+```
+
+声明了 `width` 的列是**精确宽度**——表格切到固定布局、按宽度之和撑开，超出就横向滚动，
+而不是把列挤扁。不写 `width` 的列按内容撑开。多个列可以固定在同一侧，偏移按视觉顺序叠加。
 
 `message` 和 `detail` 除了字符串也接受节点。`action` 点击后默认关闭提示条，
 除非设了 `keepOpen`。表格的 `actions` 是 `render` 手搓按钮组的简写；
