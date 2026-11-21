@@ -1,14 +1,22 @@
 # Publish the kit to the public npm registry.
 #
-# The maintainer's shell token expired once and the public registry sat seven
-# versions behind the other three channels, because publishing depended on a
-# credential that lived on one machine. This moves it into a repository secret
-# (`NPM_TOKEN`), so the token can be rotated in one place and a release does not
-# need anybody's laptop.
+# Uses npm **Trusted Publishing** (OIDC), not a stored token. npm is retiring
+# bypass-2FA tokens for direct publishing — the banner on the token page says
+# account changes stop honouring them in August 2026 and publishing in January
+# 2027 — so the token path has a shelf life and this one does not. It is also
+# strictly better: nothing to rotate, nothing to leak, and every release carries
+# a signed provenance attestation.
+#
+# One-time setup, on npmjs.com (package → Settings → Trusted Publisher):
+#   Publisher:      GitHub Actions
+#   Organization:   leef-l
+#   Repository:     macos-ui-kit
+#   Workflow name:  publish.yml
+#   Environment:    (leave empty)
 #
 # Manual only, deliberately: a push to `main` publishes nothing. The workflow
-# re-checks the version guard and skips if that exact version is already on the
-# registry, so running it twice is harmless.
+# skips when the version is already on the registry, so running it twice is
+# harmless.
 name: Publish
 
 on:
@@ -21,6 +29,8 @@ on:
 
 permissions:
   contents: read
+  # The whole point: this is what lets npm verify the run's identity.
+  id-token: write
 
 jobs:
   npm:
@@ -35,6 +45,11 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
+
+      # Trusted publishing needs a CLI that speaks OIDC; the runner's bundled npm
+      # can be older than the feature.
+      - name: Use a current npm
+        run: npm install -g npm@latest
 
       - name: Install
         run: npm ci
@@ -67,9 +82,9 @@ jobs:
 
       - name: Publish
         if: ${{ steps.exists.outputs.published == 'false' && inputs.dry_run == false }}
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # No NODE_AUTH_TOKEN: its absence is what makes npm use the OIDC exchange
+        # with the identity GitHub just minted for this run.
+        run: npm publish --access public --provenance
 
       - name: Verify from the registry
         if: ${{ steps.exists.outputs.published == 'false' && inputs.dry_run == false }}
