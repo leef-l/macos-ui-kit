@@ -1268,7 +1268,9 @@ function buildLayoutSection(): HTMLElement {
             {id: "about", label: "关于"},
         ],
         selected: "general",
+        closable: true,
         onSelect: (id) => tabState.set(`当前: ${id}`),
+        onClose: (id) => tabState.set(`已关闭: ${id}`),
     });
     for (const [id, text] of [
         ["general", "通用设置面板"],
@@ -1280,7 +1282,7 @@ function buildLayoutSection(): HTMLElement {
     const tabSurface = document.createElement("div");
     tabSurface.className = "mac-showcase__surface";
     tabSurface.appendChild(tabView.element);
-    cells.push(cell("TabView", tabSurface, {wide: true, state: tabState, hint: "方向键可切换标签"}));
+    cells.push(cell("TabView", tabSurface, {wide: true, state: tabState, hint: "方向键切换；× 或 Delete / 中键关闭，关闭后焦点落到相邻标签"}));
 
     // Sidebar.
     const sidebar = new Sidebar({

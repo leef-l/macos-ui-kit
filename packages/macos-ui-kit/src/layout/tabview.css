@@ -89,6 +89,45 @@
     text-overflow: ellipsis;
 }
 
+/* --- Close affordance ----------------------------------------------------- */
+
+/* A glyph inside the tab rather than a button beside it: a `<button>` inside a
+   `<button>` is invalid and both would take the click. It is `aria-hidden` and
+   out of the tab order — Delete on the focused tab is the accessible path, and
+   the span is the pointer's copy of it. */
+.mac-tabview__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: var(--mac-icon-xs);
+    height: var(--mac-icon-xs);
+    margin-inline-start: var(--mac-space-1);
+    border-radius: 50%;
+    color: var(--mac-text-tertiary);
+    /* Two hairlines crossing: cheaper than a glyph and it inherits the ink. */
+    background:
+        linear-gradient(currentColor, currentColor) center / 60% var(--mac-hairline) no-repeat,
+        linear-gradient(currentColor, currentColor) center / var(--mac-hairline) 60% no-repeat;
+    transform: rotate(45deg);
+    opacity: 0;
+    transition:
+        opacity var(--mac-duration-fast) var(--mac-ease),
+        background-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+/* Visible on the selected tab and on hover: an always-on row of crosses turns a
+   tab strip into a wall of them. */
+.mac-tabview__tab.is-selected .mac-tabview__close,
+.mac-tabview__tab:hover .mac-tabview__close {
+    opacity: 1;
+}
+
+.mac-tabview__tab .mac-tabview__close:hover {
+    background-color: var(--mac-bg-active);
+    color: var(--mac-text);
+}
+
 /* The panel region takes the remaining height; each panel fills it. A column
    flex box is used rather than a percentage height, which needs a definite
    parent height that a flex item does not always provide. */

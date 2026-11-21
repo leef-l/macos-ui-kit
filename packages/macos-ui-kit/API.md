@@ -1086,12 +1086,15 @@ A macOS tab view.
 | `selected` | `string` | optional | Initially selected tab. Defaults to the first enabled tab. |
 | `onSelect` | `(id: string) => void` | optional | Fires when the user changes the tab (not on programmatic `select`). |
 | `ariaLabel` | `string` | optional | Accessible name for the tab list. |
+| `closable` | `boolean` | optional | Show a close affordance on every tab. The view removes the tab itself and selects its neighbour, because the strip owns the order: a caller that had to re-render would be re-creating the very element the click came from. |
+| `onClose` | `(id: string) => void` | optional | Fires after a tab is closed, with the id that is gone. |
 
 | Member | Returns | Description |
 | --- | --- | --- |
 | `selected` | `string` | The selected tab id, or an empty string when no tab is selectable. |
 | `addPanel(id: string, node: Node)` | `void` | Attach content to a tab. Replacing the panel's children keeps repeated calls idempotent instead of stacking content. An unknown id is ignored: the panel set is fixed when the view is constructed, so a typo must not create an orphan panel that no tab can ever reveal. |
 | `setSelected(id: string)` | `void` | Select a tab programmatically. Does not fire `onSelect`. |
+| `closeTab(id: string)` | `boolean` | Close a tab: remove its button and panel, then select what is left. The neighbour that takes over is the one to the right, falling back to the one to the left — the order the strip reads in. Closing the last tab leaves the view with no selection at all rather than an empty panel that pretends to be one. Silent except for `onClose`, so a caller can close a tab from its own code without being told about it. Returns false for an unknown or non-closable id. |
 | `destroy()` | `void` |  |
 
 ### TitleBar
