@@ -253,11 +253,15 @@
        long cell stretch a 120px column to 179px. */
 }
 
-/* Fixed widths mean content must not set the width, so it is clipped the way a
-   macOS table clips it rather than spilling into the next column. */
-.mac-table--fixed .mac-table__cell {
+/* Fixed widths mean content must not set the width, so text is clipped the way a
+   macOS table clips it. The clipping lives on the text wrapper, not the cell: a
+   cell is also where a caller may mount a popover or a button group, and
+   `overflow: hidden` on the cell would cut those in half. */
+.mac-table__text {
+    display: block;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .mac-table--fixed .mac-table__th {

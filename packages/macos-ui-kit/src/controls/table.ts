@@ -213,8 +213,45 @@ export class Table extends Component<HTMLDivElement> {
         const table = this.root.querySelector<HTMLElement>(".mac-table__table");
         if (!table) return;
 
-        const declared = this.columns.reduce((sum, column) => sum + (column.width ?? 0), 0);
-        const flexible = this.columns.filter((column) => column.width === undefined).length;
+        // An actions column sizes to its buttons unless the caller pinned a width:
+        // buttons are content, and sharing the leftover space equally would cut
+        // the last one off. Measured from the rendered container, which reports its
+        // natural width in `scrollWidth` even while the cell is constraining it.
+        const naturalActions = new Map<number, number>();
+        this.columns.forEach((column, index) => {
+            if (!column.actions || column.width !== undefined) return;
+            let widest = 0;
+            for (const cell of this.root.querySelectorAll<HTMLElement>(
+                `tbody td[data-col="${index}"] .mac-table__actions`,
+            )) {
+                widest = Math.max(widest, cell.scrollWidth);
+            }
+            if (widest > 0) {
+                // Cell padding is outside the container.
+                const sample = this.root.querySelector<HTMLElement>(".mac-table__cell");
+                const style = sample ? getComputedStyle(sample) : null;
+                const padding = style
+                    ? (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0)
+                    : 0;
+                naturalActions.set(index, widest + padding);
+            }
+        });
+
+        // Write those widths onto their <col>, which is what fixed layout reads.
+        const cols = this.root.querySelectorAll<HTMLTableColElement>(".mac-table__col");
+        const offset = this.selectable ? 1 : 0;
+        for (const [index, width] of naturalActions) {
+            const col = cols[index + offset];
+            if (col) col.style.width = `${Math.ceil(width)}px`;
+        }
+
+        const declared = this.columns.reduce(
+            (sum, column, index) => sum + (naturalActions.get(index) ?? column.width ?? 0),
+            0,
+        );
+        const flexible = this.columns.filter(
+            (column, index) => column.width === undefined && !naturalActions.has(index),
+        ).length;
 
         const selectCell = this.root.querySelector<HTMLElement>(".mac-table__cell--select");
         const selectWidth = selectCell ? selectCell.getBoundingClientRect().width : 0;
@@ -443,10 +480,10 @@ export class Table extends Component<HTMLDivElement> {
         index: number,
     ): HTMLTableCellElement {
         const cell = el("td", {class: `mac-table__cell${alignClass(column.align)}`});
-        if (column.pinned) {
-            cell.dataset.pin = column.pinned;
-            cell.dataset.col = String(columnIndex);
-        }
+        // The column index is on every cell: pinned offsets need it, and so does
+        // the actions column sizing pass.
+        cell.dataset.col = String(columnIndex);
+        if (column.pinned) cell.dataset.pin = column.pinned;
         const value = row?.[column.key];
 
         // An action column is a row of buttons; `actions` is `render` for the
@@ -477,12 +514,19 @@ export class Table extends Component<HTMLDivElement> {
         if (column.render) {
             // `append` takes a Node or a string, so a renderer can return
             // either rich UI or plain text without the table knowing which.
-            append(cell, [column.render(value, row, index)]);
+            // Text goes in a wrapper so truncation applies to the text rather
+            // than to the cell, which would also clip a popover a cell holds.
+            const rendered = column.render(value, row, index);
+            if (typeof rendered === "string") {
+                cell.appendChild(el("span", {class: "mac-table__text", text: rendered}));
+            } else {
+                append(cell, [rendered]);
+            }
             return cell;
         }
 
         if (value !== null && value !== undefined) {
-            cell.textContent = String(value);
+            cell.appendChild(el("span", {class: "mac-table__text", text: String(value)}));
         }
 
         return cell;
