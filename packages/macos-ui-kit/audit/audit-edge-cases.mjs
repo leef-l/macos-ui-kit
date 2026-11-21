@@ -22,8 +22,8 @@ const PAGE = `<!doctype html><html><head><meta charset="utf-8">
 <body><div id="host"></div>
 <script src="/macos-ui-kit.iife.js"></script>
 <script>
-window.__run = (fn) => {
-    try { return {ok: true, value: fn()}; }
+window.__run = async (fn) => {
+    try { return {ok: true, value: await fn()}; }
     catch (error) { return {ok: false, error: String(error && error.message || error)}; }
 };
 // Every probe returns a plain object so the runner can assert on it.
@@ -197,6 +197,113 @@ window.__cases = {
         c.setValue('a');
         return {destroyed: c.isDestroyed};
     },
+
+    // --- second batch: the components a demo never stresses ------------------
+    "DatePicker: invalid value": () => {
+        const c = new MacUI.DatePicker({value: 'not-a-date'});
+        return {value: c.value, input: c.element.querySelector('input').value};
+    },
+    "DatePicker: inverted min/max": () => {
+        const c = new MacUI.DatePicker({value: '2026-05-05', min: '2026-12-01', max: '2026-01-01'});
+        return {value: c.value};
+    },
+    "Calendar: invalid date": () => {
+        const c = new MacUI.Calendar({value: '2026-13-45'});
+        return {value: c.value, title: c.element.querySelector('.mac-calendar__title')?.textContent.trim()};
+    },
+    "Calendar: inverted bounds": () => {
+        const c = new MacUI.Calendar({value: '2026-02-10', min: '2026-03-01', max: '2026-01-01'});
+        return {days: c.element.querySelectorAll('.mac-calendar__day').length,
+                disabled: c.element.querySelectorAll('[disabled]').length};
+    },
+    "TimePicker: invalid value": () => {
+        const c = new MacUI.TimePicker({value: '99:99'});
+        return {value: c.value};
+    },
+    "TimePicker: zero step": () => {
+        const c = new MacUI.TimePicker({value: '10:00', step: 0});
+        return {step: c.element.querySelector('input').getAttribute('step')};
+    },
+    "ComboBox: no options, then type": () => {
+        const c = new MacUI.ComboBox({options: []});
+        document.body.appendChild(c.element);
+        const input = c.element.querySelector('input');
+        input.value = 'zzz';
+        input.dispatchEvent(new Event('input', {bubbles: true}));
+        input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true, cancelable: true}));
+        return {value: c.value, lists: document.querySelectorAll('.mac-combobox__list').length};
+    },
+    "Select: unknown setValue": () => {
+        const c = new MacUI.Select({options: [{value: 'a', label: 'A'}, {value: 'b', label: 'B'}], value: 'a'});
+        c.setValue('nope');
+        return {value: c.value};
+    },
+    "SplitView: primary larger than container": () => {
+        const c = new MacUI.SplitView({primary: document.createElement('div'), secondary: document.createElement('div'), primarySize: 99999});
+        document.body.appendChild(c.element);
+        return {width: Math.round(c.element.getBoundingClientRect().width)};
+    },
+    "TreeView: deep nesting": () => {
+        let node = {value: 'l5', label: 'L5'};
+        for (let level = 4; level >= 1; level--) {
+            node = {value: 'l' + level, label: 'L' + level, expanded: true, children: [node]};
+        }
+        const c = new MacUI.TreeView({nodes: [node], value: 'l5'});
+        return {rows: c.element.querySelectorAll('.mac-treeview__row').length,
+                selected: c.element.querySelectorAll('[aria-selected="true"]').length};
+    },
+    "TreeView: select a child of a collapsed parent": () => {
+        const c = new MacUI.TreeView({
+            nodes: [{value: 'p', label: 'P', expanded: false, children: [{value: 'k', label: 'K'}]}],
+            value: 'k',
+        });
+        return {selected: c.element.querySelectorAll('[aria-selected="true"]').length,
+                visible: c.element.querySelectorAll('.mac-treeview__row').length};
+    },
+    "ProgressRing: out of range": () => {
+        const low = new MacUI.ProgressRing({value: -50});
+        const high = new MacUI.ProgressRing({value: 500});
+        return {low: low.element.getAttribute('aria-valuenow'), high: high.element.getAttribute('aria-valuenow')};
+    },
+    "SearchField: clear twice": () => {
+        const c = new MacUI.SearchField({value: 'abc'});
+        c.setValue('abc');
+        return {value: c.value};
+    },
+    "Dialog: open twice, close twice": async () => {
+        const c = new MacUI.Dialog({title: 'T'});
+        c.open(); c.open();
+        const opened = document.querySelectorAll('.mac-dialog').length;
+        c.close(); c.close();
+        // close() removes the scrim after its fade, so the count has to settle
+        // before it means anything.
+        await new Promise((r) => setTimeout(r, 320));
+        return {opened, after: document.querySelectorAll('.mac-dialog').length};
+    },
+    "Menu: no items": () => {
+        const c = new MacUI.Menu({items: []});
+        const anchor = document.createElement('button');
+        document.body.appendChild(anchor);
+        c.open(anchor);
+        const mounted = document.querySelectorAll('.mac-menu').length;
+        c.close();
+        return {mounted};
+    },
+    "Pagination: negative total": () => {
+        const c = new MacUI.Pagination({total: -5, page: 1, pageCount: 3});
+        return {text: c.element.textContent.trim().slice(0, 30)};
+    },
+    "Table: shrink rows under a selection": () => {
+        const c = new MacUI.Table({
+            columns: [{key: 'a', title: 'A'}],
+            rows: [{id: '1', a: 1}, {id: '2', a: 2}],
+            selectable: true,
+            selectedKeys: ['1', '2'],
+        });
+        document.body.appendChild(c.element);
+        const before = c.element.querySelectorAll('tr.is-selected').length;
+        return {before, rows: c.element.querySelectorAll('tbody tr').length};
+    },
 };
 </script></body></html>`;
 
@@ -248,10 +355,12 @@ const evalJs = async (expression) => {
     return r?.result?.value;
 };
 
-const results = await evalJs(`(() => {
+const results = await evalJs(`(async () => {
     const out = [];
     for (const [name, fn] of Object.entries(window.__cases)) {
-        const r = window.__run(fn);
+        // Awaited: a probe may have to look at something that settles later, such
+        // as a scrim that is removed after its fade.
+        const r = await window.__run(fn);
         out.push({name, ok: r.ok, value: r.ok ? r.value : null, error: r.ok ? null : r.error});
     }
     return out;})()`);
@@ -312,6 +421,25 @@ ok(at("ActionSheet: open twice").count === 1 && at("ActionSheet: open twice").af
     "opening twice mounts one sheet, and closing twice leaves none");
 ok(at("CommandPalette: no items, then Enter").stillOpen === true,
     "Enter with nothing highlighted leaves the palette open");
+
+// Second batch: parsing, unknown ids, and overlays opened twice.
+ok(at("DatePicker: invalid value").value === "" && at("TimePicker: invalid value").value === "",
+    "an unparseable date or time is refused, not echoed",
+    [at("DatePicker: invalid value").value, at("TimePicker: invalid value").value]);
+ok(at("Select: unknown setValue").value === "a",
+    "a select ignores an unknown id instead of clearing itself",
+    at("Select: unknown setValue").value);
+ok(at("Dialog: open twice, close twice").opened === 1 && at("Dialog: open twice, close twice").after === 0,
+    "a dialog mounts once and leaves nothing behind", at("Dialog: open twice, close twice"));
+ok(at("TreeView: deep nesting").rows === 5 && at("TreeView: deep nesting").selected === 1,
+    "five levels of nesting render five rows with one selection", at("TreeView: deep nesting"));
+ok(at("ProgressRing: out of range").low === "0" && at("ProgressRing: out of range").high === "100",
+    "a ring clamps out-of-range values", at("ProgressRing: out of range"));
+ok(at("Calendar: invalid date").value === "",
+    "an impossible calendar date falls back instead of throwing", at("Calendar: invalid date").value);
+ok(at("SplitView: primary larger than container").width <= 1200,
+    "an oversized primary pane does not escape its container",
+    at("SplitView: primary larger than container").width);
 
 console.log(`\n${pass} assertions passed, ${fail} failed`);
 console.log(`SUMMARY: ${(results ?? []).length} cases, ${thrown.length} threw, ${fail} assertions failed`);

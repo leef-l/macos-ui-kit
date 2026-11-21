@@ -110,6 +110,13 @@ export class Select extends Component<HTMLDivElement> {
     /** Change the selection programmatically. */
     setValue(value: string): void {
         if (this.control.value === value) return;
+        // A native `<select>` accepts any string and answers with `selectedIndex
+        // -1`, so an unknown id used to *clear* the selection. Every other
+        // collection in the kit ignores an unknown value; "" stays a legal way to
+        // clear it on purpose.
+        if (value !== "" && !Array.from(this.control.options).some((option) => option.value === value)) {
+            return;
+        }
         this.control.value = value;
     }
 
