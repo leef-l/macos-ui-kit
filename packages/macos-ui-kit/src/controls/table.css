@@ -142,6 +142,78 @@
     border-radius: var(--mac-radius-s);
 }
 
+/* --- Column resizing ------------------------------------------------------ */
+
+/* The header cell is the containing block for its divider, which has to straddle
+   the cell's edge rather than sit inside the padding. */
+.mac-table__th {
+    position: relative;
+}
+
+/* The drag surface, wider than the line it draws: a 1px target is unhittable with
+   a mouse and impossible with a finger. It overhangs both neighbours so the
+   pointer can arrive from either side. */
+.mac-table__resizer {
+    position: absolute;
+    inset-block: 0;
+    /* Physical, not logical: the divider belongs to the column's *end* edge in a
+       left-to-right table and to its start edge in a mirrored one — and in a
+       mirrored table the inline end of a column is its left side, which is where
+       the next column begins. Logical is the same edge in both cases.
+       Anchored flush with the edge it draws rather than overhanging it: a handle
+       whose centre sits one pixel into the next column loses the hit test to that
+       column's header button. */
+    inset-inline-end: 0;
+    width: calc(var(--mac-space-2) + var(--mac-hairline));
+    z-index: 3;
+    cursor: col-resize;
+    /* Touch: one finger drags the divider instead of scrolling the table. */
+    touch-action: none;
+}
+
+.mac-table__resizer::after {
+    content: "";
+    position: absolute;
+    inset-block: 20%;
+    inset-inline-start: 50%;
+    width: var(--mac-hairline);
+    background: var(--mac-separator);
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        width var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-table__resizer:hover::after,
+.mac-table__resizer.is-dragging::after {
+    width: calc(var(--mac-hairline) * 2);
+    background: var(--mac-border-strong);
+}
+
+.mac-table__resizer:focus-visible {
+    outline: none;
+}
+
+.mac-table__resizer:focus-visible::after {
+    width: calc(var(--mac-hairline) * 2);
+    background: var(--mac-accent);
+}
+
+/* While a drag runs the whole table keeps the resize cursor and stops selecting
+   text under the pointer, which is what a pointer sweeping across cells would
+   otherwise do. */
+.mac-table.is-resizing {
+    cursor: col-resize;
+    user-select: none;
+}
+
+/* A thick divider stays comfortable on a touch screen; the pointer never needs it
+   narrower, so the base rule already covers both. */
+@media (pointer: coarse) {
+    .mac-table__resizer {
+        width: var(--mac-space-3);
+    }
+}
+
 /* --- Body ----------------------------------------------------------------- */
 
 /* A floor on cell width (64px at scale 1) is what makes a multi-column table

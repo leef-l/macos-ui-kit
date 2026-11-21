@@ -783,6 +783,18 @@ A macOS data table.
 | `onSortChange` | `(sort: TableSort \| null) => void` | optional | Fires when the reader clicks a sortable header. |
 | `emptyText` | `string` | optional | Text shown in place of rows when `rows` is empty. |
 | `filterEmptyText` | `string` | optional | Text shown when rows exist but the filter rejects all of them. |
+| `resizable` | `boolean` | optional | Let the reader drag a column edge to change its width. The layout is frozen on the first paint when this is on: every column gets the width it happened to have, and from then on the widths are the reader's, not the content's. That is what a resizable table is — a column that kept re-fitting itself to its widest cell would undo the drag as soon as one long value arrived. Action columns are not resizable: they size to their buttons by design. |
+| `onColumnResize` | `(key: string, width: number) => void` | optional | Fires with the column key and its new width once a drag or a key press ends. |
+
+| Member | Returns | Description |
+| --- | --- | --- |
+| `selectedKeys` | `string[]` | Keys of the selected rows, in the order they were selected. |
+| `visibleRows` | `any[]` | Rows after filtering and sorting, in the order the body shows them. |
+| `sort` | `TableSort \| null` | The active sort, or null when the table shows the order the data arrived in. |
+| `filter` | `((row: any, index: number) => boolean) \| null` | The active row test, or null when every row shows. |
+| `setRows(rows: any[])` | `void` | Replace the row data. Existing selection is kept for keys that still exist and dropped for keys that do not; like every setter in the kit, this does not raise `onSelectionChange`. |
+| `clearSelection()` | `void` | Drop the selection without raising `onSelectionChange`. |
+| `setSort(sort: TableSort \| null)` | `void` | Sort by a column key. Silent, like every setter in the kit. Pass `null` to restore the source order. The key does not have to belong to a `sortable` column: the button is the affordance, not a restriction. |
 
 Related types: `TableAlign`, `TableSortDirection`
 

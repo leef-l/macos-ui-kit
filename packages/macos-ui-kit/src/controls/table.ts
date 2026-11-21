@@ -23,8 +23,7 @@ export interface TableColumn {
     /** Header label. */
     title: string;
     /** Fixed width in CSS pixels; columns without one share the rest. */
-    width?: number;
-    /** Alignment for the header and every cell in the column. Default `left`. */
+    width?: number;    /** Alignment for the header and every cell in the column. Default `left`. */
     align?: TableAlign;
     /**
      * Custom cell renderer — the main extension point.
@@ -116,6 +115,20 @@ export interface TableOptions {
     emptyText?: string;
     /** Text shown when rows exist but the filter rejects all of them. */
     filterEmptyText?: string;
+    /**
+     * Let the reader drag a column edge to change its width.
+     *
+     * The layout is frozen on the first paint when this is on: every column gets
+     * the width it happened to have, and from then on the widths are the
+     * reader's, not the content's. That is what a resizable table is — a column
+     * that kept re-fitting itself to its widest cell would undo the drag as soon
+     * as one long value arrived.
+     *
+     * Action columns are not resizable: they size to their buttons by design.
+     */
+    resizable?: boolean;
+    /** Fires with the column key and its new width once a drag or a key press ends. */
+    onColumnResize?: (key: string, width: number) => void;
 }
 
 /** Fallback identity: an `id` field when the data has one, else the index. */
@@ -196,6 +209,21 @@ export class Table extends Component<HTMLDivElement> {
     private readonly onSelectionChange?: (keys: string[]) => void;
     private readonly onSortChange?: (sort: TableSort | null) => void;
     private readonly filterEmptyText: string;
+    private readonly resizable: boolean;
+    private readonly onColumnResize?: (key: string, width: number) => void;
+
+    /**
+     * Column widths once the reader has taken them over, keyed by column index.
+     *
+     * Kept by index, not by key: two columns are allowed to share a key (the
+     * action column's key is `""`), and the index is what the `<col>` list and
+     * the pinned offsets already address columns by.
+     */
+    private readonly widths = new Map<number, number>();
+    /** Live drag, or null. `pointermove` between two frames is one gesture. */
+    private gesture: {index: number; startX: number; startWidth: number} | null = null;
+    /** Widths from the first paint, so a double click can put a column back. */
+    private readonly naturalWidths = new Map<number, number>();
 
     /** Active sort, or null for the order the data arrived in. */
     private sortState: TableSort | null = null;
@@ -225,6 +253,8 @@ export class Table extends Component<HTMLDivElement> {
         this.onSelectionChange = options.onSelectionChange;
         this.onSortChange = options.onSortChange;
         this.filterEmptyText = options.filterEmptyText ?? "无匹配结果";
+        this.resizable = options.resizable ?? false;
+        this.onColumnResize = options.onColumnResize;
         // Copied, not referenced: the caller's object is theirs to mutate, and a
         // sort that changed under the component without a render would put the
         // header arrow and the row order out of step.
@@ -241,7 +271,7 @@ export class Table extends Component<HTMLDivElement> {
         // hint and equalises the columns when the content is short. Switching to
         // fixed only when widths are declared keeps content-sized tables as they
         // were, and makes declared widths exact.
-        if (this.columns.some((column) => column.width !== undefined)) {
+        if (this.columns.some((column) => column.width !== undefined) || this.resizable) {
             classes.push("mac-table--fixed");
         }
 
@@ -268,10 +298,18 @@ export class Table extends Component<HTMLDivElement> {
 
         this.renderRows();
 
+        // After the first layout, not during it: the widths a resizable table has
+        // to freeze are the ones the rendered columns ended up with.
+        if (this.resizable) {
+            requestAnimationFrame(() => {
+                if (!this.isDestroyed) this.enableResizing();
+            });
+        }
+
         // Pinned offsets depend on the rendered column widths, so they are
         // measured after layout and re-measured whenever the scroller changes
         // size (a window resize reflows the columns).
-        if (this.columns.some((column) => column.width !== undefined)) {
+        if (this.columns.some((column) => column.width !== undefined) || this.resizable) {
             const observer = new ResizeObserver(() => {
                 this.applyFixedWidths();
                 this.applyPinnedOffsets();
@@ -329,18 +367,25 @@ export class Table extends Component<HTMLDivElement> {
         // Write those widths onto their <col>, which is what fixed layout reads.
         const cols = this.root.querySelectorAll<HTMLTableColElement>(".mac-table__col");
         const offset = this.selectable ? 1 : 0;
-        for (const [index, width] of naturalActions) {
+
+        // A width the reader set wins over everything: it is the one value here
+        // that no measurement gets to overrule.
+        const resolved = (index: number): number | undefined =>
+            this.widths.get(index) ?? naturalActions.get(index) ?? this.columns[index].width;
+
+        this.columns.forEach((column, index) => {
+            const width = resolved(index);
+            if (width === undefined) return;
             const col = cols[index + offset];
             if (col) col.style.width = `${Math.ceil(width)}px`;
-        }
+        });
 
-        const declared = this.columns.reduce(
-            (sum, column, index) => sum + (naturalActions.get(index) ?? column.width ?? 0),
-            0,
-        );
-        const flexible = this.columns.filter(
-            (column, index) => column.width === undefined && !naturalActions.has(index),
-        ).length;
+        const declared = this.columns.reduce((sum, _column, index) => sum + (resolved(index) ?? 0), 0);
+        // A frozen table has no flexible column left: the reader took the widths
+        // over, so the extra pixels a drag adds have to widen the table (and make
+        // it scroll) instead of being taken out of somebody else's share.
+        const frozen = this.widths.size > 0;
+        const flexible = frozen ? 0 : this.columns.filter((_column, index) => resolved(index) === undefined).length;
 
         const selectCell = this.root.querySelector<HTMLElement>(".mac-table__cell--select");
         const selectWidth = selectCell ? selectCell.getBoundingClientRect().width : 0;
@@ -369,9 +414,158 @@ export class Table extends Component<HTMLDivElement> {
         table.style.width = `${Math.ceil(declared + share * flexible + selectWidth)}px`;
     }
 
+    // --- column resizing -----------------------------------------------------
+
+    /** The narrowest a column may be dragged: wide enough for a sort chevron. */
+    private static readonly MIN_WIDTH = 56;
+
     /**
-     * Natural width of one actions column, measured without the cell's say.
+     * Freeze the current geometry and hang a drag handle off every header.
      *
+     * Runs once, on the first frame after layout: the widths have to be measured
+     * from the rendered table, because until then a `table-layout: fixed` table
+     * with no widths knows nothing about how wide its columns want to be.
+     */
+    private enableResizing(): void {
+        const cols = [...this.root.querySelectorAll<HTMLTableColElement>(".mac-table__col")];
+        const offset = this.selectable ? 1 : 0;
+
+        this.columns.forEach((column, index) => {
+            const col = cols[index + offset];
+            if (!col) return;
+            const width = Math.round(col.getBoundingClientRect().width);
+            if (width <= 0) return;
+            this.naturalWidths.set(index, width);
+            // The action column stays content-sized: its buttons decide it, and a
+            // frozen width would clip the second one the moment a row grew one.
+            if (column.actions) return;
+            this.widths.set(index, width);
+        });
+
+        if (this.widths.size === 0) return;
+
+        this.applyFixedWidths();
+        this.buildResizers();
+    }
+
+    /** A separator between two columns, dragged or stepped with the arrow keys. */
+    private buildResizers(): void {
+        const cells = [...this.root.querySelectorAll<HTMLTableCellElement>(".mac-table__th")];
+
+        cells.forEach((cell) => {
+            const index = Number(cell.dataset.col);
+            if (!Number.isFinite(index)) return;
+            if (!this.widths.has(index)) return;
+
+            const handle = el("span", {
+                class: "mac-table__resizer",
+                role: "separator",
+                "aria-orientation": "vertical",
+                tabindex: "0",
+                "aria-label": `调整「${this.columns[index].title}」列宽`,
+                "aria-valuemin": String(Table.MIN_WIDTH),
+                "aria-valuenow": String(this.widths.get(index)),
+            });
+            handle.dataset.col = String(index);
+
+            this.listen(handle, "pointerdown", (event) => this.onResizeStart(event, handle, index));
+            this.listen(handle, "pointermove", (event) => this.onResizeMove(event));
+            this.listen(handle, "pointerup", (event) => this.onResizeEnd(event, handle));
+            this.listen(handle, "pointercancel", (event) => this.onResizeEnd(event, handle));
+            this.listen(handle, "keydown", (event) => this.onResizeKey(event, handle, index));
+            // Double click puts the column back to the width it had before anyone
+            // touched it — the same gesture macOS uses on a column divider.
+            this.listen(handle, "dblclick", (event) => {
+                event.preventDefault();
+                const natural = this.naturalWidths.get(index);
+                if (natural === undefined) return;
+                this.resizeTo(index, natural, handle);
+                this.reportResize(index);
+            });
+
+            cell.appendChild(handle);
+        });
+    }
+
+    private onResizeStart(event: PointerEvent, handle: HTMLElement, index: number): void {
+        // The header is a sort surface; a pointer that landed on the divider is
+        // not a click on the column.
+        event.preventDefault();
+        event.stopPropagation();
+        const current = this.widths.get(index);
+        if (current === undefined) return;
+
+        this.gesture = {index, startX: event.clientX, startWidth: current};
+        // Capture on the handle, not on the document: a drag that leaves the table
+        // still belongs to this gesture, and `pointerup` outside the window ends it
+        // through `pointercancel`.
+        handle.setPointerCapture(event.pointerId);
+        handle.classList.add("is-dragging");
+        this.toggleClass("is-resizing", true);
+    }
+
+    private onResizeMove(event: PointerEvent): void {
+        const gesture = this.gesture;
+        if (!gesture) return;
+        // `clientX` grows to the right in both directions, so a mirrored document
+        // has to subtract instead: the start edge of a column is on the right in
+        // RTL, and dragging it further right has to make the column narrower.
+        const sign = getComputedStyle(this.root).direction === "rtl" ? -1 : 1;
+        const delta = (event.clientX - gesture.startX) * sign;
+        this.resizeTo(gesture.index, gesture.startWidth + delta, this.resizerFor(gesture.index));
+    }
+
+    private onResizeEnd(event: PointerEvent, handle: HTMLElement): void {
+        if (!this.gesture) return;
+        const index = this.gesture.index;
+        this.gesture = null;
+        handle.classList.remove("is-dragging");
+        this.toggleClass("is-resizing", false);
+        try { handle.releasePointerCapture(event.pointerId); } catch { /* already released */ }
+        this.reportResize(index);
+    }
+
+    private onResizeKey(event: KeyboardEvent, handle: HTMLElement, index: number): void {
+        const current = this.widths.get(index);
+        if (current === undefined) return;
+
+        const step = event.shiftKey ? 1 : 8;
+        const forward = getComputedStyle(this.root).direction === "rtl" ? -1 : 1;
+        let next: number | null = null;
+
+        if (event.key === "ArrowRight") next = current + step * forward;
+        else if (event.key === "ArrowLeft") next = current - step * forward;
+        else if (event.key === "Home") next = this.naturalWidths.get(index) ?? current;
+
+        if (next === null) return;
+        event.preventDefault();
+        this.resizeTo(index, next, handle);
+        this.reportResize(index);
+    }
+
+    /** Write one width through to the `<col>` and the table's total width. */
+    private resizeTo(index: number, width: number, handle: HTMLElement | null): void {
+        const clamped = Math.max(Table.MIN_WIDTH, Math.round(width));
+        if (this.widths.get(index) === clamped) return;
+
+        this.widths.set(index, clamped);
+        this.applyFixedWidths();
+        this.applyPinnedOffsets();
+        if (handle) handle.setAttribute("aria-valuenow", String(clamped));
+    }
+
+    private reportResize(index: number): void {
+        const width = this.widths.get(index);
+        if (width === undefined) return;
+        this.onColumnResize?.(this.columns[index].key, width);
+    }
+
+    private resizerFor(index: number): HTMLElement | null {
+        return this.root.querySelector<HTMLElement>(`.mac-table__resizer[data-col="${index}"]`);
+    }
+
+    /**
+     * Natural width of one actions column, measured without the cell's say.     *
      * `scrollWidth` on the button group does not answer this: the buttons carry
      * `flex: 0 0 auto`, so they keep their width and overflow the group instead of
      * shrinking, and a flex container with `overflow: visible` still reports its
@@ -602,9 +796,11 @@ export class Table extends Component<HTMLDivElement> {
             class: `mac-table__th${alignClass(column.align)}`,
             scope: "col",
         });
+        // Always addressable by index: the resizer and the pinned offsets both find
+        // their column through it, and a column can be pinned and resized at once.
+        cell.dataset.col = String(columnIndex);
         if (column.pinned) {
             cell.dataset.pin = column.pinned;
-            cell.dataset.col = String(columnIndex);
         }
 
         if (!column.sortable) {

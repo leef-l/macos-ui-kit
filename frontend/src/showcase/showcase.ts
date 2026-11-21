@@ -1101,6 +1101,7 @@ function buildControlsSection(): HTMLElement {
     // --- Table (wide) ---------------------------------------------------------
     const tableState = readout("已选: 无");
     const tableSortState = readout("排序: 原序");
+    const tableSizeState = readout("列宽: 未调整");
     const table = new Table({
         // Sorting is opt-in per column: a header that reorders the data on click
         // has to announce itself, or a reader triggers it while selecting text.
@@ -1155,8 +1156,10 @@ function buildControlsSection(): HTMLElement {
             {id: "3", name: "db-01", status: "已停止", cpu: "—", region: "ap-south-1", uptime: "—", memory: "—", image: "postgres:16-bookworm"},
         ],
         selectable: true,
+        resizable: true,
         filterEmptyText: "没有匹配的实例",
         onSelectionChange: (keys) => tableState.set(`已选: ${keys.join(", ") || "无"}`),
+        onColumnResize: (key, width) => tableSizeState.set(`列宽: ${key || "操作"} = ${width}px`),
         onSortChange: (sort) =>
             tableSortState.set(
                 sort === null
@@ -1184,11 +1187,12 @@ function buildControlsSection(): HTMLElement {
     // actions column stays put — the behaviour this demo is here to show.
     tableWrap.style.maxWidth = "860px";
     tableFilter.element.style.marginBottom = "8px";
-    tableWrap.append(tableFilter.element, table.element, tableSortState.node, tableState.node);
+    tableWrap.append(tableFilter.element, table.element, tableSortState.node, tableSizeState.node, tableState.node);
     cells.push(
         cell("Table", tableWrap, {
             wide: true,
-            hint: "点表头 升序→降序→原序；输入框实时筛选；操作列固定",
+            hint: "点表头 升序→降序→原序；拖表头分隔条改列宽（双击复位）；输入框实时筛选；操作列固定",
+            state: tableState,
         }),
     );
 
