@@ -55,7 +55,9 @@ const results = [];
 for (const script of scripts) {
     process.stdout.write(`\n=== ${script}\n`);
     const started = Date.now();
-    const result = await run(process.execPath, [join(dir, script)], PKG);
+    // cwd inside `audit/`: the scripts write their screenshots next to themselves,
+    // so a run leaves nothing in the package root.
+    const result = await run(process.execPath, [join(dir, script)], dir);
     const seconds = ((Date.now() - started) / 1000).toFixed(1);
     // Two verdict formats, because the older audits print "N/M assertions OK"
     // (N passed out of M run) and the newer ones "N passed, M failed". Both are

@@ -43,3 +43,7 @@ smoke-dump.html
 
 # Static preview build (GitHub Pages)
 frontend/dist-preview
+
+# Chrome profiles and screenshots the audit suite writes while it runs
+.shot*
+audit/*.png
