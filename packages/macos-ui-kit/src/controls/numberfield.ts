@@ -54,7 +54,11 @@ export class NumberField extends Component<HTMLElement> {
         this.max = max;
         this.step = step;
         this.onChange = onChange;
-        this.committed = this.clamp(value ?? min ?? 0);
+        // `value ?? min ?? 0` does not catch NaN — `??` only skips null and
+        // undefined — so an initial NaN was committed and shown verbatim in the
+        // field. Every writer already guards with `Number.isFinite`; the
+        // constructor has to agree with them.
+        this.committed = this.clamp(Number.isFinite(value) ? (value as number) : (min ?? 0));
 
         this.root = el("div", {class: "mac-numberfield"});
 

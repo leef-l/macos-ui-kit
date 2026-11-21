@@ -111,8 +111,15 @@ export class Pagination extends Component<HTMLElement> {
     constructor(options: PaginationOptions) {
         super();
 
-        this.pageCount = Math.max(1, Math.floor(options.pageCount));
-        this.page = Math.min(Math.max(1, Math.floor(options.page ?? 1)), this.pageCount);
+        // `pageCount` is required in the type but not at runtime (plain JS, a JSON
+        // config, a computed value that came out undefined): Math.floor(undefined)
+        // is NaN, and Math.max(1, NaN) is NaN — which rendered a "NaN" page button.
+        this.pageCount = Number.isFinite(options.pageCount)
+            ? Math.max(1, Math.floor(options.pageCount))
+            : 1;
+        this.page = Number.isFinite(options.page)
+            ? Math.min(Math.max(1, Math.floor(options.page as number)), this.pageCount)
+            : 1;
         this.total = options.total;
         this.siblingCount = options.siblingCount ?? 1;
         this.showEnds = options.showEnds ?? false;
