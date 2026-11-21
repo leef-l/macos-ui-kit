@@ -1,36 +1,41 @@
-# Publish the kit to the public npm registry.
+# Publish the kit to the public npm registry, and cut the matching GitHub Release.
 #
-# Uses npm **Trusted Publishing** (OIDC), not a stored token. npm is retiring
-# bypass-2FA tokens for direct publishing — the banner on the token page says
-# account changes stop honouring them in August 2026 and publishing in January
-# 2027 — so the token path has a shelf life and this one does not. It is also
-# strictly better: nothing to rotate, nothing to leak, and every release carries
-# a signed provenance attestation.
+# Two ways in:
+#   - push to `main`: publishes only when `package.json` carries a version the
+#     registry does not have yet. A push that does not bump the version runs the
+#     verification steps and then stops, which makes this double as CI.
+#   - workflow_dispatch: the same, on demand, with an optional dry run.
+#
+# Authentication is npm **Trusted Publishing** (OIDC), not a stored token: npm is
+# retiring bypass-2FA tokens for direct publishing, and a secret that never
+# expires cannot leak. Every release therefore carries a signed provenance
+# statement naming this repository and this workflow.
 #
 # One-time setup, on npmjs.com (package → Settings → Trusted Publisher):
-#   Publisher:      GitHub Actions
-#   Organization:   leef-l
-#   Repository:     macos-ui-kit
-#   Workflow name:  publish.yml
-#   Environment:    (leave empty)
-#
-# Manual only, deliberately: a push to `main` publishes nothing. The workflow
-# skips when the version is already on the registry, so running it twice is
-# harmless.
+#   Publisher: GitHub Actions / leef-l / macos-ui-kit / publish.yml
 name: Publish
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Pack and verify, but do not publish"
+        description: "Verify only: build, pack, and stop before publishing"
         type: boolean
         default: false
 
 permissions:
-  contents: read
-  # The whole point: this is what lets npm verify the run's identity.
+  # `id-token` is what lets npm verify this run's identity.
   id-token: write
+  # `contents: write` is for the release the publish step cuts.
+  contents: write
+
+# Two publishes racing each other would both find "not published" and the loser
+# would fail on a 403; a queue keeps them in order without cancelling a live one.
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   npm:
@@ -67,31 +72,34 @@ jobs:
           name=$(node -p "require('./package.json').name")
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "$name@$version"
 
+      # The gate that makes a push safe: an unchanged version is a no-op.
       - name: Is it already published?
         id: exists
         run: |
           if npm view "${{ steps.meta.outputs.name }}@${{ steps.meta.outputs.version }}" version >/dev/null 2>&1; then
             echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "${{ steps.meta.outputs.version }} is already on the registry — nothing to release."
           else
             echo "published=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Pack
+        if: ${{ steps.exists.outputs.published == 'false' && inputs.dry_run != true }}
         run: npm pack
 
       - name: Publish
-        if: ${{ steps.exists.outputs.published == 'false' && inputs.dry_run == false }}
+        if: ${{ steps.exists.outputs.published == 'false' && inputs.dry_run != true }}
         # No NODE_AUTH_TOKEN: its absence is what makes npm use the OIDC exchange
-        # with the identity GitHub just minted for this run.
+        # with the identity GitHub minted for this run.
         run: npm publish --access public --provenance
 
-      # The registry answers the write before its read path has caught up: a single
-      # `npm view` ten seconds later returned the previous version and failed the
-      # run after a successful publish. Poll instead, and read the raw API so a
-      # cached CLI never answers for the registry.
+      # The registry answers the write before its read path has caught up, so a
+      # single read seconds later can return the previous version and fail a run
+      # that published fine. Poll, and read the raw API so no CLI cache answers.
       - name: Verify from the registry
-        if: ${{ steps.exists.outputs.published == 'false' && inputs.dry_run == false }}
+        if: ${{ steps.exists.outputs.published == 'false' && inputs.dry_run != true }}
         run: |
           for attempt in 1 2 3 4 5 6 7 8 9 10; do
             sleep 6
@@ -103,6 +111,24 @@ jobs:
           echo "the registry still does not carry ${{ steps.meta.outputs.version }}"
           exit 1
 
-      - name: Note when nothing was published
-        if: ${{ steps.exists.outputs.published == 'true' || inputs.dry_run }}
-        run: echo "${{ steps.meta.outputs.name }}@${{ steps.meta.outputs.version }} was already published, or this was a dry run."
+      - name: Create the GitHub release
+        if: ${{ steps.exists.outputs.published == 'false' && inputs.dry_run != true }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="v${{ steps.meta.outputs.version }}"
+          # Idempotent: a manual release for this tag wins over an empty one.
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "release $tag already exists — leaving it alone"
+            exit 0
+          fi
+          gh release create "$tag" ./*.tgz \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "macOS UI Kit $tag" \
+            --generate-notes
+
+      - name: Nothing to do
+        if: ${{ steps.exists.outputs.published == 'true' || inputs.dry_run == true }}
+        run: |
+          echo "${{ steps.meta.outputs.name }}@${{ steps.meta.outputs.version }} is already published, or this was a dry run."
+          echo "Verification ran; no release was cut."
