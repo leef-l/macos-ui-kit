@@ -98,6 +98,17 @@ jobs:
       # The registry answers the write before its read path has caught up, so a
       # single read seconds later can return the previous version and fail a run
       # that published fine. Poll, and read the raw API so no CLI cache answers.
+      # The fourth channel. It needs the scope-to-registry mapping and a token;
+      # the repo's own token is enough, with `packages: write` above.
+      - name: Publish to GitHub Packages
+        if: ${{ steps.exists.outputs.published == 'false' && inputs.dry_run != true }}
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
+          npm publish --registry=https://npm.pkg.github.com --ignore-scripts
+          rm -f .npmrc
+
       - name: Verify from the registry
         if: ${{ steps.exists.outputs.published == 'false' && inputs.dry_run != true }}
         run: |
