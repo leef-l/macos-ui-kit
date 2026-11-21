@@ -55,8 +55,9 @@
     min-width: 0;
     height: 100%;
     padding: 0;
-    /* Room for the icon, so a long format never sits underneath it. */
-    padding-right: calc(var(--mac-icon-md) + var(--mac-space-2));
+    /* Room for the icon, so a long format never sits underneath it. Written on the
+       inline end, so an RTL field reserves the space on the side the glyph moves to. */
+    padding-inline-end: calc(var(--mac-icon-md) + var(--mac-space-2));
     border: none;
     background: transparent;
     color: var(--mac-text);
@@ -103,10 +104,11 @@
 }
 
 /* Decorative only: the click must reach the native picker indicator layered over
-   the input, so this must never capture a pointer. */
+   the input, so this must never capture a pointer. Anchored to the inline end so
+   an RTL field puts the glyph where the digits stop. */
 .mac-timepicker__icon {
     position: absolute;
-    right: var(--mac-space-2);
+    inset-inline-end: var(--mac-space-2);
     top: 50%;
     display: inline-flex;
     width: var(--mac-icon-md);
