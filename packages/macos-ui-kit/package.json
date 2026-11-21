@@ -55,6 +55,7 @@
     "docs": "node scripts/gen-docs.mjs",
     "keyboard": "node scripts/gen-keyboard.mjs",
     "audit": "node scripts/audit.mjs",
+    "check:channels": "node scripts/check-channels.mjs",
     "prepublishOnly": "node scripts/check-versions.mjs && npm run build"
   },
   "devDependencies": {
