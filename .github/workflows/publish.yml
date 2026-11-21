@@ -1,0 +1,84 @@
+# Publish the kit to the public npm registry.
+#
+# The maintainer's shell token expired once and the public registry sat seven
+# versions behind the other three channels, because publishing depended on a
+# credential that lived on one machine. This moves it into a repository secret
+# (`NPM_TOKEN`), so the token can be rotated in one place and a release does not
+# need anybody's laptop.
+#
+# Manual only, deliberately: a push to `main` publishes nothing. The workflow
+# re-checks the version guard and skips if that exact version is already on the
+# registry, so running it twice is harmless.
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Pack and verify, but do not publish"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/macos-ui-kit
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Install
+        run: npm ci
+
+      - name: Verify the release is self-consistent
+        run: |
+          npm run check:versions
+          npm run typecheck
+          npm run build
+
+      - name: Read the version
+        id: meta
+        run: |
+          version=$(node -p "require('./package.json').version")
+          name=$(node -p "require('./package.json').name")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - name: Is it already published?
+        id: exists
+        run: |
+          if npm view "${{ steps.meta.outputs.name }}@${{ steps.meta.outputs.version }}" version >/dev/null 2>&1; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pack
+        run: npm pack
+
+      - name: Publish
+        if: ${{ steps.exists.outputs.published == 'false' && inputs.dry_run == false }}
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Verify from the registry
+        if: ${{ steps.exists.outputs.published == 'false' && inputs.dry_run == false }}
+        run: |
+          sleep 10
+          published=$(npm view "${{ steps.meta.outputs.name }}" version)
+          echo "registry reports $published"
+          test "$published" = "${{ steps.meta.outputs.version }}"
+
+      - name: Note when nothing was published
+        if: ${{ steps.exists.outputs.published == 'true' || inputs.dry_run }}
+        run: echo "${{ steps.meta.outputs.name }}@${{ steps.meta.outputs.version }} was already published, or this was a dry run."
