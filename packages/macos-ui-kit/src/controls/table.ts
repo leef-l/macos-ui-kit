@@ -188,6 +188,18 @@ export class Table extends Component<HTMLDivElement> {
             observer.observe(scroll);
             this.onDestroy(() => observer.disconnect());
             this.applyFixedWidths();
+
+            // A web font loads after first paint and the fallback measures
+            // narrower, so a width computed before the swap left the last button
+            // clipped — and nothing recomputed it, because the scroller's own box
+            // never changed. The fonts settle once; re-measuring then is enough.
+            if (typeof document !== "undefined" && document.fonts) {
+                document.fonts.ready
+                    .then(() => {
+                        if (!this.isDestroyed) this.applyFixedWidths();
+                    })
+                    .catch(() => {});
+            }
         }
         if (this.columns.some((column) => column.pinned)) {
             const observer = new ResizeObserver(() => this.applyPinnedOffsets());
@@ -215,26 +227,12 @@ export class Table extends Component<HTMLDivElement> {
 
         // An actions column sizes to its buttons unless the caller pinned a width:
         // buttons are content, and sharing the leftover space equally would cut
-        // the last one off. Measured from the rendered container, which reports its
-        // natural width in `scrollWidth` even while the cell is constraining it.
+        // the last one off.
         const naturalActions = new Map<number, number>();
         this.columns.forEach((column, index) => {
             if (!column.actions || column.width !== undefined) return;
-            let widest = 0;
-            for (const cell of this.root.querySelectorAll<HTMLElement>(
-                `tbody td[data-col="${index}"] .mac-table__actions`,
-            )) {
-                widest = Math.max(widest, cell.scrollWidth);
-            }
-            if (widest > 0) {
-                // Cell padding is outside the container.
-                const sample = this.root.querySelector<HTMLElement>(".mac-table__cell");
-                const style = sample ? getComputedStyle(sample) : null;
-                const padding = style
-                    ? (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0)
-                    : 0;
-                naturalActions.set(index, widest + padding);
-            }
+            const widest = this.measureActions(index);
+            if (widest > 0) naturalActions.set(index, widest);
         });
 
         // Write those widths onto their <col>, which is what fixed layout reads.
@@ -257,7 +255,14 @@ export class Table extends Component<HTMLDivElement> {
         const selectWidth = selectCell ? selectCell.getBoundingClientRect().width : 0;
 
         let floor = 0;
-        const sample = this.root.querySelector<HTMLElement>(".mac-table__th");
+        // The floor belongs to the data cell, not the header: `min-width` is
+        // declared on `.mac-table__cell` only, so reading it off a `th` yielded
+        // `auto` → 0 and the "floor" degraded to the padding. Flexible columns
+        // then shrank to 44px and the table fitted its box instead of scrolling.
+        // The select column is skipped because it is narrow on purpose.
+        const sample =
+            this.root.querySelector<HTMLElement>(".mac-table__cell:not(.mac-table__cell--select)") ??
+            this.root.querySelector<HTMLElement>(".mac-table__th");
         if (sample) {
             const style = getComputedStyle(sample);
             floor =
@@ -271,6 +276,49 @@ export class Table extends Component<HTMLDivElement> {
             flexible > 0 ? Math.max(floor, (available - declared) / flexible) : 0;
 
         table.style.width = `${Math.ceil(declared + share * flexible + selectWidth)}px`;
+    }
+
+    /**
+     * Natural width of one actions column, measured without the cell's say.
+     *
+     * `scrollWidth` on the button group does not answer this: the buttons carry
+     * `flex: 0 0 auto`, so they keep their width and overflow the group instead of
+     * shrinking, and a flex container with `overflow: visible` still reports its
+     * own box as `scrollWidth` — the overflow is invisible to that measurement.
+     * Reading it froze the column at whatever width the first render happened to
+     * give it, so a later `setRows()` with more buttons could never widen it.
+     *
+     * Summing the children is exact in both directions: an un-shrinkable child's
+     * own width is its content width, whether or not the cell has room for it.
+     * The cell's padding is added here rather than taken from a sample cell —
+     * a select column is padded differently, and sampling the table's first cell
+     * undercounted the column on any selectable table.
+     */
+    private measureActions(columnIndex: number): number {
+        let widest = 0;
+
+        for (const group of this.root.querySelectorAll<HTMLElement>(
+            `tbody td[data-col="${columnIndex}"] .mac-table__actions`,
+        )) {
+            const buttons = group.querySelectorAll<HTMLElement>(".mac-button");
+            if (buttons.length === 0) continue;
+
+            const gap = parseFloat(getComputedStyle(group).columnGap) || 0;
+            let total = gap * (buttons.length - 1);
+            for (const button of buttons) {
+                total += button.getBoundingClientRect().width;
+            }
+
+            const cell = group.closest<HTMLElement>(".mac-table__cell");
+            if (cell) {
+                const style = getComputedStyle(cell);
+                total += (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0);
+            }
+
+            widest = Math.max(widest, total);
+        }
+
+        return widest;
     }
 
     /**
@@ -439,8 +487,12 @@ export class Table extends Component<HTMLDivElement> {
 
         this.body.replaceChildren(fragment);
         this.syncHeaderCheck();
-        // New cells carry no offsets; measure again now that they exist.
-        requestAnimationFrame(() => this.applyPinnedOffsets());
+        // New cells carry no offsets and the actions group may be a different
+        // width than last time, so both passes run again now that they exist.
+        requestAnimationFrame(() => {
+            this.applyFixedWidths();
+            this.applyPinnedOffsets();
+        });
     }
 
     private makeRow(row: any, index: number): HTMLTableRowElement {

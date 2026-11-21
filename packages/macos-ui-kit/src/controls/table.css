@@ -259,6 +259,12 @@
    `overflow: hidden` on the cell would cut those in half. */
 .mac-table__text {
     display: block;
+}
+
+/* Truncation is a property of the fixed layout: there the column width is the
+   caller's decision, so overflowing text is cut. An automatic table still wraps,
+   which is how a long cell stayed readable before. */
+.mac-table--fixed .mac-table__text {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
