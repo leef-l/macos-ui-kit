@@ -442,3 +442,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+/* A selectable row is a tab stop, so it has to say so. Inset, because the ring
+   would otherwise be clipped by the scroller at the first and last column. */
+.mac-table__row:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: calc(var(--mac-hairline) * -2);
+}

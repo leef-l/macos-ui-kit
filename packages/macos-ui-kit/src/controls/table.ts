@@ -294,6 +294,15 @@ export class Table extends Component<HTMLDivElement> {
         // One listener for every row checkbox, on an element that outlives the
         // rows themselves.
         this.listen(this.body, "change", (event) => this.onBodyChange(event));
+
+        // Row navigation. Delegated from the body, which outlives every row.
+        if (this.selectable) {
+            this.listen(this.body, "keydown", (event) => this.onRowKeyDown(event));
+            this.listen(this.body, "focusin", (event) => {
+                const row = (event.target as HTMLElement).closest<HTMLTableRowElement>(".mac-table__row");
+                if (row) this.setRowTabStop(row);
+            });
+        }
         this.listen(this.head, "click", (event) => this.onHeadClick(event));
 
         this.renderRows();
@@ -844,6 +853,14 @@ export class Table extends Component<HTMLDivElement> {
 
         this.body.replaceChildren(fragment);
         this.syncHeaderCheck();
+        if (this.selectable) {
+            // The table keeps one row tabbable across a rebuild: the selected one,
+            // or the first. Without this the whole body would leave the tab order
+            // the moment the rows were replaced.
+            const rows = this.body.querySelectorAll<HTMLTableRowElement>(".mac-table__row");
+            const stop = this.body.querySelector<HTMLTableRowElement>(".mac-table__row.is-selected") ?? rows[0];
+            if (stop) this.setRowTabStop(stop);
+        }
         this.syncSortIndicators();
         // New cells carry no offsets and the actions group may be a different
         // width than last time, so both passes run again now that they exist.
@@ -853,14 +870,85 @@ export class Table extends Component<HTMLDivElement> {
         });
     }
 
-    private makeRow(row: any, index: number): HTMLTableRowElement {
-        const key = this.rowKey(row, index);
+    // --- row navigation ------------------------------------------------------
+
+    /** Give one row the tab stop and take it from the rest. */
+    private setRowTabStop(target: HTMLTableRowElement): void {
+        for (const row of this.body.querySelectorAll<HTMLTableRowElement>(".mac-table__row")) {
+            row.tabIndex = row === target ? 0 : -1;
+        }
+    }
+
+    private focusRow(row: HTMLTableRowElement): void {
+        this.setRowTabStop(row);
+        row.focus();
+    }
+
+    /**
+     * Arrows walk the rows, Home/End jump to the ends, Space toggles the focused
+     * row — the same map the List uses, because a table the reader selects from is
+     * a vertical collection.
+     *
+     * Focus stays on the row rather than moving into the checkbox: the row *is*
+     * the item, and a focus ring inside one cell of a nine-column table reads as
+     * "this cell is selected" rather than "this row is".
+     */
+    private onRowKeyDown(event: KeyboardEvent): void {
+        const rows = [...this.body.querySelectorAll<HTMLTableRowElement>(".mac-table__row")];
+        if (rows.length === 0) return;
+
+        const current = rows.indexOf(document.activeElement as HTMLTableRowElement);
+        const from = current === -1 ? rows.findIndex((row) => row.tabIndex === 0) : current;
+        let next = -1;
+
+        switch (event.key) {
+            case "ArrowDown":
+                next = Math.min(rows.length - 1, from + 1);
+                break;
+            case "ArrowUp":
+                next = Math.max(0, from - 1);
+                break;
+            case "Home":
+                next = 0;
+                break;
+            case "End":
+                next = rows.length - 1;
+                break;
+            case " ":
+            case "Enter": {
+                const row = current === -1 ? rows[from] : rows[current];
+                const check = row?.querySelector<HTMLInputElement>('input[type="checkbox"]');
+                if (!check) return;
+                event.preventDefault();
+                // A click, not a `checked` write: it fires the same `change` the
+                // pointer does, so the selection path stays in one place.
+                check.click();
+                return;
+            }
+            default:
+                return;
+        }
+
+        event.preventDefault();
+        if (next >= 0) this.focusRow(rows[next]);
+    }
+    private makeRow(row: any, index: number): HTMLTableRowElement {        const key = this.rowKey(row, index);
         this.rowKeys.push(key);
 
         const tr = el("tr", {
             class: `mac-table__row${this.selected.has(key) ? " is-selected" : ""}`,
             dataset: {key},
         });
+
+        // A selectable table is a list of rows the reader chooses from, so the rows
+        // have to be reachable without a pointer: roving tabindex on the body, one
+        // stop for the whole table, arrows inside it. A read-only table keeps its
+        // single stop (the header buttons) and gains nothing to tab through.
+        if (this.selectable) {
+            tr.tabIndex = -1;
+            tr.setAttribute("role", "row");
+            tr.setAttribute("aria-selected", String(this.selected.has(key)));
+        }
 
         if (this.selectable) {
             const cell = el("td", {class: "mac-table__cell mac-table__cell--select"});

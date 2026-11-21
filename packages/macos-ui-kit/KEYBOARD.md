@@ -31,7 +31,7 @@ Conventions the whole kit follows:
 | **Stepper** | ● | ● |  |  | ● | ● |  |  |  |  |  |  | ● | ● |
 | **Switch** |  |  |  |  |  |  | ● | ● |  |  |  |  |  |  |
 | **TabBar** | ● | ● | ● | ● | ● | ● |  |  |  |  |  |  |  |  |
-| **Table** |  |  | ● | ● | ● |  |  |  |  |  |  |  |  |  |
+| **Table** | ● | ● | ● | ● | ● | ● | ● | ● |  |  |  |  |  |  |
 | **TagInput** |  |  | ● | ● |  |  | ● |  |  |  | ● | ● |  |  |
 | **TextField** |  |  |  |  |  |  | ● |  |  |  |  |  |  |  |
 | **TreeView** | ● | ● | ● | ● | ● | ● | ● | ● |  |  |  |  |  |  |
@@ -209,9 +209,14 @@ Conventions the whole kit follows:
 
 | Key | Does |
 | --- | --- |
+| `↓` | — |
+| `↑` | — |
+| `Home` | — |
+| `End` | — |
+| `Space` | — |
+| `Enter` | — |
 | `→` | Write one width through to the `<col>` and the table's total width. |
 | `←` | Write one width through to the `<col>` and the table's total width. |
-| `Home` | Write one width through to the `<col>` and the table's total width. |
 
 ### TagInput
 
@@ -321,4 +326,4 @@ Conventions the whole kit follows:
 | --- | --- |
 | `Esc` | Slide the sheet in. Idempotent. |
 
-_25 components, 101 bindings._
+_25 components, 106 bindings._

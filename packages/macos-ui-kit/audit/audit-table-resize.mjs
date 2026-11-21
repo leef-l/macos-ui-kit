@@ -255,6 +255,44 @@ await new Promise((r) => setTimeout(r, 400));
     if (s?.data) { writeFileSync(join(process.cwd(), "p7-table-resize.png"), Buffer.from(s.data, "base64")); console.log("saved p7-table-resize.png"); }
 }
 
+
+
+// --- keyboard row navigation -------------------------------------------------
+{
+    const nav = await evalJs(`(async()=>{
+        const c = ${CELL("Table")};
+        const body = c.querySelector('.mac-table__body');
+        const rows = [...c.querySelectorAll('tbody tr')];
+        const snap = () => ({
+            focus: rows.indexOf(document.activeElement),
+            tabs: rows.map(r=>r.tabIndex),
+            selected: [...c.querySelectorAll('tbody tr')].filter(r=>r.classList.contains('is-selected')).length,
+        });
+        rows[0].focus();
+        const start = snap();
+        const fire = (k) => body.dispatchEvent(new KeyboardEvent('keydown',{key:k,bubbles:true,cancelable:true}));
+        fire('ArrowDown'); await new Promise(r=>setTimeout(r,90));
+        const down = snap();
+        fire('End'); await new Promise(r=>setTimeout(r,90));
+        const end = snap();
+        fire('Home'); await new Promise(r=>setTimeout(r,90));
+        const home = snap();
+        fire(' '); await new Promise(r=>setTimeout(r,160));
+        const spaced = snap();
+        return {start, down, end, home, spaced,
+                role: rows[0].getAttribute('role'),
+                aria: rows[0].getAttribute('aria-selected')};})()`);
+    ok(nav.role === "row", "a selectable row announces itself as a row", nav.role);
+    ok(nav.start.tabs.filter((t) => t === 0).length === 1, "exactly one row owns the tab stop", nav.start.tabs);
+    ok(nav.down.focus === 1, "ArrowDown moves to the next row", nav.down.focus);
+    ok(nav.end.focus === nav.end.tabs.length - 1, "End jumps to the last row", nav.end.focus);
+    ok(nav.home.focus === 0, "Home jumps back to the first", nav.home.focus);
+    ok(nav.spaced.selected !== nav.home.selected, "Space toggles the focused row's selection",
+        {before: nav.home.selected, after: nav.spaced.selected});
+    ok(nav.down.tabs.filter((t) => t === 0).length === 1, "the tab stop follows the focus", nav.down.tabs);
+    ok(nav.aria === "true" || nav.aria === "false", "rows carry aria-selected", nav.aria);
+}
+
 ok(consoleErrors.length === 0, "no console errors during the run", consoleErrors.slice(0, 4));
 
 console.log(`\n${pass} passed, ${fail} failed`);
