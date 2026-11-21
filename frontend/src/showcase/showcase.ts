@@ -1305,6 +1305,10 @@ function buildLayoutSection(): HTMLElement {
             },
         ],
         selected: "all",
+        collapsible: true,
+        onToggleGroup: (index, collapsed) => {
+            sidebar.element.dataset.group = `${index}:${collapsed ? "collapsed" : "expanded"}`;
+        },
     });
     const sidebarFrame = document.createElement("div");
     sidebarFrame.className = "mac-showcase__surface";

@@ -40,8 +40,7 @@
 }
 
 /* Section heading above a group, like "Favorites" in Finder. */
-.mac-sidebar__heading {
-    padding: var(--mac-space-1) var(--mac-space-2);
+.mac-sidebar__heading {    padding: var(--mac-space-1) var(--mac-space-2);
     font-size: var(--mac-text-small);
     font-weight: var(--mac-weight-semibold);
     letter-spacing: 0.04em;
@@ -51,6 +50,7 @@
 }
 
 .mac-sidebar__item {
+
     display: flex;
     align-items: center;
     gap: var(--mac-space-2);
@@ -173,3 +173,76 @@
 }
 
 
+
+/* --- Collapsible groups --------------------------------------------------- */
+
+/* The heading doubles as the disclosure handle. It keeps the heading's ink and
+   spacing exactly — a folding sidebar must not look different from a static one
+   at rest — and only gains a hit area and a triangle. */
+.mac-sidebar__heading--disclosure {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-1);
+    width: 100%;
+    margin: 0;
+    padding: var(--mac-space-1) var(--mac-space-2);
+    border: none;
+    border-radius: var(--mac-radius-s);
+    background: none;
+    /* Left-aligned text in a button needs saying: a button centres by default. */
+    text-align: start;
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-small);
+    font-weight: var(--mac-weight-semibold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--mac-text-tertiary);
+    cursor: default;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.mac-sidebar__heading--disclosure:hover {
+    color: var(--mac-text-secondary);
+}
+
+.mac-sidebar__heading--disclosure:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: -1px;
+}
+
+/* The triangle points along the label when the group is open and along the
+   inline axis when it is folded: a rotation, not a second glyph. */
+.mac-sidebar__disclosure {
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: var(--mac-icon-xs);
+    height: var(--mac-icon-xs);
+    background: currentColor;
+    /* A right-pointing wedge, drawn with a clip so it inherits the heading ink. */
+    clip-path: polygon(35% 20%, 45% 20%, 75% 50%, 45% 80%, 35% 80%, 65% 50%);
+    transition: transform var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-sidebar__heading--disclosure[aria-expanded="true"] .mac-sidebar__disclosure {
+    transform: rotate(90deg);
+}
+
+.mac-sidebar__heading-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* The rows of one group. A flex column so the 2px row rhythm of the group is
+   preserved now that the rows sit one level deeper. */
+.mac-sidebar__items {
+    display: flex;
+    flex-direction: column;
+    gap: calc(2px * var(--mac-scale));
+}
+
+/* `hidden` is what folds a group away, and `base.css` already applies
+   `display: none !important` to it — that is also what takes the rows out of the
+   tab order, which a class-based collapse would not do. */

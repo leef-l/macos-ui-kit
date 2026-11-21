@@ -1044,13 +1044,18 @@ A macOS source list.
 
 | Option | Type | | Description |
 | --- | --- | --- | --- |
+| `groups` | `SidebarGroup[]` | **required** | Grouped items; each group renders as a block with optional heading. |
 | `selected` | `string` | optional | Initially selected item id. |
 | `onSelect` | `(id: string) => void` | optional | Fires when the selection changes. |
+| `collapsible` | `boolean` | optional | Make every heading a disclosure that folds its rows away. A group with no heading stays open: there is nothing to click, and a collapsed group with no handle could never be reopened. |
+| `onToggleGroup` | `(index: number, collapsed: boolean) => void` | optional | Fires with the group index and its new state. |
 
 | Member | Returns | Description |
 | --- | --- | --- |
 | `selected` | `string \| null` | The currently selected item id. |
 | `collapsed` | `boolean` | True when the sidebar is collapsed. |
+| `toggleGroup(index: number, collapsed?: boolean, notify = false)` | `void` | Fold or unfold a group. `collapsed` omitted means "flip it". Silent unless reported. |
+| `isCollapsed(index: number)` | `boolean` | Whether a group's rows are folded away. |
 | `setSelected(id: string, notify = false)` | `void` | Select an item by id and optionally notify the caller. |
 | `setCollapsed(collapsed: boolean)` | `void` | Collapse or expand the sidebar. |
 

@@ -1,5 +1,5 @@
 import {Component} from "../component";
-import {el, svgIcon} from "../dom";
+import {el, svgIcon, uid} from "../dom";
 import "./sidebar.css";
 
 export interface SidebarItem {
@@ -24,13 +24,32 @@ export interface SidebarItem {
     disabled?: boolean;
 }
 
+/** One block of rows, with an optional heading that can double as its handle. */
+export interface SidebarGroup {
+    heading?: string;
+    items: SidebarItem[];
+    /** Override the sidebar's `collapsible` for this group. */
+    collapsible?: boolean;
+    /** Start collapsed. Only meaningful together with collapsible. */
+    collapsed?: boolean;
+}
+
 export interface SidebarOptions {
     /** Grouped items; each group renders as a block with optional heading. */
-    groups: Array<{heading?: string; items: SidebarItem[]}>;
+    groups: SidebarGroup[];
     /** Initially selected item id. */
     selected?: string;
     /** Fires when the selection changes. */
     onSelect?: (id: string) => void;
+    /**
+     * Make every heading a disclosure that folds its rows away.
+     *
+     * A group with no heading stays open: there is nothing to click, and a
+     * collapsed group with no handle could never be reopened.
+     */
+    collapsible?: boolean;
+    /** Fires with the group index and its new state. */
+    onToggleGroup?: (index: number, collapsed: boolean) => void;
 }
 
 /**
@@ -45,43 +64,101 @@ export class Sidebar extends Component<HTMLElement> {
 
     private selectedId: string | null;
     private readonly onSelect?: (id: string) => void;
+    private readonly collapsible: boolean;
+    private readonly onToggleGroup?: (index: number, collapsed: boolean) => void;
+
+    /** Per group: the disclosure button (when it has a heading) and the row box. */
+    private readonly groupHandles = new Map<number, HTMLButtonElement>();
+    private readonly groupBodies = new Map<number, HTMLDivElement>();
 
     constructor(options: SidebarOptions) {
         super();
 
         this.selectedId = options.selected ?? null;
         this.onSelect = options.onSelect;
+        this.collapsible = options.collapsible ?? false;
+        this.onToggleGroup = options.onToggleGroup;
 
         this.root = el("aside", {class: "mac-sidebar"});
 
-        for (const group of options.groups) {
+        options.groups.forEach((group, index) => {
             const groupNode = el("nav", {
                 class: "mac-sidebar__group",
                 "aria-label": group.heading ?? "导航",
             });
 
-            if (group.heading) {
-                groupNode.appendChild(
-                    el("div", {class: "mac-sidebar__heading", text: group.heading}),
-                );
-            }
-
+            const collapsible = (group.collapsible ?? this.collapsible) && group.heading !== undefined;
+            const bodyId = uid("mac-sidebar-group");
+            const body = el("div", {class: "mac-sidebar__items", id: bodyId});
             for (const item of group.items) {
-                groupNode.appendChild(this.makeItem(item));
+                body.appendChild(this.makeItem(item));
             }
 
+            if (group.heading) {
+                if (!collapsible) {
+                    groupNode.appendChild(el("div", {class: "mac-sidebar__heading", text: group.heading}));
+                } else {
+                    // The heading becomes the handle. A `<button>`, not a div with a
+                    // click listener: it has to be reachable by Tab and it has to
+                    // announce its state, and `aria-expanded` is what says whether
+                    // the rows below are showing.
+                    const collapsed = group.collapsed ?? false;
+                    const handle = el("button", {
+                        class: "mac-sidebar__heading mac-sidebar__heading--disclosure",
+                        type: "button",
+                        "aria-expanded": String(!collapsed),
+                        "aria-controls": bodyId,
+                        dataset: {group: String(index)},
+                    });
+                    handle.appendChild(el("span", {class: "mac-sidebar__disclosure", "aria-hidden": "true"}));
+                    handle.appendChild(el("span", {class: "mac-sidebar__heading-text", text: group.heading}));
+                    groupNode.appendChild(handle);
+                    this.groupHandles.set(index, handle);
+                    // `hidden` rather than a class: a collapsed group must leave the
+                    // tab order, or Tab would walk into rows nobody can see.
+                    body.hidden = collapsed;
+                }
+            }
+
+            groupNode.appendChild(body);
+            this.groupBodies.set(index, body);
             this.root.appendChild(groupNode);
-        }
+        });
 
         // One delegated listener for every row.
         this.listen(this.root, "click", (event) => {
-            const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
-                ".mac-sidebar__item",
-            );
+            const target = event.target as HTMLElement;
+
+            const handle = target.closest<HTMLButtonElement>(".mac-sidebar__heading--disclosure");
+            if (handle) {
+                const index = Number(handle.dataset.group);
+                if (Number.isFinite(index)) this.toggleGroup(index, undefined, true);
+                return;
+            }
+
+            const button = target.closest<HTMLButtonElement>(".mac-sidebar__item");
             if (!button || button.disabled) return;
             const id = button.dataset.id;
             if (id) this.setSelected(id, true);
         });
+    }
+
+    /** Fold or unfold a group. `collapsed` omitted means "flip it". Silent unless reported. */
+    toggleGroup(index: number, collapsed?: boolean, notify = false): void {
+        const body = this.groupBodies.get(index);
+        const handle = this.groupHandles.get(index);
+        if (!body || !handle) return;
+
+        const next = collapsed ?? body.hidden !== true;
+        if (body.hidden === next) return;
+        body.hidden = next;
+        handle.setAttribute("aria-expanded", String(!next));
+        if (notify) this.onToggleGroup?.(index, next);
+    }
+
+    /** Whether a group's rows are folded away. */
+    isCollapsed(index: number): boolean {
+        return this.groupBodies.get(index)?.hidden === true;
     }
 
     /** Build one row. */
