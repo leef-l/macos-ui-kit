@@ -101,10 +101,13 @@ jobs:
       - name: Verify from the registry
         if: ${{ steps.exists.outputs.published == 'false' && inputs.dry_run != true }}
         run: |
+          # Ask the dist-tag endpoint, not the packument: the full packument is
+          # served from a CDN cache and kept answering the previous version for
+          # well over a minute after a successful publish.
           for attempt in 1 2 3 4 5 6 7 8 9 10; do
             sleep 6
-            published=$(curl -sf "https://registry.npmjs.org/$(echo '${{ steps.meta.outputs.name }}' | sed 's|/|%2F|')" \
-              | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s)['dist-tags'].latest))")
+            published=$(curl -sf "https://registry.npmjs.org/$(echo '${{ steps.meta.outputs.name }}' | sed 's|/|%2F|')/latest" \
+              | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).version))")
             echo "attempt $attempt: registry reports $published"
             if [ "$published" = "${{ steps.meta.outputs.version }}" ]; then exit 0; fi
           done
