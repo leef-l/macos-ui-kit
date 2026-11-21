@@ -119,12 +119,18 @@ jobs:
           # Ask the dist-tag endpoint, not the packument: the full packument is
           # served from a CDN cache and kept answering the previous version for
           # well over a minute after a successful publish.
-          for attempt in 1 2 3 4 5 6 7 8 9 10; do
-            sleep 6
-            published=$(curl -sf "https://registry.npmjs.org/$(echo '${{ steps.meta.outputs.name }}' | sed 's|/|%2F|')/latest" \
-              | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).version))")
-            echo "attempt $attempt: registry reports $published"
-            if [ "$published" = "${{ steps.meta.outputs.version }}" ]; then exit 0; fi
+          # Publish is accepted long before the version is readable: replication has
+          # taken over two minutes here, which outran a 60-second window and failed
+          # a run that published fine. Ask the version endpoint (a plain 200/404, no
+          # dist-tag to lag behind) and allow five minutes.
+          url="https://registry.npmjs.org/$(echo '${{ steps.meta.outputs.name }}' | sed 's|/|%2F|')/${{ steps.meta.outputs.version }}"
+          for attempt in $(seq 1 30); do
+            if curl -sf -o /dev/null "$url"; then
+              echo "attempt $attempt: registry serves ${{ steps.meta.outputs.version }}"
+              exit 0
+            fi
+            echo "attempt $attempt: not visible yet"
+            sleep 10
           done
           echo "the registry still does not carry ${{ steps.meta.outputs.version }}"
           exit 1
