@@ -98,9 +98,13 @@ jobs:
       # The registry answers the write before its read path has caught up, so a
       # single read seconds later can return the previous version and fail a run
       # that published fine. Poll, and read the raw API so no CLI cache answers.
-      # The fourth channel. It needs the scope-to-registry mapping and a token;
-      # the repo's own token is enough, with `packages: write` above.
+      # The fourth channel, and the only one the repo token cannot write: the
+      # package is owned by the user account (`users/leef-l/packages`), so the
+      # workflow's installation gets 403 "not allowed to Write organization
+      # package" no matter what `permissions:` say. Publishing it stays a local
+      # step; this tries anyway and never blocks the release when it cannot.
       - name: Publish to GitHub Packages
+        continue-on-error: true
         if: ${{ steps.exists.outputs.published == 'false' && inputs.dry_run != true }}
         env:
           NODE_AUTH_TOKEN: ${{ github.token }}
