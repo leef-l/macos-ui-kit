@@ -160,8 +160,11 @@ export class TabBar extends Component<HTMLElement> {
             case "Home":
                 next = 0;
                 break;
-            default:
+            case "End":
                 next = last;
+                break;
+            default:
+                return;
         }
 
         event.preventDefault();

@@ -80,6 +80,9 @@ export class MobileShell extends Component<HTMLElement> {
                     type: "button",
                     role: "tab",
                     "aria-selected": String(tab.id === this.currentId),
+                    // Roving tabindex, the same rule every other collection in the
+                    // kit follows: the bar is one tab stop, not one per tab.
+                    tabindex: tab.id === this.currentId ? 0 : -1,
                     dataset: {id: tab.id},
                 });
                 button.append(svgIcon(tab.icon, 22), el("span", {text: tab.label}));
@@ -122,6 +125,7 @@ export class MobileShell extends Component<HTMLElement> {
                 const match = node.dataset.id === id;
                 node.classList.toggle("is-selected", match);
                 node.setAttribute("aria-selected", String(match));
+                node.tabIndex = match ? 0 : -1;
             }
         }
 
