@@ -140,3 +140,52 @@
     outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
     outline-offset: -1px;
 }
+
+/* --- Reordering ----------------------------------------------------------- */
+
+/* Only a reorderable list says so with the cursor; a selection-only list keeps
+   the arrow macOS uses everywhere. */
+.mac-list--reorderable .mac-list__row:not([aria-disabled="true"]) {
+    cursor: grab;
+}
+
+.mac-list.is-reordering {
+    cursor: grabbing;
+    /* A drag across rows would otherwise start selecting their text. */
+    user-select: none;
+}
+
+/* The row under the pointer, lifted out of the stack. Kept in place rather than
+   following the pointer: the drop indicator already says where it will land, and
+   a ghost image would have to be re-measured against a scrolling box every
+   frame. */
+.mac-list__row.is-dragging {
+    opacity: 0.45;
+}
+
+/* The drop indicator: a hairline in the accent colour, drawn on the edge the row
+   would join. `::before`/`::after` rather than a border so the row does not
+   change height mid-drag and push the rows below it out from under the pointer. */
+.mac-list__row.is-drop-before::before,
+.mac-list__row.is-drop-after::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    height: calc(var(--mac-hairline) * 2);
+    border-radius: var(--mac-hairline);
+    background: var(--mac-accent);
+    pointer-events: none;
+}
+
+.mac-list__row.is-drop-before::before {
+    top: calc(var(--mac-hairline) * -1);
+}
+
+.mac-list__row.is-drop-after::after {
+    bottom: calc(var(--mac-hairline) * -1);
+}
+
+/* Both pseudo-elements are absolutely positioned against the row. */
+.mac-list__row {
+    position: relative;
+}

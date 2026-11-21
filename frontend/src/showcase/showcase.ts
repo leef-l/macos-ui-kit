@@ -643,15 +643,20 @@ function buildControlsSection(): HTMLElement {
             {value: "trash", label: "废纸篓", icon: TRASH_ICON},
         ],
         value: "inbox",
+        reorderable: true,
         onSelect: (value) => {
             listState.set(`已选: ${value}`);
             listDemo.element.dataset.selected = String(value);
+        },
+        onReorder: (values) => {
+            listState.set(`顺序: ${values.join(" → ")}`);
+            listDemo.element.dataset.order = values.join(",");
         },
     });
     listDemo.element.style.width = "100%";
     cells.push(
         cell("List", listDemo.element, {
-            hint: "roving tabindex，↑↓ 移动，⌘ 点击多选",
+            hint: "拖行改顺序（跨分组会并入该组）；Alt+↑↓ 键盘移动；↑↓ 只走焦点",
             state: listState,
         }),
     );

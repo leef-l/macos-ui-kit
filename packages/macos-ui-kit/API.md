@@ -33,6 +33,14 @@ The iOS action sheet: a list of choices that slides up from the bottom, with the
 | `onSelect` | `(value: string) => void` | optional | Fires with the picked action's value, before the sheet dismisses. |
 | `ariaLabel` | `string` | optional | Accessible name when there is neither a title nor a message. |
 
+| Member | Returns | Description |
+| --- | --- | --- |
+| `isOpen` | `boolean` | Whether the sheet is on screen. |
+| `open()` | `void` | Show the sheet, focused, with the last action as the escape hatch. |
+| `close()` | `void` | Dismiss the sheet and hand focus back. |
+| `setActions(actions: ActionSheetAction[])` | `void` | Replace the action list. The sheet stays as open or closed as it was. |
+| `destroy()` | `void` |  |
+
 Related types: `ActionSheetTone`
 
 ### Avatar
@@ -136,6 +144,15 @@ A standalone month grid.
 | `onSelect` | `(value: string) => void` | optional | Fires with `YYYY-MM-DD` when the user picks a different day. |
 | `onMonthChange` | `(month: string) => void` | optional | Fires with `YYYY-MM` when the visible month moves. |
 
+| Member | Returns | Description |
+| --- | --- | --- |
+| `value` | `string` | The selected day as `YYYY-MM-DD`, or "" when nothing is selected. |
+| `month` | `string` | The visible month as `YYYY-MM`. |
+| `setValue(value: string)` | `void` | Set the selection. Silent, like every other setter. The grid follows a selection that lands in another month — a calendar left showing an unselected March while `value` reads April would look broken. |
+| `setMonth(month: string)` | `void` | Show a month by `YYYY-MM`. Silent; the user's arrows are what report. |
+| `setBounds(min: string, max: string)` | `void` | Replace the bounds; both are inclusive `YYYY-MM-DD`, and either may be "" for "no limit". The selection is kept even when it now falls outside the bounds: clearing a value the caller set would be a data change hidden inside a paint. |
+| `focus()` | `void` | Move keyboard focus onto the grid's tab stop. |
+
 ### Card
 
 A titled container with an optional body and footer.
@@ -151,6 +168,16 @@ A titled container with an optional body and footer.
 | `footer` | `Child[]` | optional | — |
 | `variant` | `CardVariant` | optional | Default `plain`: structure only, no box. |
 | `padding` | `CardPadding` | optional | Default `default`. |
+
+| Member | Returns | Description |
+| --- | --- | --- |
+| `body` | `HTMLElement` | The body, so a caller can append into it without rebuilding the card. |
+| `setTitle(title: string)` | `void` | Set or clear the title. A blank string removes it, and the header with it. |
+| `setSubtitle(subtitle: string)` | `void` | Set or clear the subtitle. |
+| `setTrailing(trailing: Child)` | `void` | Replace the header's trailing slot. |
+| `setBody(children: Child[])` | `void` | Replace the body's children. Silent, and independent of `get body()`. |
+| `setFooter(children: Child[])` | `void` | Replace the footer's children; an empty list removes the footer. |
+| `setVariant(variant: CardVariant)` | `void` | Switch between the unboxed and the grouped treatment. Silent. |
 
 Related types: `CardVariant`, `CardPadding`
 
@@ -234,6 +261,16 @@ A macOS command palette: type to filter, arrows to move, Return to run.
 | `hotkey` | `string \| null` | optional | Single key that opens the palette with Cmd (macOS) or Ctrl. Default `"k"`. `null` turns the shortcut off, for a host that binds its own. |
 | `ariaLabel` | `string` | optional | Accessible name for the dialog and the listbox. Default `命令面板`. |
 | `onSelect` | `(value: string) => void` | optional | Fires with the chosen `value`, after the palette has closed. |
+
+| Member | Returns | Description |
+| --- | --- | --- |
+| `isOpen` | `boolean` | Whether the palette is on screen. |
+| `open()` | `void` | Show the palette, focused and with an empty query. |
+| `close()` | `void` | Dismiss the palette and hand focus back. |
+| `toggle()` | `void` | Open when closed, close when open. |
+| `setItems(items: CommandItem[])` | `void` | Replace the command list. Keeps the current query and re-ranks. |
+| `setHotkey(key: string \| null)` | `void` | Change the shortcut key, or `null` to disable it. Silent. |
+| `destroy()` | `void` |  |
 
 ### DatePicker
 
@@ -341,6 +378,17 @@ An inline notice: a tinted strip that reports a state in the flow of the page.
 | `dismissible` | `boolean` | optional | Show a close button. Default `false`: a notice reports a condition the page still believes is true, so hiding it has to be a decision the caller makes. |
 | `onDismiss` | `() => void` | optional | Fires when the user dismisses the notice. |
 
+| Member | Returns | Description |
+| --- | --- | --- |
+| `tone` | `NoticeTone` | The current tone. |
+| `isDismissed` | `boolean` | True once the user (or the caller) dismissed the notice. |
+| `setTone(tone: NoticeTone)` | `void` | Change the tone: tint, edge, glyph and — for `danger` — the live-region role. Silent. |
+| `setIcon(path: string)` | `void` | Replace the leading glyph. Passing a path makes the glyph tone-independent. |
+| `setTitle(title: string)` | `void` | Replace the bold line; an empty string removes it. Silent. |
+| `setMessage(message: string)` | `void` | Replace the sentence. Silent. |
+| `setDismissible(dismissible: boolean)` | `void` | Show or hide the close button. Silent. |
+| `dismiss()` | `void` | Hide the notice and report it. The node stays where it is: a caller that removes it in the handler would leave the layout to jump in the same frame, and an undismissed notice has to keep its place. The condition is the caller's to clear. |
+
 Related types: `NoticeTone`
 
 ### Kbd
@@ -397,6 +445,8 @@ A macOS list box: rows, optional section headings, one or many selected.
 | `showSections` | `boolean` | optional | Draw a heading above each run of rows that shares a `section`. Default true; when false `section` is ignored and the rows render flat. |
 | `ariaLabel` | `string` | optional | Accessible name for the listbox, since a list has no visible label. |
 | `onSelect` | `(value: string \| string[]) => void` | optional | Fires after a user-driven change; every setter stays silent. |
+| `reorderable` | `boolean` | optional | Let the reader drag a row to a new position. A row dropped into another section takes that section's name: the headings are drawn from the data, so a row that kept its old section would jump back to where it came from on the next render. |
+| `onReorder` | `(values: string[]) => void` | optional | Fires with the full new order after a drop or an Alt+Arrow move. |
 
 | Member | Returns | Description |
 | --- | --- | --- |
@@ -424,6 +474,12 @@ A numeric field on a native `<input type="number">`.
 | `step` | `number` | optional | Increment used by the stepper buttons and the arrow keys. Default 1. |
 | `value` | `number` | optional | Initial value; defaults to `min`, then 0. |
 | `onChange` | `(value: number) => void` | optional | Fires only for a legal value — a finite number inside `min`/`max`. A blank or out-of-range entry stays in the field but is not committed. |
+
+| Member | Returns | Description |
+| --- | --- | --- |
+| `value` | `number` | The last committed value. A blank or illegal entry is not reported. |
+| `setValue(value: number)` | `void` | Replace the value; out-of-range input is clamped rather than committed as-is. |
+| `setDisabled(disabled: boolean)` | `void` | Enable or disable the field and its stepper buttons. |
 
 ### Pagination
 
@@ -532,6 +588,15 @@ A two-thumb range slider.
 | `format` | `(value: number) => string` | optional | Render one bound for the read-out and for `aria-valuetext`. |
 | `onChange` | `(value: [number, number]) => void` | optional | Fires on commit — pointer release, or each keyboard step. |
 
+| Member | Returns | Description |
+| --- | --- | --- |
+| `value` | `[number, number]` | The current pair, lower bound first, whatever the two inputs hold. |
+| `min` | `number` | Smallest selectable value. |
+| `max` | `number` | Largest selectable value. |
+| `setValue(value: [number, number])` | `void` | Replace the pair; it is ordered and clamped before it lands. Silent. |
+| `setBounds(min: number, max: number)` | `void` | Replace the bounds; the current pair is folded into the new range. Silent. |
+| `setDisabled(disabled: boolean)` | `void` | Enable or disable both thumbs, using the native attribute. |
+
 ### Rating
 
 A star rating, the way macOS shows one in a review row or a detail pane.
@@ -548,6 +613,14 @@ A star rating, the way macOS shows one in a review row or a detail pane.
 | `size` | `RatingSize` | optional | Star size presets. |
 | `label` | `string` | optional | Accessible name. Default "评分". |
 | `onChange` | `(value: number) => void` | optional | Fires only for a change the user made; every setter stays silent. |
+
+| Member | Returns | Description |
+| --- | --- | --- |
+| `value` | `number` | The committed rating. A pointer resting on the stars does not change it. |
+| `setValue(value: number)` | `void` | Set the rating programmatically. Silent, and folded into `0..max`. |
+| `setMax(max: number)` | `void` | Change the number of stars. Silent; the value is clamped to the new top. |
+| `setReadOnly(readOnly: boolean)` | `void` | Switch between display-only and interactive. Silent. |
+| `setDisabled(disabled: boolean)` | `void` | Block or restore every gesture. Silent. |
 
 Related types: `RatingSize`
 
@@ -604,7 +677,14 @@ A macOS pop-up button.
 
 `select.ts`
 
-Takes no options.
+| Option | Type | | Description |
+| --- | --- | --- | --- |
+| `options` | `SelectOption[]` | **required** | — |
+| `value` | `string` | optional | Initially selected value. Defaults to the first enabled option. |
+| `disabled` | `boolean` | optional | — |
+| `block` | `boolean` | optional | Stretch to the container's width. |
+| `ariaLabel` | `string` | optional | Accessible name, since the control has no visible label. |
+| `onChange` | `(value: string) => void` | optional | — |
 
 | Member | Returns | Description |
 | --- | --- | --- |
@@ -619,7 +699,23 @@ A loading placeholder: the grey bars that hold a region's shape while its real c
 
 `skeleton.ts`
 
-Takes no options.
+| Option | Type | | Description |
+| --- | --- | --- | --- |
+| `variant` | `SkeletonVariant` | optional | Shape of the placeholder. Default "text". |
+| `width` | `string \| number` | optional | Number, treated as px, or any CSS length. Default: fills the parent. |
+| `height` | `string \| number` | optional | Number, treated as px, or any CSS length. Default: the variant's own. |
+| `lines` | `number` | optional | Line count for the "text" variant. Default 1. |
+| `animated` | `boolean` | optional | Sweep the highlight. Default true; the animation also honours reduced motion. |
+
+| Member | Returns | Description |
+| --- | --- | --- |
+| `variant` | `SkeletonVariant` |  |
+| `lines` | `number` |  |
+| `animated` | `boolean` |  |
+| `setVariant(variant: SkeletonVariant)` | `void` | Switch shape. Silent. A shape change also changes the bar count — "text" is a stack, the other two are one block — so the bars are rebuilt rather than restyled. |
+| `setLines(count: number)` | `void` | Set the number of text lines. No effect on the single-shape variants. |
+| `setSize(width?: string \| number, height?: string \| number)` | `void` | Set the footprint. Silent. Each dimension is independent: a number is px, a string passes through, and `undefined` clears the inline value so the stylesheet's default applies again. Only a dimension the caller actually passed is written — an unconditional `width`/`height` would make the variant classes dead, and a circle would stop being square. |
+| `setAnimated(animated: boolean)` | `void` | Start or stop the shimmer. Reduced motion still wins over `true`. |
 
 Related types: `SkeletonVariant`
 
@@ -680,6 +776,16 @@ A macOS split button: a primary action fused to a menu of alternatives.
 | `onAction` | `() => void` | optional | Fires when the action half is clicked (or activated by Enter/Space). |
 | `onSelect` | `(value: string) => void` | optional | Fires with the value of the chosen menu row. |
 
+| Member | Returns | Description |
+| --- | --- | --- |
+| `isOpen` | `boolean` | Whether the menu is currently open. |
+| `label` | `string` | The label shown on the action half. |
+| `setLabel(label: string)` | `void` | Replace the action half's label. |
+| `setItems(items: MenuItem[])` | `void` | Replace the menu rows. |
+| `setDisabled(disabled: boolean)` | `void` | Enable or disable the control. Disabling closes an open menu. |
+| `focus()` | `void` | Move keyboard focus to the action half. |
+| `destroy()` | `void` |  |
+
 Related types: `SplitButtonVariant`, `SplitButtonSize`
 
 ### SplitView
@@ -697,6 +803,10 @@ A draggable two-pane split view.
 | `minPrimary` | `number` | optional | Smallest allowed primary size in pixels. Default 0. |
 | `minSecondary` | `number` | optional | Smallest allowed secondary size in pixels. Default 0. |
 | `onResize` | `(size: number) => void` | optional | Fires while dragging and on keyboard resize, with the new size in pixels. |
+
+| Member | Returns | Description |
+| --- | --- | --- |
+| `setPrimarySize(size: number \| string)` | `void` | Set the primary pane's size: a pixel number or any CSS length ("40%"). A number is clamped like a drag would be, so the panes never violate the declared minimums. Silent — the caller already knows, and a programmatic resize is not a user gesture. |
 
 Related types: `SplitViewOrientation`
 
@@ -867,6 +977,15 @@ A single-line text field on a native `<input type="text">`.
 | `onInput` | `(value: string) => void` | optional | Fires on every keystroke with the current value. |
 | `onChange` | `(value: string) => void` | optional | Fires when the value is committed: blur, Enter, or the clear button. Typing alone only raises `onInput`. |
 
+| Member | Returns | Description |
+| --- | --- | --- |
+| `isRevealed` | `boolean` | Whether a password field is currently showing its value in plain text. |
+| `value` | `string` | The current value. |
+| `setRevealed(revealed: boolean)` | `void` | Show or mask a password field. No-op on a text field: there is nothing to reveal, and silently changing a normal input's type would be a surprise. |
+| `setValue(value: string)` | `void` | Replace the value; does not raise the callbacks, as a DOM write would not. |
+| `setDisabled(disabled: boolean)` | `void` | Enable or disable the input, using the native attribute. |
+| `focus()` | `void` | Move keyboard focus into the input. |
+
 ### TimePicker
 
 A macOS time picker wrapping a native `<input type="time">`.
@@ -896,7 +1015,15 @@ An outline view: a tree of rows, collapsible, single selection.
 
 `treeview.ts`
 
-Takes no options.
+| Option | Type | | Description |
+| --- | --- | --- | --- |
+| `nodes` | `TreeNode[]` | **required** | — |
+| `value` | `string` | optional | Initially selected value. |
+| `expanded` | `string[]` | optional | Values of the parents to open. Overrides every node's own `expanded` flag, so a caller can open one subtree without rewriting the data it passed. |
+| `indent` | `number` | optional | Pixels of indentation per level. Default 16. |
+| `ariaLabel` | `string` | optional | — |
+| `onSelect` | `(value: string) => void` | optional | Fires when the user selects a node; setters stay silent. |
+| `onToggle` | `(value: string, expanded: boolean) => void` | optional | Fires only from a user gesture, never from `setExpanded`. |
 
 | Member | Returns | Description |
 | --- | --- | --- |
@@ -960,6 +1087,13 @@ A macOS tab view.
 | `onSelect` | `(id: string) => void` | optional | Fires when the user changes the tab (not on programmatic `select`). |
 | `ariaLabel` | `string` | optional | Accessible name for the tab list. |
 
+| Member | Returns | Description |
+| --- | --- | --- |
+| `selected` | `string` | The selected tab id, or an empty string when no tab is selectable. |
+| `addPanel(id: string, node: Node)` | `void` | Attach content to a tab. Replacing the panel's children keeps repeated calls idempotent instead of stacking content. An unknown id is ignored: the panel set is fixed when the view is constructed, so a typo must not create an orphan panel that no tab can ever reveal. |
+| `setSelected(id: string)` | `void` | Select a tab programmatically. Does not fire `onSelect`. |
+| `destroy()` | `void` |  |
+
 ### TitleBar
 
 The window's title bar.
@@ -976,6 +1110,13 @@ The window's title bar.
 | `trailing` | `Child[]` | optional | Nodes placed at the trailing edge (search field, toolbar buttons). |
 | `leading` | `Child[]` | optional | Nodes placed between the lights and the title (rarely needed). |
 | `onDoubleClick` | `() => void` | optional | Double-clicking the empty part of the title bar zooms the window. Wails only wires this up on macOS: its runtime checks `IsMac()` before sending `wails:drag:doubleclick` (see internal/runtime/.../drag.ts), so on Windows and Linux the gesture reaches the page as an ordinary dblclick and does nothing. The kit handles it itself so the behaviour is the same everywhere. |
+
+| Member | Returns | Description |
+| --- | --- | --- |
+| `trafficLights` | `TrafficLights \| null` | The traffic lights, or null when they were disabled. |
+| `setTitle(title: string)` | `void` | Update the centred title. |
+| `addTrailing(node: HTMLElement)` | `void` | Add a node to the trailing toolbar cluster. |
+| `destroy()` | `void` |  |
 
 ### Toolbar
 
@@ -1147,6 +1288,16 @@ A macOS sheet: a modal attached to the window's top edge that slides down.
 | `onConfirm` | `() => void` | optional | Fires when the user confirms. |
 | `onCancel` | `() => void` | optional | Fires when the user cancels, presses Escape or clicks the scrim. |
 
+| Member | Returns | Description |
+| --- | --- | --- |
+| `isOpen` | `boolean` | Whether the sheet is on screen. |
+| `content` | `HTMLElement` | The body element, for callers that fill it after construction. |
+| `open()` | `void` | Slide the sheet in. Idempotent. |
+| `close()` | `void` | Slide the sheet out and restore focus. Idempotent. |
+| `confirm()` | `void` | Confirm and close. |
+| `cancel()` | `void` | Cancel and close. |
+| `destroy()` | `void` |  |
+
 ### Toast
 
 A macOS-style toast.
@@ -1160,6 +1311,14 @@ A macOS-style toast.
 | `duration` | `number` | optional | Auto-dismiss delay in ms; 0 keeps it until dismissed. |
 | `variant` | `ToastVariant` | optional | — |
 | `action` | `ToastAction` | optional | A button rendered with the message, e.g. undo or open. |
+
+| Member | Returns | Description |
+| --- | --- | --- |
+| `show(message?: Child, detail?: Child)` | `void` | Show the toast, replacing its content. Mounts itself into the shared stack. |
+| `setDuration(duration: number)` | `void` | Update the auto-dismiss delay for subsequent shows. |
+| `setAction(action: ToastAction \| null)` | `void` | Set or replace the action button. Pass `null` to remove it. |
+| `hide()` | `void` | Dismiss immediately. |
+| `destroy()` | `void` |  |
 
 Related types: `ToastVariant`
 

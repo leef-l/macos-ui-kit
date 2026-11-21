@@ -33,19 +33,32 @@ const prose = (block) => {
 };
 
 /**
- * Read a balanced `{ ... }` body starting at `open`, honouring strings and
- * template literals so a `}` inside a default value cannot close it early.
+ * Read a balanced `{ ... }` body starting at `open`.
+ *
+ * Comments are skipped as well as strings: a docstring is prose, and prose
+ * contains apostrophes. Without this, "a row takes that section's name" opened a
+ * string literal that never closed, the closing brace was ignored, and the
+ * component's whole option table came out empty.
  */
 const readBody = (text, open) => {
     let depth = 0;
     let quote = null;
+    let block = false;
+    let line = false;
+
     for (let i = open; i < text.length; i++) {
         const ch = text[i];
+        const next = text[i + 1];
+
+        if (line) { if (ch === "\n") line = false; continue; }
+        if (block) { if (ch === "*" && next === "/") { block = false; i++; } continue; }
         if (quote) {
             if (ch === "\\") i++;
             else if (ch === quote) quote = null;
             continue;
         }
+        if (ch === "/" && next === "/") { line = true; i++; continue; }
+        if (ch === "/" && next === "*") { block = true; i++; continue; }
         if (ch === '"' || ch === "'" || ch === "`") { quote = ch; continue; }
         if (ch === "{") depth++;
         else if (ch === "}") {

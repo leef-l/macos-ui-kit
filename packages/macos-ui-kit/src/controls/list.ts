@@ -36,6 +36,16 @@ export interface ListOptions {
     ariaLabel?: string;
     /** Fires after a user-driven change; every setter stays silent. */
     onSelect?: (value: string | string[]) => void;
+    /**
+     * Let the reader drag a row to a new position.
+     *
+     * A row dropped into another section takes that section's name: the headings
+     * are drawn from the data, so a row that kept its old section would jump back
+     * to where it came from on the next render.
+     */
+    reorderable?: boolean;
+    /** Fires with the full new order after a drop or an Alt+Arrow move. */
+    onReorder?: (values: string[]) => void;
 }
 
 /**
@@ -77,15 +87,28 @@ export class List extends Component<HTMLDivElement> {
     /** The one row that owns the list's single tab stop. */
     private anchor: HTMLDivElement | null = null;
 
+    private readonly reorderable: boolean;
+    private readonly onReorder?: (values: string[]) => void;
+    /** A pointer that has pressed on a row but not yet moved far enough to drag. */
+    private pending: {row: HTMLDivElement; x: number; y: number; pointerId: number} | null = null;
+    /** The row being dragged, once the gesture passed the threshold. */
+    private dragging: HTMLDivElement | null = null;
+    /** Where the dragged row would land, as an index into `entries`. */
+    private dropIndex = -1;
+
     constructor(options: ListOptions) {
         super();
 
-        this.entries = options.items;
+        // Copied: reordering splices the model, and splicing the caller's array
+        // would change data they still hold a reference to.
+        this.entries = options.items.slice();
         this.mode = options.selection ?? "single";
         this.showSections = options.showSections ?? true;
         this.onSelect = options.onSelect;
+        this.reorderable = options.reorderable ?? false;
+        this.onReorder = options.onReorder;
 
-        this.root = el("div", {class: "mac-list"});
+        this.root = el("div", {class: this.reorderable ? "mac-list mac-list--reorderable" : "mac-list"});
 
         this.box = el("div", {
             class: "mac-list__box",
@@ -108,6 +131,15 @@ export class List extends Component<HTMLDivElement> {
             this.anchor = row;
             this.syncAnchor();
         });
+
+        if (this.reorderable) {
+            // All three on the box, which outlives the rows: a reorder replaces
+            // every row element, and per-row listeners would die with them.
+            this.listen(this.box, "pointerdown", (event) => this.onPointerDown(event));
+            this.listen(this.box, "pointermove", (event) => this.onPointerMove(event));
+            this.listen(this.box, "pointerup", (event) => this.onPointerUp(event));
+            this.listen(this.box, "pointercancel", (event) => this.onPointerUp(event));
+        }
 
         this.render();
         // Through `applySelection` rather than straight into the set: the
@@ -337,6 +369,17 @@ export class List extends Component<HTMLDivElement> {
     }
 
     private onKeyDown(event: KeyboardEvent): void {
+        // Alt+Arrow reorders without a pointer. Checked before the plain arrows so
+        // a modifier changes what the key means rather than doing both.
+        if (this.reorderable && event.altKey && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
+            const row = this.focusedRow() ?? this.anchor;
+            if (row) {
+                event.preventDefault();
+                this.moveBy(row, event.key === "ArrowUp" ? -1 : 1);
+            }
+            return;
+        }
+
         switch (event.key) {
             case "ArrowDown":
                 event.preventDefault();
@@ -400,6 +443,147 @@ export class List extends Component<HTMLDivElement> {
         this.anchor = row;
         this.syncAnchor();
         row.focus();
+    }
+
+    // --- reordering ----------------------------------------------------------
+
+    /** Four pixels: below this a press is still a click on the row. */
+    private static readonly DRAG_THRESHOLD = 4;
+
+    private onPointerDown(event: PointerEvent): void {
+        if (event.button !== 0) return;
+        const row = this.rowFrom(event.target);
+        if (!row || !this.isEnabled(row)) return;
+        this.pending = {row, x: event.clientX, y: event.clientY, pointerId: event.pointerId};
+    }
+
+    private onPointerMove(event: PointerEvent): void {
+        const pending = this.pending;
+        if (!pending) return;
+
+        if (!this.dragging) {
+            // Vertical only: a list reorders along one axis, and treating a purely
+            // horizontal wobble as a drag would swallow the click that selects.
+            if (Math.abs(event.clientY - pending.y) < List.DRAG_THRESHOLD) return;
+            this.dragging = pending.row;
+            this.dragging.classList.add("is-dragging");
+            this.toggleClass("is-reordering", true);
+            // Captured so the gesture survives the pointer leaving the row, which
+            // it always does — the dragged row is under the cursor for about a
+            // frame before the indicator moves ahead of it.
+            pending.row.setPointerCapture(event.pointerId);
+        }
+
+        this.dropIndex = this.dropTarget(event.clientY);
+        this.syncDropIndicator();
+    }
+
+    private onPointerUp(event: PointerEvent): void {
+        const pending = this.pending;
+        this.pending = null;
+        if (!pending) return;
+        try { pending.row.releasePointerCapture(event.pointerId); } catch { /* not captured */ }
+
+        const dragged = this.dragging;
+        const target = this.dropIndex;
+        this.dragging = null;
+        this.dropIndex = -1;
+        this.toggleClass("is-reordering", false);
+        for (const row of this.rows) {
+            row.classList.remove("is-dragging", "is-drop-before", "is-drop-after");
+        }
+        if (!dragged || target < 0) return;
+
+        const from = this.entries.findIndex((item) => item.value === dragged.dataset.value);
+        if (from === -1) return;
+        // The indicator index counts positions *between* rows, and removing the row
+        // before inserting it shifts every target after it down by one.
+        const to = target > from ? target - 1 : target;
+        if (to === from) return;
+
+        this.spliceEntry(from, to);
+        this.reportOrder();
+    }
+
+    /** Index of the gap the pointer is closest to, counted in `entries`. */
+    private dropTarget(clientY: number): number {
+        for (let index = 0; index < this.rows.length; index++) {
+            const rect = this.rows[index].getBoundingClientRect();
+            if (clientY < rect.top + rect.height / 2) return index;
+        }
+        return this.rows.length;
+    }
+
+    /** Draw one hairline: above the row the pointer is over, or below the last. */
+    private syncDropIndicator(): void {
+        for (const row of this.rows) row.classList.remove("is-drop-before", "is-drop-after");
+        if (this.dropIndex < 0) return;
+        const target = this.rows[this.dropIndex];
+        if (target) target.classList.add("is-drop-before");
+        else this.rows[this.rows.length - 1]?.classList.add("is-drop-after");
+    }
+
+    /** Move the focused row one place, as the keyboard does. */
+    private moveBy(row: HTMLDivElement, direction: 1 | -1): void {
+        const from = this.entries.findIndex((item) => item.value === row.dataset.value);
+        if (from === -1) return;
+        // The row being moved has to be usable; the one it passes does not. A
+        // disabled row is still a row, and a reorder that refused to cross one
+        // would strand everything below it.
+        if (this.entries[from]?.disabled) return;
+        const to = from + direction;
+        if (to < 0 || to >= this.entries.length) return;
+        this.spliceEntry(from, to);
+        this.reportOrder();
+    }
+
+    /**
+     * Splice the model and repaint.
+     *
+     * A moved row adopts the section it lands among, and the one that decides is
+     * the row *above* the insertion point: a heading is drawn at the first row of
+     * a run, so a row placed under an existing row joins that row's group. Asking
+     * the row below instead made a move up and back down change the group twice —
+     * a drafts row dragged into "其他" and returned never got "邮箱" back, because
+     * the row beneath it was still the one it had just left.
+     */
+    private spliceEntry(from: number, to: number): void {
+        const [moved] = this.entries.splice(from, 1);
+
+        if (this.showSections) {
+            const above = this.entries[to - 1];
+            const below = this.entries[to];
+            const section = (above ?? below)?.section;
+            if (section !== undefined) {
+                this.entries.splice(to, 0, {...moved, section});
+            } else {
+                this.entries.splice(to, 0, moved);
+            }
+        } else {
+            this.entries.splice(to, 0, moved);
+        }
+
+        const value = moved.value;
+        this.render();
+        // Focus follows the row, so a second Alt+Arrow continues from where the
+        // first one ended instead of from wherever the old element was.
+        const next = this.rows.find((row) => row.dataset.value === value);
+        if (next) {
+            this.anchor = next;
+            this.syncAnchor();
+            next.focus();
+        }
+    }
+
+    /**
+     * Report the new order.
+     *
+     * Nothing else is touched: a reorder moves rows, it does not choose one. The
+     * selection therefore survives a drag untouched — including when the dragged
+     * row was not the selected one, which is how a source list behaves.
+     */
+    private reportOrder(): void {
+        this.onReorder?.(this.entries.map((item) => item.value));
     }
 
     /** Select the focused row: toggles in `multiple`, replaces otherwise. */
