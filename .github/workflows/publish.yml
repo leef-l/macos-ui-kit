@@ -86,13 +86,22 @@ jobs:
         # with the identity GitHub just minted for this run.
         run: npm publish --access public --provenance
 
+      # The registry answers the write before its read path has caught up: a single
+      # `npm view` ten seconds later returned the previous version and failed the
+      # run after a successful publish. Poll instead, and read the raw API so a
+      # cached CLI never answers for the registry.
       - name: Verify from the registry
         if: ${{ steps.exists.outputs.published == 'false' && inputs.dry_run == false }}
         run: |
-          sleep 10
-          published=$(npm view "${{ steps.meta.outputs.name }}" version)
-          echo "registry reports $published"
-          test "$published" = "${{ steps.meta.outputs.version }}"
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            sleep 6
+            published=$(curl -sf "https://registry.npmjs.org/$(echo '${{ steps.meta.outputs.name }}' | sed 's|/|%2F|')" \
+              | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s)['dist-tags'].latest))")
+            echo "attempt $attempt: registry reports $published"
+            if [ "$published" = "${{ steps.meta.outputs.version }}" ]; then exit 0; fi
+          done
+          echo "the registry still does not carry ${{ steps.meta.outputs.version }}"
+          exit 1
 
       - name: Note when nothing was published
         if: ${{ steps.exists.outputs.published == 'true' || inputs.dry_run }}
