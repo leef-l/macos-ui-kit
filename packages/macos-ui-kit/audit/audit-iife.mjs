@@ -33,7 +33,7 @@ const server = createServer(async (req, res) => {
         res.writeHead(200, {"content-type": "text/html; charset=utf-8"});
         return void res.end(PAGE);
     }
-    const file = url === "/style.css" ? join(KIT, "dist", "style.css") : join(KIT, "dist", "macos-ui-kit.iife.js");
+    const file = url === "/style.css" ? join(KIT, "dist", "macos-ui-kit.css") : join(KIT, "dist", "macos-ui-kit.iife.js");
     try {
         const body = await readFile(file);
         res.writeHead(200, {"content-type": url.endsWith(".css") ? "text/css; charset=utf-8" : "text/javascript; charset=utf-8"});
