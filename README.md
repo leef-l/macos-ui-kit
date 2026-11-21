@@ -65,7 +65,7 @@ HTML, and use the global `MacUI`:
 | Channel | Command | Notes |
 |---|---|---|
 | **npm** | `npm install @leef-l/macos-ui-kit` | Recommended. No config, no token. |
-| **Release tarball** | `npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.5.0/leef-l-macos-ui-kit-0.5.0.tgz` | Pins an exact build; no registry involved. |
+| **Release tarball** | `npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.5.1/leef-l-macos-ui-kit-0.5.1.tgz` | Pins an exact build; no registry involved. |
 | **GitHub Packages** | `npm install @leef-l/macos-ui-kit` with `@leef-l:registry=https://npm.pkg.github.com` | Requires a token **even though the package is public**. |
 
 See [`packages/macos-ui-kit/README.md`](packages/macos-ui-kit/README.md) for the
@@ -123,7 +123,8 @@ this work.
 | **Mobile (1)** | MobileShell |
 
 Try them at <https://leef-l.github.io/macos-ui-kit/> — theme and density switches
-are at the top of that page.
+are at the top of that page. Every option, getter and method is listed in
+[API.md](packages/macos-ui-kit/API.md), generated from the source.
 
 Two options worth knowing about, because they are the ones people otherwise
 rebuild by hand:
@@ -404,7 +405,7 @@ npm publish --registry=https://npm.pkg.github.com
 
 # 3. GitHub release, so the package is installable without any registry.
 npm pack
-gh release create v0.5.0 leef-l-macos-ui-kit-0.5.0.tgz --title "macOS UI Kit v0.5.0" --notes "..."
+gh release create v0.5.1 leef-l-macos-ui-kit-0.5.1.tgz --title "macOS UI Kit v0.5.1" --notes "..."
 ```
 
 Two traps worth remembering, both hit during the first release:

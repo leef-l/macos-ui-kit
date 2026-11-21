@@ -132,10 +132,13 @@
 
 /* --- Coarse pointers ------------------------------------------------------ */
 
-/* 44px is Apple's minimum tap target: a platform constant, not a design step. */
+/* 44px is Apple's minimum tap target: a platform constant, not a design step.
+   The height is stated net of the hairline border because this wrapper is a
+   content-box: the target is the box the finger lands on, so 44 is what the
+   border has to be subtracted from, not added to. */
 @media (pointer: coarse) {
     .mac-datepicker__control {
-        height: 44px;
+        height: calc(44px - 2 * var(--mac-hairline));
     }
 
     /* iOS zooms the page when a focused field is under 16px; 1rem is the

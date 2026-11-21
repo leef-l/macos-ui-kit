@@ -137,8 +137,10 @@
 /* --- Coarse pointers ------------------------------------------------------ */
 
 @media (pointer: coarse) {
+    /* Net of the hairline border, so the box the finger lands on is exactly 44 —
+       this wrapper is a content-box. */
     .mac-timepicker__control {
-        height: 44px;
+        height: calc(44px - 2 * var(--mac-hairline));
     }
 
     /* iOS zooms the page when a focused field is under 16px; 1rem is the

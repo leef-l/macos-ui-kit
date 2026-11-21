@@ -97,7 +97,7 @@ document.body.appendChild(button.element);
 | 渠道 | 命令 | 说明 |
 |---|---|---|
 | **npm** | `npm install @leef-l/macos-ui-kit` | 推荐。零配置、不需要 token。 |
-| **Release tarball** | `npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.5.0/leef-l-macos-ui-kit-0.5.0.tgz` | 锁定精确构建；不经过任何 registry。 |
+| **Release tarball** | `npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.5.1/leef-l-macos-ui-kit-0.5.1.tgz` | 锁定精确构建；不经过任何 registry。 |
 | **GitHub Packages** | `npm install @leef-l/macos-ui-kit`，配 `@leef-l:registry=https://npm.pkg.github.com` | 即使是公开包也**需要 token**。 |
 
 包级别的文档见 [`packages/macos-ui-kit/README.zh-CN.md`](packages/macos-ui-kit/README.zh-CN.md)。
@@ -114,6 +114,7 @@ document.body.appendChild(button.element);
 | **移动端（1）** | MobileShell |
 
 去 <https://leef-l.github.io/macos-ui-kit/> 直接试，页面顶部可以切换主题和密度。
+每个组件的选项、getter 和方法都列在 [API.md](packages/macos-ui-kit/API.md) 里，那份文档由源码生成。
 
 有两个选项值得单独提一句，因为不提供的话大家都会自己手搓一遍：
 
@@ -375,7 +376,7 @@ npm publish --registry=https://npm.pkg.github.com
 
 # 3. GitHub Release，让包不经过任何 registry 也能安装。
 npm pack
-gh release create v0.5.0 leef-l-macos-ui-kit-0.5.0.tgz --title "macOS UI Kit v0.5.0" --notes "..."
+gh release create v0.5.1 leef-l-macos-ui-kit-0.5.1.tgz --title "macOS UI Kit v0.5.1" --notes "..."
 ```
 
 首次发布踩到的两个坑：

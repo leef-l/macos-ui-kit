@@ -120,3 +120,29 @@
 .mac-searchfield.is-disabled .mac-searchfield__control {
     opacity: 0.45;
 }
+
+/* --- Coarse pointers ------------------------------------------------------ */
+
+/* 44px is Apple's minimum tap target: a platform constant, not a design step.
+   Net of the hairline border, because the target is the box the finger lands on
+   and this wrapper is a content-box. The `--s` variant is overridden too: a
+   cramped toolbar field is a desktop idea, and a thumb cannot hit 22px. */
+@media (pointer: coarse) {
+    .mac-searchfield__control,
+    .mac-searchfield--s .mac-searchfield__control {
+        height: calc(44px - 2 * var(--mac-hairline));
+    }
+
+    /* iOS zooms the page when a focused field is under 16px; 1rem is the
+       browser's own threshold, not a design value. */
+    .mac-searchfield__input {
+        font-size: max(var(--mac-text-body), 1rem);
+    }
+
+    /* The clear button is the one control inside the field, so it gets the same
+       treatment as the field itself rather than the icon-size box. */
+    .mac-searchfield__clear {
+        width: var(--mac-icon-lg);
+        height: var(--mac-icon-lg);
+    }
+}

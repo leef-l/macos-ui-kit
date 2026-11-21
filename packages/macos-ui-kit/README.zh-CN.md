@@ -55,7 +55,7 @@ npm install @leef-l/macos-ui-kit
 ### 直接从 GitHub Release（不经过任何 registry）
 
 ```sh
-npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.5.0/leef-l-macos-ui-kit-0.5.0.tgz
+npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.5.1/leef-l-macos-ui-kit-0.5.1.tgz
 ```
 
 同样的文件、同样的类型、同样的导出。适合锁定精确构建，或者无法访问 registry 时。
@@ -109,6 +109,8 @@ Inter 字体。
 ---
 
 ## 使用
+
+全部 59 个组件的选项、getter 和方法列在 [API.md](./API.md)，由 `npm run docs` 从源码生成。
 
 ```ts
 import {Button, TextField, showToast} from "@leef-l/macos-ui-kit";
