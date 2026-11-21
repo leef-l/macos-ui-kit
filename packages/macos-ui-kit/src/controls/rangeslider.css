@@ -1,0 +1,172 @@
+/* macOS range slider: two thumb-only inputs stacked on one shared track.
+   The thumb rules are the ones from slider.css, so a Slider and a RangeSlider
+   beside each other in a form read as the same control. */
+
+.mac-rangeslider {
+    /* A slider is a ruler: it should take the width it is given. `width: 100%`
+       is explicit because the container is very often a flex row (a form line
+       with a label, a filter bar), and a block-level child of a flex container
+       is a flex item that shrink-wraps its content — which for a track with no
+       intrinsic width collapses to a few pixels. `min-width: 0` lets it shrink
+       below that content size when the row is tight. */
+    display: block;
+    width: 100%;
+    min-width: 0;
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    /* Selected span, written by RangeSlider.sync() as two percentages. */
+    --mac-rangeslider-start: 0%;
+    --mac-rangeslider-end: 100%;
+}
+
+.mac-rangeslider__control {
+    position: relative;
+    display: block;
+    /* 20px at scale 1 — the same hit band as slider.css, so the two controls
+       line up when they sit in the same row. */
+    height: calc(var(--mac-space-4) + var(--mac-space-1));
+}
+
+/* The groove spans the thumb TRAVEL band, not the whole control. A range
+   thumb is centred within `width - thumb`, so at 0% its centre sits half a
+   thumb inside the box and at 100% half a thumb short of the far edge. Inset by
+   exactly that much, every percentage in this sheet resolves to a thumb centre:
+   the fill ends under the thumbs instead of poking out past them at the ends. */
+.mac-rangeslider__track {
+    position: absolute;
+    top: 50%;
+    right: calc(var(--mac-icon-sm) / 2);
+    left: calc(var(--mac-icon-sm) / 2);
+    height: var(--mac-track-thin);
+    border-radius: var(--mac-radius-s);
+    background: var(--mac-bg-active);
+    transform: translateY(-50%);
+    /* Decoration only: a hit area here would sit on top of both thumbs. */
+    pointer-events: none;
+}
+
+/* Both edges are percentages of the track, so the fill needs no measurement and
+   a collapsed pair simply draws nothing. */
+.mac-rangeslider__fill {
+    position: absolute;
+    top: 0;
+    right: calc(100% - var(--mac-rangeslider-end));
+    bottom: 0;
+    left: var(--mac-rangeslider-start);
+    border-radius: var(--mac-radius-s);
+    background: var(--mac-accent);
+}
+
+.mac-rangeslider__input {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border-radius: var(--mac-radius-s);
+    background: transparent;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: default;
+    /* Only a thumb may take the pointer. Two full-width inputs would otherwise
+       shut each other out, and the one underneath would never be draggable. */
+    pointer-events: none;
+}
+
+/* The upper thumb starts on top so a collapsed pair still has a grab handle;
+   the component raises whichever thumb the pointer is nearer. */
+.mac-rangeslider__input--lower {
+    z-index: 2;
+}
+
+.mac-rangeslider__input--upper {
+    z-index: 3;
+}
+
+/* WebKit: the groove belongs to the shared track div, so this one is invisible
+   and only provides the thumb's anchoring. */
+.mac-rangeslider__input::-webkit-slider-runnable-track {
+    height: var(--mac-track-thin);
+    border-radius: var(--mac-radius-s);
+    background: transparent;
+}
+
+.mac-rangeslider__input::-webkit-slider-thumb {
+    width: var(--mac-icon-sm);
+    height: var(--mac-icon-sm);
+    /* Centre the thumb on the groove: (track - thumb) / 2. */
+    margin-top: calc((var(--mac-track-thin) - var(--mac-icon-sm)) / 2);
+    border: none;
+    border-radius: 50%;
+    background: var(--mac-text-on-accent);
+    box-shadow: var(--mac-shadow-control);
+    appearance: none;
+    -webkit-appearance: none;
+    /* The only hit target in the control. */
+    pointer-events: auto;
+    transition: transform var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-rangeslider__input:hover::-webkit-slider-thumb {
+    transform: scale(1.08);
+}
+
+.mac-rangeslider__input:active::-webkit-slider-thumb {
+    transform: scale(0.96);
+}
+
+/* Firefox: the same split, for the same reason — the input is untouchable and
+   the thumb is not. */
+.mac-rangeslider__input::-moz-range-track {
+    height: var(--mac-track-thin);
+    border-radius: var(--mac-radius-s);
+    background: transparent;
+}
+
+.mac-rangeslider__input::-moz-range-progress {
+    background: transparent;
+}
+
+.mac-rangeslider__input::-moz-range-thumb {
+    width: var(--mac-icon-sm);
+    height: var(--mac-icon-sm);
+    border: none;
+    border-radius: 50%;
+    background: var(--mac-text-on-accent);
+    box-shadow: var(--mac-shadow-control);
+    pointer-events: auto;
+}
+
+/* The groove cannot carry a readable ring, so the ring wraps the input box —
+   the same compromise slider.css makes, keyboard-only like every other
+   control in the kit. */
+.mac-rangeslider__input:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 2px;
+}
+
+.mac-rangeslider.is-disabled .mac-rangeslider__control {
+    opacity: 0.45;
+}
+
+.mac-rangeslider.is-disabled .mac-rangeslider__value {
+    opacity: 0.6;
+}
+
+.mac-rangeslider__value {
+    margin-top: var(--mac-space-1);
+    font-size: var(--mac-text-small);
+    font-variant-numeric: tabular-nums;
+    color: var(--mac-text-secondary);
+}
+
+/* --- Coarse pointers ------------------------------------------------------ */
+
+/* 44px is Apple's minimum tap target: a platform constant, not a design step. */
+@media (pointer: coarse) {
+    .mac-rangeslider__control {
+        height: 44px;
+    }
+}

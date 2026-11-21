@@ -1,0 +1,83 @@
+/* macOS stepper: two 10px chevron segments, 15px wide, sharing one hairline and
+   the --mac-radius-s on their outer corners. Small on purpose — it sits at the
+   trailing edge of the value it walks, not beside it. */
+
+.mac-stepper {
+    display: inline-flex;
+    flex-direction: column;
+    /* box-sizing keeps the bezel inside the 15px: the metric below is the
+       control's, not its content's. Both dimensions scale with --mac-scale, so a
+       density preset moves this control with the rest. */
+    box-sizing: border-box;
+    width: calc(15px * var(--mac-scale));
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-s);
+    background: var(--mac-bg-elevated);
+    /* Clips the segments into the rounded corners; the segments themselves have
+       square corners so the two halves read as one shape. */
+    overflow: hidden;
+    user-select: none;
+    --wails-draggable: no-drag;
+}
+
+.mac-stepper__button {
+    display: grid;
+    place-items: center;
+    box-sizing: border-box;
+    width: 100%;
+    height: calc(10px * var(--mac-scale));
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--mac-text-secondary);
+    cursor: default;
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        color var(--mac-duration-fast) var(--mac-ease);
+}
+
+/* The one divider between the halves lives on the lower segment's top edge, so
+   the pair never shows a doubled rule when both are hovered. */
+.mac-stepper__button--down {
+    border-top: var(--mac-hairline) solid var(--mac-border);
+}
+
+.mac-stepper__button:hover:not(:disabled) {
+    background: var(--mac-bg-hover);
+    color: var(--mac-text);
+}
+
+.mac-stepper__button:active:not(:disabled) {
+    background: var(--mac-bg-active);
+}
+
+/* A segment at its bound: dimmed, but still a piece of the control's shape. */
+.mac-stepper__button:disabled {
+    opacity: 0.35;
+}
+
+/* `svgIcon` draws the chevron at 10px; the token keeps it scaling with the
+   segments it sits in. */
+.mac-stepper__button svg {
+    width: var(--mac-icon-xs);
+    height: var(--mac-icon-xs);
+    flex: 0 0 auto;
+}
+
+/* The root is the spinbutton, so the ring wraps the whole control rather than
+   one half — copy of the button.css pattern, inset by nothing because the
+   control is small. */
+.mac-stepper:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 1px;
+}
+
+/* Disabled: the native attribute on the buttons does the blocking, this only
+   dims the control. */
+.mac-stepper.is-disabled {
+    opacity: 0.45;
+}
+
+.mac-stepper.is-disabled .mac-stepper__button {
+    opacity: 1;
+}

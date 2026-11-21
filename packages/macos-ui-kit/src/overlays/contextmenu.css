@@ -1,0 +1,17 @@
+/* The anchor a menu is positioned against: invisible, out of the flow.
+ *
+ * Zero-size would make `positionOverlay` divide nothing and clamp oddly at the
+ * viewport edge, so it keeps a 1×1 box and no paint. */
+
+.mac-contextmenu-anchor {
+    position: fixed;
+    z-index: -1;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    pointer-events: none;
+    opacity: 0;
+}

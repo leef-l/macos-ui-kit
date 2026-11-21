@@ -1,0 +1,151 @@
+/* Avatar: coloured initials, optional image, optional presence dot. */
+
+.mac-avatar {
+    --mac-avatar-size: 28px;
+    --mac-avatar-font: var(--mac-text-2xs);
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: var(--mac-avatar-size);
+    height: var(--mac-avatar-size);
+    border-radius: 50%;
+    background: var(--mac-bg-active);
+    color: var(--mac-text-secondary);
+    font-family: var(--mac-font);
+    font-size: var(--mac-avatar-font);
+    font-weight: var(--mac-weight-semibold);
+    line-height: 1;
+    letter-spacing: 0.02em;
+    overflow: visible;
+    /* A ring the colour of the window keeps overlapping avatars from merging
+       into one blob in a stacked row. */
+    box-shadow: 0 0 0 var(--mac-hairline) var(--mac-border);
+    user-select: none;
+    -webkit-user-select: none;
+    vertical-align: middle;
+}
+
+.mac-avatar--s {
+    --mac-avatar-size: 20px;
+    --mac-avatar-font: calc(var(--mac-text-2xs) * 0.92);
+}
+
+.mac-avatar--l {
+    --mac-avatar-size: 40px;
+    --mac-avatar-font: var(--mac-text-small);
+}
+
+.mac-avatar--xl {
+    --mac-avatar-size: 64px;
+    --mac-avatar-font: var(--mac-text-md);
+}
+
+.mac-avatar--square {
+    border-radius: calc(var(--mac-avatar-size) * 0.28);
+}
+
+.mac-avatar__initials {
+    display: block;
+    transform: translateY(-0.02em);
+}
+
+.mac-avatar__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    object-fit: cover;
+    display: none;
+}
+
+/* The image only takes over once it has actually decoded, so the initials show
+   during load instead of a white hole. */
+.mac-avatar.has-image .mac-avatar__image {
+    display: block;
+}
+
+/* Six fixed tones, chosen to stay legible on light and dark window backgrounds
+   with white initials on top. */
+.mac-avatar[data-tone="0"] {
+    background: #5b8def;
+    color: #fff;
+}
+
+.mac-avatar[data-tone="1"] {
+    background: #34a853;
+    color: #fff;
+}
+
+.mac-avatar[data-tone="2"] {
+    background: #f2994a;
+    color: #fff;
+}
+
+.mac-avatar[data-tone="3"] {
+    background: #9b6bd6;
+    color: #fff;
+}
+
+.mac-avatar[data-tone="4"] {
+    background: #e2607c;
+    color: #fff;
+}
+
+.mac-avatar[data-tone="5"] {
+    background: #3fa9b8;
+    color: #fff;
+}
+
+/* The dot scales with the avatar but stops growing well before it would turn
+   into a second circle overlapping the initials. Pure `size * 0.3` gives a 19px
+   disc on the 64px avatar, which reads as a wedge bitten out of the corner. */
+.mac-avatar__status {
+    --mac-avatar-dot: clamp(6px, calc(var(--mac-avatar-size) * 0.3), 12px);
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    width: var(--mac-avatar-dot);
+    height: var(--mac-avatar-dot);
+    border-radius: 50%;
+    background: #8e8e93;
+    /* Ring, not border: a border would eat into the disc and turn a 6px dot
+       into a smudge. Width follows the avatar so it is not heavy at `s`. */
+    box-shadow: 0 0 0 clamp(1px, calc(var(--mac-avatar-size) * 0.05), 2px) var(--mac-bg-content);
+}
+
+/* A rounded square's corner curves away from the bounding box, so a dot pinned
+   to the bounding corner floats half off the shape. Sit it on the diagonal that
+   is tangent to the curve: the border radius is 0.28 * size, so the dot centre
+   has to stay within (0.28 * size - outer radius) / sqrt(2) of the corner's arc
+   centre, which works out at ~0.078 of the size from each edge. */
+.mac-avatar--square .mac-avatar__status {
+    right: calc(var(--mac-avatar-size) * 0.078);
+    bottom: calc(var(--mac-avatar-size) * 0.078);
+}
+
+.mac-avatar--online .mac-avatar__status {
+    background: var(--mac-success);
+}
+
+.mac-avatar--busy .mac-avatar__status {
+    background: var(--mac-danger);
+}
+
+.mac-avatar--away .mac-avatar__status {
+    background: var(--mac-warning);
+}
+
+/* Opaque on purpose: a translucent grey picks up the tone colour underneath and
+   the dot turns muddy mauve on a purple avatar. */
+.mac-avatar--offline .mac-avatar__status {
+    background: #9a9aa0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .mac-avatar {
+        transition: box-shadow var(--mac-duration-fast) var(--mac-ease);
+    }
+}

@@ -1,0 +1,150 @@
+/* Inline notice: a tinted strip that reports a state in the flow of the page.
+   
+   Three carriers of the tone, in falling order of loudness: the 3-hairline left
+   edge, the wash behind the text, and the glyph. Colour is never the only cue —
+   the glyph repeats it, which is what keeps the notice readable to a user who
+   cannot separate the four tints. */
+
+.mac-inline-notice {
+    /* Component-local custom property, not a design token: it exists only so the
+       border, the wash and the glyph can name "this notice's tone" once. Callers
+       set the tone through `setTone`, never through this property. */
+    --mac-inline-notice-tone: var(--mac-accent);
+
+    display: flex;
+    /* Top, not centre: with a title the glyph belongs beside the title line, and
+       with only a message a centred glyph looks like it drifted. */
+    align-items: flex-start;
+    gap: var(--mac-space-2);
+    /* Rule 16: a block-level root dropped into a flex row shrink-wraps to its
+       content and refuses to shrink below it. `width: 100%` makes it fill the row
+       it was given; `min-width: 0` lets a long word inside wrap instead of
+       widening the row. */
+    width: 100%;
+    min-width: 0;
+    /* The padding and the tone edge must be inside that 100%, or the strip
+       overflows its container by exactly the border and the padding. */
+    box-sizing: border-box;
+    padding: var(--mac-space-2) var(--mac-space-3);
+    /* The edge, not a full border: a boxed outline on every notice would turn a
+       page with three of them into a table of boxes. */
+    border-left: calc(var(--mac-hairline) * 3) solid var(--mac-inline-notice-tone);
+    border-radius: var(--mac-radius-m);
+    /* The system colours have no soft token, so the wash is mixed from the tone
+       itself. First declaration is the fallback for an engine without
+       color-mix(); the second wins wherever it is supported. */
+    background: var(--mac-bg-hover);
+    background: color-mix(in srgb, var(--mac-inline-notice-tone) 14%, transparent);
+    color: var(--mac-text);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+}
+
+.mac-inline-notice[data-tone="success"] {
+    --mac-inline-notice-tone: var(--mac-success);
+}
+
+.mac-inline-notice[data-tone="warning"] {
+    --mac-inline-notice-tone: var(--mac-warning);
+}
+
+.mac-inline-notice[data-tone="danger"] {
+    --mac-inline-notice-tone: var(--mac-danger);
+}
+
+.mac-inline-notice__icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: var(--mac-icon-md);
+    height: var(--mac-icon-md);
+    /* Optical, not structural: the glyph's ink starts a hair below the cap line
+       of the first text line, so a flush top edge makes it look high. */
+    margin-top: 1px;
+    color: var(--mac-inline-notice-tone);
+}
+
+.mac-inline-notice__text {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--mac-space-1) / 2);
+    flex: 1 1 auto;
+    /* Same reason as the root: the text is the part that has to wrap. */
+    min-width: 0;
+}
+
+.mac-inline-notice__title {
+    font-size: var(--mac-text-body);
+    font-weight: var(--mac-weight-semibold);
+    line-height: 1.35;
+    color: var(--mac-text);
+}
+
+.mac-inline-notice__message {
+    font-size: var(--mac-text-body);
+    line-height: 1.45;
+    color: var(--mac-text-secondary);
+    /* A path or an address in the message must break rather than widen the strip. */
+    overflow-wrap: break-word;
+}
+
+/* With no title the message is the notice's only text, so it takes primary ink
+   instead of reading as a subtitle for something that is not there. The title
+   node is always in the DOM (the setters toggle `hidden`), so the sibling
+   selector still matches. */
+.mac-inline-notice__title[hidden] + .mac-inline-notice__message {
+    color: var(--mac-text);
+}
+
+/* --- Actions --------------------------------------------------------------- */
+
+.mac-inline-notice__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-1);
+    flex: 0 0 auto;
+}
+
+/* Sized to the notice and outlined rather than filled: a notice reports, it does
+   not ask, so its action must not compete with the page's primary button. */
+.mac-inline-notice__action {
+    height: calc(var(--mac-control-height-s) + var(--mac-space-1));
+    padding: 0 var(--mac-space-2);
+    border: var(--mac-hairline) solid var(--mac-separator);
+    border-radius: var(--mac-radius-s);
+    background: var(--mac-bg-elevated);
+    color: var(--mac-text);
+    font-family: inherit;
+    font-size: var(--mac-text-small);
+    font-weight: var(--mac-weight-medium);
+    cursor: default;
+}
+
+.mac-inline-notice__action:hover {
+    background: var(--mac-bg-hover);
+}
+
+.mac-inline-notice__close {
+    display: grid;
+    place-items: center;
+    width: calc(var(--mac-icon-md) + var(--mac-space-1));
+    height: calc(var(--mac-icon-md) + var(--mac-space-1));
+    padding: 0;
+    border: 0;
+    border-radius: var(--mac-radius-s);
+    background: transparent;
+    color: var(--mac-text-tertiary);
+    cursor: default;
+}
+
+.mac-inline-notice__close:hover {
+    background: var(--mac-bg-hover);
+    color: var(--mac-text);
+}
+
+/* The kit's ring, offset outwards so it clears the strip's own rounded corners. */
+.mac-inline-notice__action:focus-visible,
+.mac-inline-notice__close:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 1px;
+}

@@ -1,0 +1,132 @@
+/* Progress ring: one track, one arc, optional centre readout. */
+
+.mac-progressring {
+    --mac-ring-size: 40px;
+    --mac-ring-stroke: 3px;
+    --mac-ring-value: 0;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--mac-ring-size);
+    height: var(--mac-ring-size);
+    flex: 0 0 auto;
+    font-family: var(--mac-font);
+    color: var(--mac-text);
+    vertical-align: middle;
+}
+
+.mac-progressring--s {
+    --mac-ring-size: 20px;
+    --mac-ring-stroke: 2px;
+}
+
+.mac-progressring--l {
+    --mac-ring-size: 64px;
+    --mac-ring-stroke: 4px;
+}
+
+/* The rotation that puts the arc's start at twelve o'clock lives here, not on
+   the circle: `transform-box` is not available everywhere the kit runs. */
+.mac-progressring__svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+    /* An SVG root clips to its viewport by default. With
+       `vector-effect: non-scaling-stroke` the stroke is a fixed number of CSS
+       pixels, so at the 20px size a thick ring overflows the 100-unit box and
+       gets sliced flat on four sides, reading as an octagon rather than a
+       circle. Letting it paint past the box costs nothing: the ring is the
+       outermost thing in the control. */
+    overflow: visible;
+}
+
+.mac-progressring__track,
+.mac-progressring__arc {
+    fill: none;
+    stroke-linecap: round;
+    /* Keeps the stroke a fixed number of CSS pixels at every size, so `s` and
+       `l` differ in diameter instead of looking like different line weights. */
+    vector-effect: non-scaling-stroke;
+}
+
+.mac-progressring__track {
+    stroke: var(--mac-bg-active);
+}
+
+.mac-progressring__arc {
+    stroke: var(--mac-accent);
+    stroke-width: var(--mac-ring-stroke);
+    stroke-dasharray: var(--mac-ring-value) 100;
+    stroke-dashoffset: 0;
+}
+
+.mac-progressring__track {
+    stroke-width: var(--mac-ring-stroke);
+}
+
+.mac-progressring__readout {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Scales with the ring so the number never overwhelms a small diameter. */
+    font-size: calc(var(--mac-ring-size) * 0.24);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--mac-weight-medium);
+    color: var(--mac-text);
+    pointer-events: none;
+    line-height: 1;
+}
+
+/* The small size has no room for a number; it is an inline spinner. */
+.mac-progressring--s .mac-progressring__readout {
+    display: none;
+}
+
+/* --- indeterminate ------------------------------------------------------- */
+
+.mac-progressring.is-indeterminate .mac-progressring__arc {
+    /* A quarter arc that spins: the length is what reads as "unspecified". */
+    stroke-dasharray: 25 75;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .mac-progressring__arc {
+        transition: stroke-dasharray var(--mac-duration-slow) var(--mac-ease-out);
+    }
+
+    .mac-progressring.is-indeterminate .mac-progressring__svg {
+        animation: mac-ring-spin 900ms linear infinite;
+    }
+}
+
+/* Without animation the spinner would look like a stuck 25% ring, so the arc is
+   drawn fuller and the motion is slowed rather than removed. */
+@media (prefers-reduced-motion: reduce) {
+    .mac-progressring.is-indeterminate .mac-progressring__arc {
+        stroke-dasharray: 40 60;
+        animation: mac-ring-fade 1.8s ease-in-out infinite;
+    }
+}
+
+@keyframes mac-ring-spin {
+    from {
+        transform: rotate(-90deg);
+    }
+    to {
+        transform: rotate(270deg);
+    }
+}
+
+@keyframes mac-ring-fade {
+    0%,
+    100% {
+        opacity: 0.45;
+    }
+    50% {
+        opacity: 1;
+    }
+}

@@ -78,7 +78,7 @@ export {Form, FormRow} from "./controls/form";
 export type {FormOptions, FormRowOptions} from "./controls/form";
 
 export {Table} from "./controls/table";
-export type {TableOptions, TableColumn} from "./controls/table";
+export type {TableOptions, TableColumn, TableSort, TableSortDirection} from "./controls/table";
 
 export {SplitView} from "./controls/splitview";
 export type {SplitViewOptions} from "./controls/splitview";
@@ -88,6 +88,78 @@ export type {ComboBoxOptions, ComboBoxOption} from "./controls/combobox";
 
 export {DatePicker} from "./controls/datepicker";
 export type {DatePickerOptions} from "./controls/datepicker";
+
+export {RadioGroup} from "./controls/radiogroup";
+export type {RadioGroupOptions, RadioOption} from "./controls/radiogroup";
+
+export {SearchField} from "./controls/searchfield";
+export type {SearchFieldOptions} from "./controls/searchfield";
+
+export {Divider} from "./controls/divider";
+export type {DividerOptions} from "./controls/divider";
+
+export {Kbd, normalizeKey} from "./controls/kbd";
+export type {KbdOptions} from "./controls/kbd";
+
+export {Pagination, pageItems} from "./controls/pagination";
+export type {PaginationOptions} from "./controls/pagination";
+
+export {EmptyState} from "./controls/emptystate";
+export type {EmptyStateOptions, EmptyStateAction} from "./controls/emptystate";
+
+export {Avatar, initials, toneFor} from "./controls/avatar";
+export type {AvatarOptions, AvatarSize, AvatarStatus} from "./controls/avatar";
+
+export {Breadcrumb} from "./controls/breadcrumb";
+export type {BreadcrumbOptions, BreadcrumbItem} from "./controls/breadcrumb";
+
+export {ProgressRing} from "./controls/progressring";
+export type {ProgressRingOptions, ProgressRingSize} from "./controls/progressring";
+export {List} from "./controls/list";
+export type {ListOptions, ListItem, ListSelection} from "./controls/list";
+export {Stepper} from "./controls/stepper";
+export type {StepperOptions} from "./controls/stepper";
+export {SplitButton} from "./controls/splitbutton";
+export type {SplitButtonOptions, SplitButtonVariant, SplitButtonSize} from "./controls/splitbutton";
+export {TagInput} from "./controls/taginput";
+export type {TagInputOptions} from "./controls/taginput";
+export {RangeSlider} from "./controls/rangeslider";
+export type {RangeSliderOptions} from "./controls/rangeslider";
+export {Calendar} from "./controls/calendar";
+export type {CalendarOptions} from "./controls/calendar";
+
+export {TreeView} from "./controls/treeview";
+export type {TreeViewOptions, TreeNode} from "./controls/treeview";
+
+export {Skeleton} from "./controls/skeleton";
+export type {SkeletonOptions, SkeletonVariant} from "./controls/skeleton";
+
+export {CommandPalette} from "./controls/commandpalette";
+export type {CommandPaletteOptions, CommandItem} from "./controls/commandpalette";
+
+export {InlineNotice} from "./controls/inlinenotice";
+export type {InlineNoticeOptions, NoticeTone} from "./controls/inlinenotice";
+
+export {Rating} from "./controls/rating";
+export type {RatingOptions, RatingSize} from "./controls/rating";
+
+export {Card} from "./controls/card";
+export type {CardOptions, CardVariant, CardPadding} from "./controls/card";
+
+export {ColorWell} from "./controls/colorwell";
+export type {ColorWellOptions, ColorWellSize} from "./controls/colorwell";
+
+export {LevelIndicator} from "./controls/levelindicator";
+export type {LevelIndicatorOptions, LevelTone} from "./controls/levelindicator";
+
+export {TimePicker} from "./controls/timepicker";
+export type {TimePickerOptions} from "./controls/timepicker";
+
+export {TabBar} from "./controls/tabbar";
+export type {TabBarOptions, TabBarItem} from "./controls/tabbar";
+
+export {ActionSheet} from "./controls/actionsheet";
+export type {ActionSheetOptions, ActionSheetAction, ActionSheetTone} from "./controls/actionsheet";
 
 // --- Layout -------------------------------------------------------------------
 export {TitleBar} from "./layout/titlebar";
@@ -126,6 +198,12 @@ export type {SheetOptions} from "./overlays/sheet";
 
 export {Toast, showToast} from "./overlays/toast";
 export type {ToastOptions, ToastVariant} from "./overlays/toast";
+
+export {Alert, showAlert} from "./overlays/alert";
+export type {AlertOptions, AlertButton, AlertIcon} from "./overlays/alert";
+
+export {ContextMenu, showContextMenu} from "./overlays/contextmenu";
+export type {ContextMenuOptions} from "./overlays/contextmenu";
 
 // --- Mobile -------------------------------------------------------------------
 export {MobileShell, looksLikeMobile} from "./mobile/shell";

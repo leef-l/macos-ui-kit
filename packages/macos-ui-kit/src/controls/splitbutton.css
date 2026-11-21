@@ -1,0 +1,142 @@
+/* macOS split button: a primary action fused to a menu chevron. */
+
+.mac-splitbutton {
+    position: relative;
+    display: inline-flex;
+    align-items: stretch;
+    height: var(--mac-control-height);
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-m);
+    background: var(--mac-bg-elevated);
+    user-select: none;
+    --wails-draggable: no-drag;
+}
+
+/* Both halves are transparent over the pill's own fill, so the halves only ever
+   paint a hover/active wash and never a second border. */
+.mac-splitbutton__action,
+.mac-splitbutton__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    border: none;
+    background: transparent;
+    color: var(--mac-text);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    font-weight: var(--mac-weight-medium);
+    line-height: 1;
+    white-space: nowrap;
+    cursor: default;
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        color var(--mac-duration-fast) var(--mac-ease);
+}
+
+/* The outer corners follow the pill; the inner ones stay square so the two
+   halves read as one control. */
+.mac-splitbutton__action {
+    gap: var(--mac-space-1);
+    padding: 0 var(--mac-space-3);
+    border-radius: calc(var(--mac-radius-m) - var(--mac-hairline)) 0 0
+        calc(var(--mac-radius-m) - var(--mac-hairline));
+}
+
+.mac-splitbutton__toggle {
+    padding: 0 var(--mac-space-2);
+    border-left: var(--mac-hairline) solid var(--mac-separator);
+    border-radius: 0 calc(var(--mac-radius-m) - var(--mac-hairline))
+        calc(var(--mac-radius-m) - var(--mac-hairline)) 0;
+}
+
+.mac-splitbutton__toggle svg {
+    flex: 0 0 auto;
+}
+
+.mac-splitbutton__action:hover:not(:disabled),
+.mac-splitbutton__toggle:hover:not(:disabled) {
+    background: var(--mac-bg-hover);
+}
+
+.mac-splitbutton__action:active:not(:disabled),
+.mac-splitbutton__toggle:active:not(:disabled),
+.mac-splitbutton.is-open .mac-splitbutton__toggle:not(:disabled) {
+    background: var(--mac-bg-active);
+}
+
+/* The two halves share one pill, so a ring drawn outside a half would run over
+   its sibling; it is inset instead, the way the segmented control's is. */
+.mac-splitbutton__action:focus-visible,
+.mac-splitbutton__toggle:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: -2px;
+}
+
+.mac-splitbutton__icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: var(--mac-icon-sm);
+    height: var(--mac-icon-sm);
+}
+
+/* Primary: the blue treatment, matching the default button. */
+.mac-splitbutton--primary {
+    border-color: transparent;
+    background: var(--mac-accent);
+}
+
+.mac-splitbutton--primary .mac-splitbutton__action,
+.mac-splitbutton--primary .mac-splitbutton__toggle {
+    color: var(--mac-text-on-accent);
+}
+
+/* A translucent white hairline reads on the accent fill where --mac-separator
+   would vanish; the plain declaration above it is the fallback for engines
+   without color-mix(). */
+.mac-splitbutton--primary .mac-splitbutton__toggle {
+    border-left-color: var(--mac-text-on-accent);
+    border-left-color: color-mix(in srgb, var(--mac-text-on-accent) 34%, transparent);
+}
+
+/* Filtering a half would only dim its glyph, because the half has no fill of
+   its own; the wash goes on as a background instead. The first declaration is
+   the plain fallback for color-mix(). */
+.mac-splitbutton--primary .mac-splitbutton__action:hover:not(:disabled),
+.mac-splitbutton--primary .mac-splitbutton__toggle:hover:not(:disabled),
+.mac-splitbutton--primary .mac-splitbutton__action:active:not(:disabled),
+.mac-splitbutton--primary .mac-splitbutton__toggle:active:not(:disabled),
+.mac-splitbutton--primary.is-open .mac-splitbutton__toggle:not(:disabled) {
+    background: var(--mac-bg-active);
+    background: color-mix(in srgb, var(--mac-text-on-accent) 20%, transparent);
+}
+
+/* Small and large sizes. */
+.mac-splitbutton--small {
+    height: var(--mac-control-height-s);
+}
+
+.mac-splitbutton--small .mac-splitbutton__action,
+.mac-splitbutton--small .mac-splitbutton__toggle {
+    padding: 0 var(--mac-space-2);
+    font-size: var(--mac-text-small);
+}
+
+.mac-splitbutton--large {
+    height: var(--mac-control-height-l);
+}
+
+.mac-splitbutton--large .mac-splitbutton__action {
+    padding: 0 var(--mac-space-4);
+    font-size: var(--mac-text-title);
+}
+
+.mac-splitbutton--large .mac-splitbutton__toggle {
+    padding: 0 var(--mac-space-3);
+    font-size: var(--mac-text-title);
+}
+
+/* Disabled: the native attribute blocks both halves, this only dims the pill. */
+.mac-splitbutton.is-disabled {
+    opacity: 0.45;
+}

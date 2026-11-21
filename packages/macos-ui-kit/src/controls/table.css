@@ -53,6 +53,95 @@
     user-select: none;
 }
 
+/* --- Sortable headers ------------------------------------------------------ */
+
+/* Two classes, not one: the coarse-pointer block below pads every header cell,
+   and that rule comes later in the file. Matching its specificity here keeps the
+   sortable cell at zero padding, so the button — not the cell — owns the 44px
+   tap target. */
+.mac-table__th.mac-table__th--sortable {
+    padding: 0;
+}
+
+/* The button fills the cell, so the click target is the header the reader aims
+   at rather than the word inside it. Every cell metric is restated because a
+   `<button>` starts from the platform default, not from the table. */
+.mac-table__sort {
+    display: flex;
+    align-items: center;
+    /* The arrow rides immediately after the label, the way a macOS table reads;
+       the alignment modifiers flip the pair as a group rather than spreading
+       them to the edges. */
+    justify-content: flex-start;
+    gap: var(--mac-space-1);
+    width: 100%;
+    margin: 0;
+    padding: var(--mac-space-1) var(--mac-space-3);
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: inherit;
+    white-space: nowrap;
+    cursor: default;
+    transition: color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-table__th--sortable.mac-table__align--center .mac-table__sort {
+    justify-content: center;
+}
+
+.mac-table__th--sortable.mac-table__align--right .mac-table__sort {
+    justify-content: flex-end;
+}
+
+/* `min-width: 0` is what lets the label shrink below its content in a
+   fixed-layout column; `flex: 0 1 auto` keeps it hugging the arrow instead of
+   stretching to the far edge. */
+.mac-table__sort-label {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mac-table__sort-arrow {
+    flex: 0 0 auto;
+    color: var(--mac-accent);
+    /* Unsorted headers show nothing — that is how AppKit draws them. Hovering
+       hints that the header is a control without painting an arrow on every
+       column of a wide table. */
+    opacity: 0;
+    transition:
+        opacity var(--mac-duration-fast) var(--mac-ease),
+        transform var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-table__th--sortable:hover .mac-table__sort-arrow {
+    opacity: 0.35;
+}
+
+.mac-table__th--sortable:hover .mac-table__sort,
+.mac-table__th.is-sorted .mac-table__sort {
+    color: var(--mac-text);
+}
+
+.mac-table__th.is-sorted .mac-table__sort-arrow {
+    opacity: 1;
+}
+
+.mac-table__th.is-descending .mac-table__sort-arrow {
+    transform: rotate(180deg);
+}
+
+/* Inset so the ring closes inside the cell; an outset ring would be clipped by
+   the table's `overflow: hidden` on the first and last column. */
+.mac-table__sort:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: calc(var(--mac-hairline) * -2);
+    border-radius: var(--mac-radius-s);
+}
+
 /* --- Body ----------------------------------------------------------------- */
 
 /* A floor on cell width (64px at scale 1) is what makes a multi-column table
@@ -153,6 +242,13 @@
     .mac-table__cell {
         /* Rows reach the 44px target through padding, because `min-height` has
            no effect on a `display: table-cell` box. */
+        padding-top: var(--mac-space-3);
+        padding-bottom: var(--mac-space-3);
+    }
+
+    /* A sortable header carries its padding on the button, so the tap target
+       only grows if the button grows. */
+    .mac-table__th--sortable .mac-table__sort {
         padding-top: var(--mac-space-3);
         padding-bottom: var(--mac-space-3);
     }

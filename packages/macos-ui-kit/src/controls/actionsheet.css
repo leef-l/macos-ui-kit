@@ -1,0 +1,161 @@
+/* iOS action sheet: a stack of choices that rises from the bottom edge.
+
+   Two groups, not one list: the actions are a single rounded block, Cancel is a
+   second block below it with a gap. That gap is the platform's own safety
+   margin — a thumb aiming at the destructive row must not reach Cancel by
+   accident, and a continuous list would put them one row apart. */
+
+/* Two classes on purpose: the backdrop reuses the dialog's scrim, and a single
+   class here would lose the cascade to `dialog.css` for `align-items` depending on
+   bundle order. Naming both makes the rule order-independent. */
+.mac-dialog__scrim.mac-actionsheet__backdrop {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    /* The scrim insets a floating dialog from the edges; a sheet is flush with the
+       bottom one, so the inset is dropped here rather than fought per-child. */
+    padding: 0;
+}
+
+.mac-actionsheet {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-2);
+    width: 100%;
+    /* A sheet is a phone-width surface; on a tablet the platform insets it rather
+       than stretching the rows the full width of the screen. */
+    max-width: 520px;
+    max-height: 90vh;
+    padding: var(--mac-space-2) var(--mac-space-2);
+    padding-bottom: calc(var(--mac-space-2) + env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box;
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    color: var(--mac-text);
+    /* Slide up from below the edge, then follow the token duration so a reduced
+       motion preference collapses it into an instant placement. */
+    transform: translateY(100%);
+    transition: transform var(--mac-duration) var(--mac-ease-out);
+}
+
+.mac-actionsheet__backdrop.is-open .mac-actionsheet {
+    transform: translateY(0);
+}
+
+/* --- Header ---------------------------------------------------------------- */
+
+.mac-actionsheet__header {
+    padding: var(--mac-space-3) var(--mac-space-4);
+    border-radius: var(--mac-radius-l);
+    background: var(--mac-bg-elevated);
+    text-align: center;
+}
+
+.mac-actionsheet__title {
+    font-size: var(--mac-text-small);
+    font-weight: var(--mac-weight-semibold);
+    color: var(--mac-text-secondary);
+}
+
+.mac-actionsheet__message {
+    margin-top: var(--mac-space-1);
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-secondary);
+}
+
+.mac-actionsheet__header > .mac-actionsheet__title:first-child {
+    /* With no message under it the title is the whole header and can carry the
+       body weight; with one it stays a quiet caption above the message. */
+    color: var(--mac-text);
+}
+
+/* --- Actions --------------------------------------------------------------- */
+
+.mac-actionsheet__list {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--mac-radius-l);
+    background: var(--mac-bg-elevated);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+}
+
+.mac-actionsheet__action,
+.mac-actionsheet__cancel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* 44px is Apple's minimum tap target: a platform constant. */
+    min-height: 57px;
+    padding: 0 var(--mac-space-4);
+    border: none;
+    background: none;
+    color: var(--mac-accent);
+    font-family: inherit;
+    font-size: var(--mac-text-lg);
+    line-height: 1.2;
+    cursor: default;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: background-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+/* The divider between two actions is the row's own top hairline, inset from the
+   leading edge the way the platform draws it, so it stops short of the corners. */
+.mac-actionsheet__action + .mac-actionsheet__action {
+    position: relative;
+}
+
+.mac-actionsheet__action + .mac-actionsheet__action::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: var(--mac-hairline);
+    background: var(--mac-separator);
+    pointer-events: none;
+}
+
+.mac-actionsheet__action[data-tone="destructive"] {
+    color: var(--mac-danger);
+}
+
+/* Cancel sits in its own block, so it never shares a border with the actions and
+   needs no divider of its own. */
+.mac-actionsheet__cancel {
+    border-radius: var(--mac-radius-l);
+    background: var(--mac-bg-elevated);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    font-weight: var(--mac-weight-semibold);
+}
+
+.mac-actionsheet__action:hover,
+.mac-actionsheet__cancel:hover {
+    background: var(--mac-bg-hover);
+}
+
+.mac-actionsheet__action:active,
+.mac-actionsheet__cancel:active {
+    background: var(--mac-bg-active);
+}
+
+.mac-actionsheet__action:focus-visible,
+.mac-actionsheet__cancel:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: calc(var(--mac-hairline) * -3);
+}
+
+/* --- Coarse pointers ------------------------------------------------------- */
+
+/* On a touch screen the hover state never happens, so the pressed look is the
+   only feedback there is and it has to be immediate: `:active` above already
+   paints it, and the transition is dropped so it cannot lag behind the finger. */
+@media (pointer: coarse) {
+    .mac-actionsheet__action,
+    .mac-actionsheet__cancel {
+        transition: none;
+    }
+}

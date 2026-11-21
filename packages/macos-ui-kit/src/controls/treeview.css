@@ -1,0 +1,192 @@
+/* macOS outline view: collapsible rows in a tree, single selection.
+   Flat inside its pane like the list box — a disclosure triangle, an optional
+   icon, a label, and an indent that comes from one custom property per row. */
+
+.mac-treeview {
+    /* The kit's default indent. It lives here rather than in the component so a
+       caller's `indent` option is the only thing that ever writes the property;
+       writing it unconditionally from TS would make this default dead. */
+    --mac-treeview-indent: 16px;
+    /* Level 0 for anything that is not a row, so the property always resolves. */
+    --mac-treeview-depth: 0;
+
+    display: flex;
+    flex-direction: column;
+    /* Both matter: the root is usually the flex child of a pane or a split-view
+       column, and a block-level box inside a flex row shrink-wraps to its
+       widest row otherwise. */
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    color: var(--mac-text);
+    --wails-draggable: no-drag;
+}
+
+.mac-treeview__tree {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--mac-space-1) / 2);
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: var(--mac-space-1);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
+
+/* Children hold no padding of their own. Indentation belongs to the child rows,
+   which is what makes a row's offset exactly `depth × indent` instead of a sum
+   of every ancestor's padding. */
+.mac-treeview__group {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--mac-space-1) / 2);
+}
+
+/* A closed group is removed from layout, so its rows are neither focusable nor
+   hit-testable — the ARIA `hidden` consequence the component relies on. */
+.mac-treeview__group[hidden] {
+    display: none;
+}
+
+/* --- Rows ------------------------------------------------------------------ */
+
+.mac-treeview__row {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    min-height: var(--mac-row-height);
+    padding-block: var(--mac-space-1);
+    padding-inline: var(--mac-space-2);
+    /* One rule for every level: the row's own start padding *is* the whole
+       indentation, read from the depth the component writes. The base offset
+       keeps level 0 off the edge. */
+    padding-inline-start: calc(var(--mac-space-2) + var(--mac-treeview-depth) * var(--mac-treeview-indent));
+    border-radius: var(--mac-radius-m);
+    background: transparent;
+    color: var(--mac-text-secondary);
+    font-weight: var(--mac-weight-medium);
+    text-align: left;
+    cursor: default;
+    user-select: none;
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-treeview__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.mac-treeview__detail {
+    flex: 0 0 auto;
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-tertiary);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.mac-treeview__badge {
+    flex: 0 0 auto;
+    padding: 0 var(--mac-space-1);
+    border-radius: var(--mac-radius-s);
+    background: var(--mac-bg-active);
+    color: var(--mac-text-secondary);
+    font-size: var(--mac-text-2xs);
+    font-weight: var(--mac-weight-semibold);
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* The row's own leading icon. Scoped to a direct child so it cannot catch the
+   disclosure chevron, which is smaller and sits inside a button. */
+.mac-treeview__row > svg {
+    flex: 0 0 auto;
+    width: var(--mac-icon-md);
+    height: var(--mac-icon-md);
+    opacity: 0.9;
+}
+
+/* --- Disclosure control ---------------------------------------------------- */
+
+/* The twisty and the leaf spacer are the same box, so a leaf's label lands in
+   the same column as its siblings' labels. */
+.mac-treeview__twisty,
+.mac-treeview__spacer {
+    flex: 0 0 auto;
+    width: var(--mac-icon-md);
+    height: var(--mac-icon-md);
+}
+
+.mac-treeview__twisty {
+    display: grid;
+    place-items: center;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: var(--mac-radius-s);
+    background: transparent;
+    color: var(--mac-text-tertiary);
+    cursor: default;
+}
+
+.mac-treeview__twisty svg {
+    width: var(--mac-icon-xs);
+    height: var(--mac-icon-xs);
+    /* Right-pointing chevron; the open state rotates it a quarter turn. Rotating
+       one glyph instead of swapping two paths keeps the control a single node,
+       so the component never has to rebuild it to change state. */
+    transition: transform var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-treeview__twisty.is-expanded svg {
+    transform: rotate(90deg);
+}
+
+.mac-treeview__twisty:hover {
+    color: var(--mac-text);
+}
+
+.mac-treeview__twisty:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: -1px;
+}
+
+/* --- States ---------------------------------------------------------------- */
+
+.mac-treeview__row:hover:not(.is-selected):not([aria-disabled="true"]) {
+    background: var(--mac-bg-hover);
+    color: var(--mac-text);
+}
+
+/* Selection is the accent tint with normal ink, matching the list box and
+   selectable table rows. The filled accent belongs to the sidebar. */
+.mac-treeview__row.is-selected {
+    background: var(--mac-accent-soft);
+    color: var(--mac-text);
+}
+
+.mac-treeview__row.is-selected svg {
+    opacity: 1;
+}
+
+/* Dimmed rather than dropped: a row that cannot be picked is still information,
+   and it keeps its place in the arrow-key walk. */
+.mac-treeview__row[aria-disabled="true"] {
+    opacity: 0.4;
+}
+
+/* Rows are focus targets of their own (roving tabindex), so the ring sits on the
+   row, inset so it stays inside the rounded box. */
+.mac-treeview__row:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: -1px;
+}

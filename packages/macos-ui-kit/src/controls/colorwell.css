@@ -1,0 +1,80 @@
+/* macOS colour well: one swatch that opens the platform colour panel.
+
+   The control is a stack of two boxes in the same square: an invisible native
+   `<input type="color">` that takes the click, and the swatch painted from the
+   `--mac-colorwell-value` custom property. Only the swatch has a visual size, so
+   the geometry lives in one place and the input simply fills it. */
+
+.mac-colorwell {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: calc(var(--mac-control-height) * var(--mac-scale));
+    height: calc(var(--mac-control-height) * var(--mac-scale));
+    vertical-align: middle;
+}
+
+.mac-colorwell--small {
+    width: calc(var(--mac-control-height-s) * var(--mac-scale));
+    height: calc(var(--mac-control-height-s) * var(--mac-scale));
+}
+
+.mac-colorwell--large {
+    width: calc(var(--mac-control-height-l) * var(--mac-scale));
+    height: calc(var(--mac-control-height-l) * var(--mac-scale));
+}
+
+/* The native picker, stretched over the swatch and made invisible. `opacity: 0`
+   rather than `visibility: hidden`: a hidden input cannot be clicked or focused,
+   and this one has to be both. It stays in the layout so its box matches the
+   swatch exactly. */
+.mac-colorwell__input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    /* The UA paints a colour chip inside the input; with no border and no
+       background it would still show through at partial opacity, so the fill is
+       explicitly transparent too. */
+    background: none;
+}
+
+.mac-colorwell__input:disabled {
+    cursor: default;
+}
+
+.mac-colorwell__swatch {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--mac-radius-s);
+    background: var(--mac-colorwell-value, #ffffff);
+    /* Two rings, the way the OS draws it: an outer hairline so a white swatch is
+       still visible on a white pane, and an inner white ring so a dark swatch
+       still reads as a well rather than as a filled square. */
+    box-shadow:
+        0 0 0 var(--mac-hairline) var(--mac-base-alpha-black-24),
+        inset 0 0 0 2px var(--mac-base-alpha-white-46);
+    transition: box-shadow var(--mac-duration-fast) var(--mac-ease);
+    pointer-events: none;
+}
+
+/* Focus lives on the input, so the ring is drawn on the swatch through
+   `:focus-within` — the input has no box of its own a ring could wrap. */
+.mac-colorwell:focus-within .mac-colorwell__swatch {
+    box-shadow:
+        0 0 0 var(--mac-hairline) var(--mac-base-alpha-black-24),
+        inset 0 0 0 2px var(--mac-base-alpha-white-46),
+        0 0 0 3px var(--mac-focus-ring);
+}
+
+.mac-colorwell.is-disabled .mac-colorwell__swatch,
+.mac-colorwell__input:disabled ~ .mac-colorwell__swatch {
+    opacity: 0.45;
+}

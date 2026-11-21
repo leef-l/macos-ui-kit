@@ -1,0 +1,128 @@
+/* iOS tab bar: a row of glyph-over-caption items along the bottom edge.
+
+   The bar draws only; the caller owns which pane is on screen. Its height and
+   background come from the same tokens the mobile shell uses for its own bars,
+   so a tab bar and a status bar never disagree about how tall a bar is. */
+
+.mac-tabbar {
+    display: flex;
+    align-items: stretch;
+    flex: 0 0 auto;
+    min-height: calc(var(--mac-tabbar-height) * var(--mac-scale));
+    /* The home-indicator inset on a notched phone; zero everywhere else, so the
+       padding is written unconditionally rather than inside a media query. */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    border-top: var(--mac-hairline) solid var(--mac-separator);
+    background: var(--mac-bg-titlebar);
+    /* Same treatment as the title bar: the pane scrolls underneath and is seen,
+       blurred, through the bar. */
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    font-family: var(--mac-font);
+    /* A tab bar is chrome: tapping it must not select a caption or flash a grey
+       tap highlight, and it must not drag the page sideways. */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    box-sizing: border-box;
+}
+
+.mac-tabbar__item {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-width: 0;
+    /* 44px is Apple's minimum tap target: a platform constant, not a design step. */
+    min-height: 44px;
+    padding: var(--mac-space-1) var(--mac-space-1) 0;
+    border: none;
+    background: none;
+    color: var(--mac-text-tertiary);
+    font-family: inherit;
+    font-size: var(--mac-text-2xs);
+    font-weight: var(--mac-weight-medium);
+    line-height: 1.1;
+    cursor: default;
+    transition: color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-tabbar__item:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    /* Inset, because the bar clips at the screen edge and an outer ring would be
+       cut in half. */
+    outline-offset: calc(var(--mac-hairline) * -3);
+    border-radius: var(--mac-radius-s);
+}
+
+.mac-tabbar__item[aria-selected="true"] {
+    color: var(--mac-accent);
+}
+
+.mac-tabbar__icon {
+    position: relative;
+    display: inline-flex;
+    width: var(--mac-icon-lg);
+    height: var(--mac-icon-lg);
+    align-items: center;
+    justify-content: center;
+}
+
+.mac-tabbar__icon > svg {
+    width: 100%;
+    height: 100%;
+}
+
+.mac-tabbar__label {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* The iOS badge: a small pill on the glyph's top-right, drawn from the accent
+   colour — except on the selected tab, where the glyph is already accent and the
+   badge has to invert to stay legible. */
+.mac-tabbar__badge {
+    position: absolute;
+    top: calc(var(--mac-space-1) * -0.5);
+    left: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: calc(var(--mac-text-2xs) * 1.6);
+    height: calc(var(--mac-text-2xs) * 1.6);
+    padding: 0 calc(var(--mac-space-1) * 0.75);
+    border-radius: 999px;
+    background: var(--mac-danger);
+    color: var(--mac-text-on-accent);
+    font-size: var(--mac-text-2xs);
+    font-weight: var(--mac-weight-semibold);
+    line-height: 1;
+    transform: translateX(20%);
+    box-sizing: border-box;
+}
+
+.mac-tabbar__item[aria-selected="true"] .mac-tabbar__badge {
+    background: var(--mac-accent);
+}
+
+/* Disabled items keep their slot; only the ink fades. */
+.mac-tabbar__item:disabled {
+    color: var(--mac-text-tertiary);
+    opacity: 0.45;
+}
+
+/* --- Dark appearance ------------------------------------------------------- */
+
+/* A translucent bar over a dark pane needs a darker veil than the light title-bar
+   token gives it on its own. */
+@media (prefers-color-scheme: dark) {
+    .mac-tabbar {
+        background: var(--mac-bg-window);
+    }
+}

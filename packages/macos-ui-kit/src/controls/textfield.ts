@@ -31,6 +31,15 @@ export interface TextFieldOptions {
     readOnly?: boolean;
     /** Initial value. */
     value?: string;
+    /**
+     * Accessible name for a field that has no visible `label`.
+     *
+     * A placeholder is not a name: it disappears the moment the user types, so a
+     * screen reader left relying on it loses the field's purpose mid-sentence.
+     * `SearchField` already names itself from its placeholder; this closes the
+     * same gap for the plain text field.
+     */
+    ariaLabel?: string;
     /** Fires on every keystroke with the current value. */
     onInput?: (value: string) => void;
     /**
@@ -68,6 +77,7 @@ export class TextField extends Component<HTMLElement> {
         const {
             label,
             placeholder = "",
+            ariaLabel,
             icon,
             clearable = false,
             type = "text",
@@ -117,6 +127,14 @@ export class TextField extends Component<HTMLElement> {
         this.input.spellcheck = false;
 
         control.appendChild(this.input);
+
+        // A visible label names the field through `for`/`id`. Without one the name
+        // comes from `ariaLabel`, falling back to the placeholder so an unlabelled
+        // field is never anonymous.
+        if (label === undefined) {
+            const name = ariaLabel ?? placeholder;
+            if (name !== "") this.input.setAttribute("aria-label", name);
+        }
 
         if (clearable) {
             this.clearButton = el("button", {

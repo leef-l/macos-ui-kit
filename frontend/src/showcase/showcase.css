@@ -146,6 +146,35 @@
     width: 100%;
 }
 
+/* Drop target for the context-menu demo: dashed so it reads as "right-click
+   here" rather than as a disabled control. */
+.mac-showcase__ctx-target {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 12rem;
+    min-height: calc(var(--mac-control-height) * 2.4);
+    padding: var(--mac-space-3);
+    border: var(--mac-hairline) dashed var(--mac-border-strong);
+    border-radius: var(--mac-radius-m);
+    background: var(--mac-bg-content);
+    color: var(--mac-text-secondary);
+    font-size: var(--mac-text-small);
+    text-align: center;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.mac-showcase__ctx-target:hover {
+    background: var(--mac-bg-hover);
+    color: var(--mac-text);
+}
+
+.mac-showcase__ctx-target:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 2px;
+}
+
 /* A neutral surface behind layout components so their borders are legible. */
 .mac-showcase__surface {
     display: flex;

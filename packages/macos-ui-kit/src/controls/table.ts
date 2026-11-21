@@ -1,10 +1,20 @@
 import {Component} from "../component";
-import {append, el} from "../dom";
+import {append, el, svgIcon} from "../dom";
 import {Button, type ButtonVariant} from "./button";
 import "./table.css";
 
 /** Horizontal alignment of a column's header and cells. */
 export type TableAlign = "left" | "center" | "right";
+
+/** Which way a sorted column runs. */
+export type TableSortDirection = "ascending" | "descending";
+
+/** The active sort: one column and a direction. */
+export interface TableSort {
+    /** `key` of the sorted column. */
+    key: string;
+    direction: TableSortDirection;
+}
 
 /** One column definition. */
 export interface TableColumn {
@@ -44,6 +54,21 @@ export interface TableColumn {
      * the other, not both: `actions` wins when present.
      */
     actions?: (row: any, index: number) => TableAction[];
+    /**
+     * Make the header a sort button.
+     *
+     * Clicking cycles ascending → descending → unsorted, which gives the reader a
+     * way back to the order the data arrived in; a two-state toggle cannot.
+     */
+    sortable?: boolean;
+    /**
+     * What to sort this column by, when that is not the raw cell value.
+     *
+     * A cell often shows formatted text — a date, a currency, `render`'s output —
+     * while the useful order is the underlying number or timestamp. Defaults to
+     * `row[column.key]`.
+     */
+    sortValue?: (row: any) => unknown;
 }
 
 /** One button inside an action column. */
@@ -75,8 +100,22 @@ export interface TableOptions {
     selectedKeys?: string[];
     /** Fires after a user-driven selection change, with the new key list. */
     onSelectionChange?: (keys: string[]) => void;
+    /**
+     * Hide rows that do not pass the test.
+     *
+     * Filtering is a view concern, so the callback sees the row and its index in
+     * the array you passed to `rows` — never an index into the filtered result,
+     * which would change as the reader types.
+     */
+    filter?: (row: any, index: number) => boolean;
+    /** Sort applied on first paint. */
+    sort?: TableSort | null;
+    /** Fires when the reader clicks a sortable header. */
+    onSortChange?: (sort: TableSort | null) => void;
     /** Text shown in place of rows when `rows` is empty. */
     emptyText?: string;
+    /** Text shown when rows exist but the filter rejects all of them. */
+    filterEmptyText?: string;
 }
 
 /** Fallback identity: an `id` field when the data has one, else the index. */
@@ -90,6 +129,40 @@ function alignClass(align: TableAlign | undefined): string {
     if (align === "center") return " mac-table__align--center";
     if (align === "right") return " mac-table__align--right";
     return "";
+}
+
+/**
+ * Chevron drawn inside a sortable header.
+ *
+ * Points up, which is ascending; CSS rotates it a half turn for descending. One
+ * node and one rule instead of two paths, so switching direction never has to
+ * rebuild the header.
+ */
+const SORT_CHEVRON = "M6 15l6-6 6 6";
+
+/**
+ * Compare two non-empty sort keys.
+ *
+ * Numbers and dates compare by magnitude, everything else as text with `numeric`
+ * collation — which is what makes "item 2" sort before "item 10" instead of
+ * after it. A plain string compare gets that wrong and it is the single most
+ * common complaint about a hand-written sorter.
+ */
+function compareValues(a: unknown, b: unknown): number {
+    const aTime = a instanceof Date ? a.getTime() : null;
+    const bTime = b instanceof Date ? b.getTime() : null;
+    if (aTime !== null || bTime !== null) {
+        const left = aTime ?? Number(a);
+        const right = bTime ?? Number(b);
+        if (Number.isFinite(left) && Number.isFinite(right)) return left - right;
+    }
+
+    if (typeof a === "number" && typeof b === "number") return a - b;
+
+    return String(a).localeCompare(String(b), undefined, {
+        numeric: true,
+        sensitivity: "base",
+    });
 }
 
 /**
@@ -111,6 +184,8 @@ export class Table extends Component<HTMLDivElement> {
     protected readonly root: HTMLDivElement;
 
     private readonly body: HTMLTableSectionElement;
+    /** Header section; sort clicks are delegated from it. */
+    private readonly head: HTMLTableSectionElement;
     /** Horizontal scroller; the fixed-width pass measures the available box from it. */
     private readonly scroll: HTMLDivElement;
 
@@ -119,6 +194,13 @@ export class Table extends Component<HTMLDivElement> {
     private readonly selectable: boolean;
     private readonly emptyText: string;
     private readonly onSelectionChange?: (keys: string[]) => void;
+    private readonly onSortChange?: (sort: TableSort | null) => void;
+    private readonly filterEmptyText: string;
+
+    /** Active sort, or null for the order the data arrived in. */
+    private sortState: TableSort | null = null;
+    /** Active row test, or null when every row shows. */
+    private filterState: ((row: any, index: number) => boolean) | null = null;
 
     /** Selected row keys, in selection order. */
     private readonly selected = new Set<string>();
@@ -141,6 +223,13 @@ export class Table extends Component<HTMLDivElement> {
         this.emptyText = options.emptyText ?? "暂无数据";
         this.rowKey = options.rowKey ?? defaultRowKey;
         this.onSelectionChange = options.onSelectionChange;
+        this.onSortChange = options.onSortChange;
+        this.filterEmptyText = options.filterEmptyText ?? "无匹配结果";
+        // Copied, not referenced: the caller's object is theirs to mutate, and a
+        // sort that changed under the component without a render would put the
+        // header arrow and the row order out of step.
+        this.sortState = options.sort ? {...options.sort} : null;
+        this.filterState = options.filter ?? null;
 
         for (const key of options.selectedKeys ?? []) {
             this.selected.add(key);
@@ -161,6 +250,7 @@ export class Table extends Component<HTMLDivElement> {
         const scroll = el("div", {class: "mac-table__scroll"});
         const table = el("table", {class: "mac-table__table"});
         const head = el("thead", {class: "mac-table__head"});
+        this.head = head;
 
         this.scroll = scroll;
         this.body = el("tbody", {class: "mac-table__body"});
@@ -174,6 +264,7 @@ export class Table extends Component<HTMLDivElement> {
         // One listener for every row checkbox, on an element that outlives the
         // rows themselves.
         this.listen(this.body, "change", (event) => this.onBodyChange(event));
+        this.listen(this.head, "click", (event) => this.onHeadClick(event));
 
         this.renderRows();
 
@@ -409,6 +500,46 @@ export class Table extends Component<HTMLDivElement> {
         this.syncHeaderCheck();
     }
 
+    /** Rows after filtering and sorting, in the order the body shows them. */
+    get visibleRows(): any[] {
+        return this.computeRows().map((entry) => entry.row);
+    }
+
+    /** The active sort, or null when the table shows the order the data arrived in. */
+    get sort(): TableSort | null {
+        return this.sortState ? {...this.sortState} : null;
+    }
+
+    /**
+     * Sort by a column key. Silent, like every setter in the kit.
+     *
+     * Pass `null` to restore the source order. The key does not have to belong
+     * to a `sortable` column: the button is the affordance, not a restriction.
+     */
+    setSort(sort: TableSort | null): void {
+        const next = sort ? {key: sort.key, direction: sort.direction} : null;
+        const same =
+            this.sortState === null || next === null
+                ? this.sortState === next
+                : this.sortState.key === next.key && this.sortState.direction === next.direction;
+        if (same) return;
+
+        this.sortState = next;
+        this.renderRows();
+    }
+
+    /** The active row test, or null when every row shows. */
+    get filter(): ((row: any, index: number) => boolean) | null {
+        return this.filterState;
+    }
+
+    /** Replace the row test. Silent; the argument is the function itself. */
+    setFilter(filter: ((row: any, index: number) => boolean) | null): void {
+        if (this.filterState === filter) return;
+        this.filterState = filter;
+        this.renderRows();
+    }
+
     // --- construction --------------------------------------------------------
 
     /** `<col>` per column, so `width` is only ever a hint on one element. */
@@ -453,19 +584,48 @@ export class Table extends Component<HTMLDivElement> {
         }
 
         this.columns.forEach((column, columnIndex) => {
-            const cell = el("th", {
-                class: `mac-table__th${alignClass(column.align)}`,
-                scope: "col",
-            });
-            if (column.pinned) {
-                cell.dataset.pin = column.pinned;
-                cell.dataset.col = String(columnIndex);
-            }
-            cell.textContent = column.title;
-            row.appendChild(cell);
+            row.appendChild(this.makeHeaderCell(column, columnIndex));
         });
 
         return row;
+    }
+
+    /**
+     * One header cell — a plain label, or a sort button when the column sorts.
+     *
+     * The button sits *inside* the `th` rather than replacing it: the cell keeps
+     * the column association screen readers rely on, and `aria-sort` is a
+     * property of the header, not of the control that changes it.
+     */
+    private makeHeaderCell(column: TableColumn, columnIndex: number): HTMLTableCellElement {
+        const cell = el("th", {
+            class: `mac-table__th${alignClass(column.align)}`,
+            scope: "col",
+        });
+        if (column.pinned) {
+            cell.dataset.pin = column.pinned;
+            cell.dataset.col = String(columnIndex);
+        }
+
+        if (!column.sortable) {
+            cell.textContent = column.title;
+            return cell;
+        }
+
+        cell.classList.add("mac-table__th--sortable");
+        // Keyed by column key rather than by index: the indicator pass has to
+        // find its cell again after any rebuild, and columns are allowed to
+        // move between renders.
+        cell.dataset.sortKey = column.key;
+
+        const button = el("button", {class: "mac-table__sort", type: "button"});
+        const label = el("span", {class: "mac-table__sort-label", text: column.title});
+        const arrow = svgIcon(SORT_CHEVRON, 10);
+        arrow.classList.add("mac-table__sort-arrow");
+        button.append(label, arrow);
+        cell.appendChild(button);
+
+        return cell;
     }
 
     // --- rendering -----------------------------------------------------------
@@ -477,16 +637,18 @@ export class Table extends Component<HTMLDivElement> {
         this.rowChecks = [];
         this.rowKeys = [];
 
-        if (this.rows.length === 0) {
+        const visible = this.computeRows();
+        if (visible.length === 0) {
             fragment.appendChild(this.makeEmptyRow());
         } else {
-            this.rows.forEach((row, index) => {
-                fragment.appendChild(this.makeRow(row, index));
-            });
+            for (const entry of visible) {
+                fragment.appendChild(this.makeRow(entry.row, entry.index));
+            }
         }
 
         this.body.replaceChildren(fragment);
         this.syncHeaderCheck();
+        this.syncSortIndicators();
         // New cells carry no offsets and the actions group may be a different
         // width than last time, so both passes run again now that they exist.
         requestAnimationFrame(() => {
@@ -592,9 +754,123 @@ export class Table extends Component<HTMLDivElement> {
             colSpan: Math.max(1, span),
         });
 
-        cell.textContent = this.emptyText;
+        // "Nothing here yet" and "nothing matched" are different messages, and
+        // telling them apart is the difference between adding a row and
+        // loosening the filter. The filter wording only applies when there was
+        // something to hide.
+        cell.textContent = this.rows.length > 0 ? this.filterEmptyText : this.emptyText;
         row.appendChild(cell);
         return row;
+    }
+
+    /**
+     * Rows in display order, each paired with its index in the source array.
+     *
+     * The source index travels with the row through filtering and sorting
+     * because every callback — `rowKey`, `render`, `actions`, `filter` — is
+     * documented to receive it. A row keeps its identity across a sort, so it
+     * must keep its index too; otherwise a table without `rowKey` would
+     * renumber itself, and renumber its selection, on every header click.
+     */
+    private computeRows(): {row: any; index: number}[] {
+        const entries: {row: any; index: number; value?: unknown}[] = [];
+        for (let index = 0; index < this.rows.length; index += 1) {
+            const row = this.rows[index];
+            if (this.filterState && !this.filterState(row, index)) continue;
+            entries.push({row, index});
+        }
+
+        const sort = this.sortState;
+        if (!sort) return entries;
+
+        const column = this.columns.find((candidate) => candidate.key === sort.key);
+        // A stale sort key — `setColumns` is not a thing, but `rows` can arrive
+        // before the column list makes sense — falls back to the source order
+        // instead of throwing away the whole render.
+        if (!column) return entries;
+
+        const read = column.sortValue ?? ((row: any) => row?.[column.key]);
+        // Read once per row, not once per comparison: `sortValue` is caller code
+        // and may format or compute, which does not belong in a comparator that
+        // runs O(n log n) times.
+        for (const entry of entries) entry.value = read(entry.row);
+
+        const direction = sort.direction === "ascending" ? 1 : -1;
+
+        entries.sort((a, b) => {
+            const aEmpty = a.value === null || a.value === undefined;
+            const bEmpty = b.value === null || b.value === undefined;
+
+            // Empty cells sink in both directions. "No value" is not a value to
+            // be ordered, and flipping it to the top on a descending sort would
+            // bury every row the reader just asked to see first.
+            if (aEmpty || bEmpty) {
+                if (aEmpty && bEmpty) return a.index - b.index;
+                return aEmpty ? 1 : -1;
+            }
+
+            const order = compareValues(a.value, b.value);
+            // An unorderable pair (`NaN`, infinity) counts as a tie, and ties
+            // fall back to the source order — that is what keeps this stable.
+            if (!Number.isFinite(order) || order === 0) return a.index - b.index;
+            return order * direction;
+        });
+
+        return entries;
+    }
+
+    // --- sorting -------------------------------------------------------------
+
+    /** Delegated from the header, which outlives every body it describes. */
+    private onHeadClick(event: Event): void {
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+
+        const button = target.closest<HTMLElement>(".mac-table__sort");
+        if (!button) return;
+
+        const key = button.closest<HTMLElement>(".mac-table__th")?.dataset.sortKey;
+        if (key !== undefined) this.cycleSort(key);
+    }
+
+    /**
+     * Ascending → descending → unsorted.
+     *
+     * The third state is the point: a two-state toggle reorders every table the
+     * first time someone clicks a header out of curiosity, with no way back to
+     * the order the data was authored in.
+     */
+    private cycleSort(key: string): void {
+        const current = this.sortState;
+        let next: TableSort | null;
+        if (!current || current.key !== key) next = {key, direction: "ascending"};
+        else if (current.direction === "ascending") next = {key, direction: "descending"};
+        else next = null;
+
+        this.sortState = next;
+        this.renderRows();
+        this.onSortChange?.(next ? {...next} : null);
+    }
+
+    /**
+     * Mirror `sortState` onto the header: `aria-sort` and the arrow.
+     *
+     * Runs on every render rather than only after a click, so a `setSort()` from
+     * code and a `sort` option read at construction land in the same state as a
+     * clicked one.
+     */
+    private syncSortIndicators(): void {
+        const active = this.sortState;
+
+        for (const cell of this.root.querySelectorAll<HTMLElement>(".mac-table__th--sortable")) {
+            const sorted = active !== null && cell.dataset.sortKey === active.key;
+            cell.setAttribute("aria-sort", active && sorted ? active.direction : "none");
+            cell.classList.toggle("is-sorted", sorted);
+            cell.classList.toggle(
+                "is-descending",
+                active !== null && sorted && active.direction === "descending",
+            );
+        }
     }
 
     // --- selection -----------------------------------------------------------

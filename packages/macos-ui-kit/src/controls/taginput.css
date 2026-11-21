@@ -1,0 +1,140 @@
+/* macOS token field: chips and a bare input sharing one bordered box. */
+
+.mac-taginput {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-1);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+}
+
+.mac-taginput__label {
+    font-size: var(--mac-text-small);
+    font-weight: var(--mac-weight-medium);
+    color: var(--mac-text-secondary);
+}
+
+/* The border and background live on the wrapper, matching the text field: the
+   chips and the input sit inside the same box and neither carries chrome. It
+   wraps, so a full row of chips pushes the caret onto the next line instead of
+   squeezing the input to nothing. */
+.mac-taginput__control {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--mac-space-1);
+    min-height: var(--mac-control-height);
+    padding: calc(var(--mac-space-1) / 2) var(--mac-space-2);
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-m);
+    background: var(--mac-bg-input);
+    cursor: text;
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        border-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-taginput__control:hover {
+    border-color: var(--mac-border-strong);
+}
+
+/* Focus is shown on the wrapper, because the input has no chrome of its own.
+   The ring stays keyboard-only: `:has(:focus-visible)` keeps mouse clicks quiet,
+   and engines without :has() fall back to the accent border. */
+.mac-taginput__control:focus-within {
+    border-color: var(--mac-accent);
+}
+
+.mac-taginput__control:has(:focus-visible) {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 1px;
+}
+
+.mac-taginput__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--mac-space-1);
+    flex: 0 0 auto;
+    max-width: 100%;
+    height: calc(var(--mac-control-height-s) - var(--mac-space-1));
+    padding: 0 var(--mac-space-1) 0 var(--mac-space-2);
+    border-radius: var(--mac-radius-s);
+    background: var(--mac-bg-active);
+    color: var(--mac-text);
+    font-size: var(--mac-text-2xs);
+    line-height: 1;
+    user-select: none;
+}
+
+/* min-width lets the ellipsis work: a flex item refuses to shrink below its
+   content unless it is allowed to. */
+.mac-taginput__tag-label {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.mac-taginput__tag-remove {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: calc(var(--mac-icon-xs) + var(--mac-space-1) / 2);
+    height: calc(var(--mac-icon-xs) + var(--mac-space-1) / 2);
+    padding: 0;
+    border: none;
+    border-radius: var(--mac-radius-s);
+    background: transparent;
+    color: var(--mac-text-tertiary);
+    cursor: default;
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-taginput__tag-remove:hover:not(:disabled) {
+    background: var(--mac-bg-hover);
+    color: var(--mac-text);
+}
+
+.mac-taginput__tag-remove:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 1px;
+}
+
+.mac-taginput__tag-remove:disabled {
+    opacity: 0.45;
+}
+
+/* Flexible rather than measured: the input takes whatever width is left on the
+   row, so the caret sits right after the last chip with no sizer span to keep in
+   sync with the real font. 1ch is the floor so an empty field still shows a
+   caret-width hit area. */
+.mac-taginput__input {
+    flex: 1 1 auto;
+    min-width: 1ch;
+    height: var(--mac-control-height-s);
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--mac-text);
+    font-family: inherit;
+    font-size: var(--mac-text-body);
+    line-height: 1;
+    outline: none;
+}
+
+.mac-taginput__input::placeholder {
+    color: var(--mac-text-tertiary);
+}
+
+/* Disabled: the native attribute blocks both the field and every chip button,
+   this only dims the box. The label dims less, as on the text field. */
+.mac-taginput.is-disabled .mac-taginput__control {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.mac-taginput.is-disabled .mac-taginput__label {
+    opacity: 0.6;
+}

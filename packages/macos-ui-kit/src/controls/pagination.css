@@ -1,0 +1,118 @@
+/* macOS pager: quiet arrows, a plain page list, one accented current page. */
+
+.mac-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--mac-space-3);
+    flex-wrap: wrap;
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    color: var(--mac-text);
+    min-width: 0;
+}
+
+.mac-pagination__summary {
+    flex: 0 0 auto;
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-secondary);
+    white-space: nowrap;
+}
+
+.mac-pagination__summary[hidden] {
+    display: none;
+}
+
+.mac-pagination__list {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-1);
+    margin-inline-start: auto;
+}
+
+/* Pages are square-ish so a row of them reads as one control, not as a
+   sentence of numbers. */
+.mac-pagination__page,
+.mac-pagination__arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--mac-control-height-s);
+    height: var(--mac-control-height-s);
+    padding: 0 var(--mac-space-2);
+    border: var(--mac-hairline) solid transparent;
+    border-radius: var(--mac-radius-s);
+    background: transparent;
+    color: var(--mac-text);
+    font-family: inherit;
+    font-size: var(--mac-text-small);
+    font-variant-numeric: tabular-nums;
+    cursor: default;
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-pagination__arrow {
+    padding: 0;
+    color: var(--mac-text-secondary);
+}
+
+.mac-pagination__page:hover:not(:disabled),
+.mac-pagination__arrow:hover:not(:disabled) {
+    background: var(--mac-bg-hover);
+}
+
+.mac-pagination__page:active:not(:disabled),
+.mac-pagination__arrow:active:not(:disabled) {
+    background: var(--mac-bg-active);
+}
+
+/* The current page is filled, which is how a native pager says "you are here"
+   without a border competing with the buttons around it. */
+.mac-pagination__page.is-current {
+    background: var(--mac-accent);
+    border-color: transparent;
+    color: var(--mac-text-on-accent);
+    font-weight: var(--mac-weight-medium);
+}
+
+.mac-pagination__page.is-current:hover {
+    background: var(--mac-accent);
+}
+
+.mac-pagination__page:focus-visible,
+.mac-pagination__arrow:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: -1px;
+}
+
+.mac-pagination__gap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--mac-control-height-s);
+    height: var(--mac-control-height-s);
+    color: var(--mac-text-tertiary);
+    user-select: none;
+}
+
+.mac-pagination__arrow:disabled,
+.mac-pagination__page:disabled {
+    opacity: 0.35;
+}
+
+.mac-pagination.is-disabled {
+    opacity: 0.6;
+}
+
+/* Narrow: the summary moves above the buttons rather than squeezing them. */
+@media (max-width: 480px) {
+    .mac-pagination {
+        gap: var(--mac-space-2);
+    }
+
+    .mac-pagination__list {
+        margin-inline-start: 0;
+    }
+}

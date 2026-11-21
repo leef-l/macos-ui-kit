@@ -1,0 +1,182 @@
+/* macOS month grid: a headline with two month arrows, a weekday ruler and a
+   seven-column day grid. */
+
+.mac-calendar {
+    /* No surface of its own — no border, no background, no shadow. A calendar is
+       nearly always dropped inside a popover, a form row or a sheet that already
+       draws the surface, and a second frame inside the first reads as a
+       rendering bug. */
+    display: inline-flex;
+    flex-direction: column;
+    gap: var(--mac-space-2);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    color: var(--mac-text);
+    user-select: none;
+}
+
+.mac-calendar__header {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-1);
+}
+
+.mac-calendar__title {
+    flex: 1 1 auto;
+    font-size: var(--mac-text-body);
+    font-weight: var(--mac-weight-semibold);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.mac-calendar__nav {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: var(--mac-control-height-s);
+    height: var(--mac-control-height-s);
+    padding: 0;
+    border: none;
+    border-radius: var(--mac-radius-s);
+    background: transparent;
+    color: var(--mac-text-secondary);
+    cursor: default;
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-calendar__nav:hover:not(:disabled) {
+    background: var(--mac-bg-hover);
+    color: var(--mac-text);
+}
+
+.mac-calendar__nav:active:not(:disabled) {
+    background: var(--mac-bg-active);
+}
+
+.mac-calendar__nav:disabled {
+    opacity: 0.35;
+}
+
+.mac-calendar__nav:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 1px;
+}
+
+/* The ruler and every week row share this fixed track definition. They are
+   separate grids, so `1fr` would size the weekday initials to their own width
+   and the columns would drift apart from the day cells below. */
+.mac-calendar__weekdays,
+.mac-calendar__row {
+    display: grid;
+    grid-template-columns: repeat(7, var(--mac-control-height));
+    gap: var(--mac-space-1);
+}
+
+.mac-calendar__weekday {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--mac-control-height-s);
+    font-size: var(--mac-text-small);
+    font-weight: var(--mac-weight-medium);
+    color: var(--mac-text-tertiary);
+}
+
+.mac-calendar__grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-1);
+}
+
+.mac-calendar__day {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: var(--mac-control-height);
+    padding: 0;
+    border: none;
+    border-radius: var(--mac-radius-s);
+    background: transparent;
+    color: var(--mac-text);
+    font-family: inherit;
+    font-size: var(--mac-text-body);
+    font-variant-numeric: tabular-nums;
+    cursor: default;
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-calendar__day:hover:not(:disabled):not(.is-selected) {
+    background: var(--mac-bg-hover);
+}
+
+.mac-calendar__day:active:not(:disabled) {
+    background: var(--mac-bg-active);
+}
+
+.mac-calendar__day:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: -1px;
+}
+
+/* Today is a ring, never a fill: a fill is the *selection's* shape, and two of
+   them side by side would leave the user guessing which day is picked. */
+.mac-calendar__day.is-today {
+    box-shadow: inset 0 0 0 var(--mac-hairline) var(--mac-border-strong);
+    font-weight: var(--mac-weight-semibold);
+}
+
+/* The tails of the neighbouring months: readable, but clearly not this month's
+   days. */
+.mac-calendar__day.is-outside {
+    color: var(--mac-text-tertiary);
+}
+
+/* A filler keeps its column so the weeks stay aligned; hidden rather than
+   removed so the grid never reflows between months. */
+.mac-calendar__day.is-empty {
+    visibility: hidden;
+}
+
+.mac-calendar__day.is-selected {
+    /* The ring belongs to `is-today`; a selected today has to read as one
+       object, so the inset ring gives way to the fill. */
+    box-shadow: none;
+    background: var(--mac-accent);
+    color: var(--mac-text-on-accent);
+    font-weight: var(--mac-weight-semibold);
+}
+
+.mac-calendar__day.is-selected:hover {
+    background: var(--mac-accent);
+}
+
+/* Out of range: the native attribute blocks the click, this only says so. */
+.mac-calendar__day:disabled {
+    color: var(--mac-text-tertiary);
+    opacity: 0.4;
+}
+
+/* --- Coarse pointers ------------------------------------------------------ */
+
+/* 44px is Apple's minimum tap target: a platform constant, not a design step. */
+@media (pointer: coarse) {
+    .mac-calendar__weekdays,
+    .mac-calendar__row {
+        grid-template-columns: repeat(7, 44px);
+    }
+
+    .mac-calendar__day {
+        height: 44px;
+    }
+
+    .mac-calendar__nav {
+        width: 44px;
+        height: 44px;
+    }
+}

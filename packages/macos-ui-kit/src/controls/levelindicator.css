@@ -1,0 +1,76 @@
+/* Segmented level meter. The bar is a flex row (or column) of equal segments;
+   `is-on` is the only state a segment has, so the fill is a class toggle rather
+   than a width or a gradient stop.
+
+   No appearance-specific rules: the unlit track is `--mac-bg-active`, which the
+   token layer already flips for a dark window, so a dark meter needs no second
+   block here. */
+
+.mac-levelindicator {
+    display: flex;
+    gap: 2px;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: calc(8px * var(--mac-scale));
+    align-items: stretch;
+}
+
+.mac-levelindicator--vertical {
+    flex-direction: column-reverse;
+    /* Filled segments are the first children and the column is reversed, so the
+       bottom of the bar is index 0 and the meter grows upward. */
+    width: calc(8px * var(--mac-scale));
+    height: 120px;
+    /* A vertical meter is as tall as it was told to be: stretching it to a flex
+       row's cross size would make its height a side effect of its neighbours. */
+    flex: 0 0 auto;
+}
+
+.mac-levelindicator__segment {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 1px;
+    background: var(--mac-bg-active);
+    transition: background-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+/* Rounded ends only on the two outer segments, so the bar reads as one capsule
+   made of blocks rather than as a row of pills. Physical corners rather than
+   logical ones: the bar is horizontal or vertical by construction, and a single
+   shorthand per end says which is which without a reader resolving a writing
+   mode. */
+.mac-levelindicator--horizontal .mac-levelindicator__segment:first-child {
+    border-radius: var(--mac-radius-s) 0 0 var(--mac-radius-s);
+}
+
+.mac-levelindicator--horizontal .mac-levelindicator__segment:last-child {
+    border-radius: 0 var(--mac-radius-s) var(--mac-radius-s) 0;
+}
+
+/* The column is reversed, so the first child is the bottom of the bar. */
+.mac-levelindicator--vertical .mac-levelindicator__segment:first-child {
+    border-radius: 0 0 var(--mac-radius-s) var(--mac-radius-s);
+}
+
+.mac-levelindicator--vertical .mac-levelindicator__segment:last-child {
+    border-radius: var(--mac-radius-s) var(--mac-radius-s) 0 0;
+}
+
+/* --- Lit segments ---------------------------------------------------------- */
+
+.mac-levelindicator--level .mac-levelindicator__segment.is-on[data-band="ok"] {
+    background: var(--mac-success);
+}
+
+.mac-levelindicator--level .mac-levelindicator__segment.is-on[data-band="warn"] {
+    background: var(--mac-warning);
+}
+
+.mac-levelindicator--level .mac-levelindicator__segment.is-on[data-band="hot"] {
+    background: var(--mac-danger);
+}
+
+.mac-levelindicator--accent .mac-levelindicator__segment.is-on {
+    background: var(--mac-accent);
+}

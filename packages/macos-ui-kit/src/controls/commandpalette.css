@@ -1,0 +1,240 @@
+/* Command palette: one search field over a ranked list of commands.
+   
+   The palette is modal — it dims the window, takes the keyboard and hands focus
+   back — so it is built on the dialog's overlay layer rather than beside it: the
+   root wears `.mac-dialog__scrim`, which already supplies the fixed inset-0
+   layer, the `--mac-scrim` wash, the 1100 stacking tier and the fade. A second
+   scrim implementation would be a second thing to keep in step. */
+
+/* The palette's only structural difference from a dialog: it hangs from the top
+   of the window instead of sitting in the middle, because the list grows downward
+   as the query narrows and a vertically centred list would move under the cursor.
+   Two classes on purpose — this has to beat `.mac-dialog__scrim` on specificity
+   rather than on stylesheet order, or the alignment would depend on which CSS
+   file happened to be imported last. */
+.mac-dialog__scrim.mac-commandpalette__backdrop {
+    align-items: flex-start;
+    /* Two steps of --mac-space-8 keeps the panel clear of the title bar without
+       pushing it far enough down to read as a dialog. */
+    padding-top: calc(var(--mac-space-8) * 2);
+}
+
+.mac-commandpalette {
+    display: flex;
+    flex-direction: column;
+    /* 560px is the width at which a label plus a keystroke badge fits on one line;
+       the panel never outgrows a narrow window. */
+    width: min(560px, 100%);
+    /* The list scrolls inside this cap. `vh` so a short window still leaves the
+       dimmed page visible above and below. */
+    max-height: min(62vh, 520px);
+    border-radius: var(--mac-radius-l);
+    background: var(--mac-bg-overlay);
+    box-shadow: var(--mac-shadow-popover);
+    color: var(--mac-text);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    box-sizing: border-box;
+    /* The shell is cut off at the rounded corners; the list scrolls, the search
+       row does not. */
+    overflow: hidden;
+
+    /* Entrance only: the exit is a removal, so there is nothing to animate out. */
+    opacity: 0;
+    transform: translateY(calc(var(--mac-space-2) * -1)) scale(0.98);
+    transition:
+        opacity var(--mac-duration) var(--mac-ease),
+        transform var(--mac-duration) var(--mac-ease);
+}
+
+/* Driven by the same `is-open` the scrim fade uses. */
+.mac-commandpalette__backdrop.is-open .mac-commandpalette {
+    opacity: 1;
+    transform: none;
+}
+
+/* A focus container, not a control: the ring belongs on the field, and a ring
+   around the whole card would fight the panel's own shadow. */
+.mac-commandpalette:focus {
+    outline: none;
+}
+
+/* --- Search row ------------------------------------------------------------ */
+
+.mac-commandpalette__search {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    flex: 0 0 auto;
+    padding: var(--mac-space-2) var(--mac-space-3);
+    border-bottom: var(--mac-hairline) solid var(--mac-separator);
+}
+
+.mac-commandpalette__search-icon {
+    flex: 0 0 auto;
+    width: var(--mac-icon-sm);
+    height: var(--mac-icon-sm);
+    color: var(--mac-text-tertiary);
+}
+
+.mac-commandpalette__input {
+    flex: 1 1 auto;
+    /* A flex child that has to shrink, or a long query would widen the row past
+       the panel instead of scrolling inside the field. */
+    min-width: 0;
+    height: var(--mac-control-height);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--mac-text);
+    font-family: inherit;
+    /* One step up from body: the query is the largest thing in the panel, which
+       is what makes the palette read as a place you type rather than a list you
+       browse. */
+    font-size: var(--mac-text-title);
+    line-height: 1.2;
+    /* The row carries the focus treatment below; a caret plus an inset box would
+       be two indicators for one state. */
+    outline: none;
+}
+
+.mac-commandpalette__input::placeholder {
+    color: var(--mac-text-tertiary);
+}
+
+/* The focus indicator for the whole palette: the rule under the field turns
+   accent while the field holds focus. The caret is the second cue, and it is
+   always there — the dialog never loses focus while it is open, so there is no
+   "where am I" question for a boxed ring to answer. */
+.mac-commandpalette__search:focus-within {
+    border-bottom-color: var(--mac-accent);
+}
+
+/* --- List ------------------------------------------------------------------ */
+
+.mac-commandpalette__list {
+    flex: 1 1 auto;
+    /* Both zeroes matter: the panel caps its height, so the scroller has to be
+       allowed to shrink or it pushes the panel past the cap instead of scrolling. */
+    min-height: 0;
+    padding: var(--mac-space-1);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
+
+.mac-commandpalette__group {
+    padding: var(--mac-space-2) var(--mac-space-2) calc(var(--mac-space-1) / 2);
+    font-size: var(--mac-text-2xs);
+    font-weight: var(--mac-weight-semibold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--mac-text-tertiary);
+    user-select: none;
+}
+
+/* The first heading needs no gap above it: the list padding is already there. */
+.mac-commandpalette__group:first-child {
+    padding-top: var(--mac-space-1);
+}
+
+.mac-commandpalette__option {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    min-height: var(--mac-control-height);
+    padding: 0 var(--mac-space-2);
+    border-radius: var(--mac-radius-s);
+    color: var(--mac-text-secondary);
+    font-weight: var(--mac-weight-medium);
+    cursor: default;
+    user-select: none;
+}
+
+/* The filled accent, not the soft tint a list box uses: the highlight in a
+   palette is a keyboard cursor that moves under the eyes, and it has to stay
+   legible while the list re-ranks on every keystroke. */
+.mac-commandpalette__option.is-active {
+    background: var(--mac-bg-selected);
+    color: var(--mac-text-on-accent);
+}
+
+.mac-commandpalette__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Matched characters: weight and the accent, so the hit is visible in a long
+   label without turning the row into a highlighter smear. */
+.mac-commandpalette__match {
+    font-weight: var(--mac-weight-semibold);
+    color: var(--mac-accent);
+}
+
+.mac-commandpalette__option.is-active .mac-commandpalette__match {
+    color: var(--mac-text-on-accent);
+}
+
+.mac-commandpalette__icon {
+    flex: 0 0 auto;
+    width: var(--mac-icon-sm);
+    height: var(--mac-icon-sm);
+    opacity: 0.9;
+}
+
+.mac-commandpalette__hint {
+    flex: 0 0 auto;
+    max-width: 45%;
+    overflow: hidden;
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-tertiary);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.mac-commandpalette__shortcut {
+    flex: 0 0 auto;
+    padding: 0 var(--mac-space-1);
+    border-radius: var(--mac-radius-s);
+    background: var(--mac-bg-active);
+    color: var(--mac-text-secondary);
+    font-size: var(--mac-text-2xs);
+    font-weight: var(--mac-weight-semibold);
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+/* On the accent bar the tertiary inks would disappear, so both trailing parts
+   switch to the on-accent ink and lean on opacity for rank. */
+.mac-commandpalette__option.is-active .mac-commandpalette__hint,
+.mac-commandpalette__option.is-active .mac-commandpalette__shortcut {
+    color: var(--mac-text-on-accent);
+    opacity: 0.82;
+}
+
+/* Dimmed rather than dropped: a command that cannot run right now is still a
+   command the user was looking for. */
+.mac-commandpalette__option[aria-disabled="true"] {
+    opacity: 0.4;
+}
+
+.mac-commandpalette__empty {
+    padding: var(--mac-space-6) var(--mac-space-4);
+    color: var(--mac-text-tertiary);
+    font-size: var(--mac-text-body);
+    text-align: center;
+}
+
+/* Rule 21: the entrance is decoration. The durations already collapse to 0ms
+   under the same query (tokens.css), which kills the fade; this removes the
+   transform too, so nothing jumps by eight pixels on the way in. */
+@media (prefers-reduced-motion: reduce) {
+    .mac-commandpalette {
+        transform: none;
+        transition: none;
+    }
+}

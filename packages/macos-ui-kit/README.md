@@ -8,7 +8,7 @@ tokens, so one import gives you the whole design system.
 
 **English** | [简体中文](./README.zh-CN.md)
 
-- **31 components** — 18 controls, 6 layout, 6 overlays, 1 mobile shell
+- **59 components** — 44 controls, 6 layout, 8 overlays, 1 mobile shell
 - **Zero runtime dependencies**
 - **Light DOM only** — no Shadow DOM, so native window dragging and screen
   readers both work
@@ -60,7 +60,7 @@ No configuration, no token. This is the channel to use.
 ### Straight from a GitHub release — no registry at all
 
 ```sh
-npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.4.4/leef-l-macos-ui-kit-0.4.4.tgz
+npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.5.0/leef-l-macos-ui-kit-0.5.0.tgz
 ```
 
 Same files, same types, same exports. Use it to pin an exact build, or when no

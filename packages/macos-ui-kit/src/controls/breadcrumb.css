@@ -1,0 +1,126 @@
+/* Breadcrumb: quiet text trail, chevron separators, nothing underlined. */
+
+.mac-breadcrumb {
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-secondary);
+    min-width: 0;
+}
+
+.mac-breadcrumb__list {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--mac-space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.mac-breadcrumb__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--mac-space-1);
+    min-width: 0;
+}
+
+.mac-breadcrumb__separator {
+    display: inline-flex;
+    align-items: center;
+    color: var(--mac-text-tertiary);
+    /* The chevron sits between entries, so it needs air on both sides that the
+       list gap alone does not provide at this size. */
+    margin-inline: 1px;
+}
+
+.mac-breadcrumb__separator.is-slash {
+    font-size: var(--mac-text-small);
+    transform: translateY(-0.02em);
+}
+
+.mac-breadcrumb__icon {
+    display: inline-flex;
+    align-items: center;
+    color: var(--mac-text-tertiary);
+}
+
+.mac-breadcrumb__link {
+    appearance: none;
+    -webkit-appearance: none;
+    margin: 0;
+    padding: 2px var(--mac-space-1);
+    max-width: 24ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border: 0;
+    border-radius: var(--mac-radius-s);
+    background: transparent;
+    color: var(--mac-text-secondary);
+    font: inherit;
+    text-align: start;
+    cursor: default;
+}
+
+.mac-breadcrumb__link:hover {
+    background: var(--mac-bg-hover);
+    color: var(--mac-text);
+}
+
+.mac-breadcrumb__link:active {
+    background: var(--mac-bg-active);
+}
+
+.mac-breadcrumb__link:focus-visible,
+.mac-breadcrumb__ellipsis:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 1px;
+}
+
+/* The current location is the darkest thing in the trail: it is the answer to
+   "where am I", which is the question a breadcrumb exists to answer. */
+.mac-breadcrumb__text {
+    padding: 2px var(--mac-space-1);
+    color: var(--mac-text);
+    font-weight: var(--mac-weight-medium);
+    max-width: 32ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mac-breadcrumb__text:not(.is-current) {
+    color: var(--mac-text-secondary);
+    font-weight: var(--mac-weight-regular);
+}
+
+.mac-breadcrumb__ellipsis {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    padding: 0 4px;
+    border: 0;
+    border-radius: var(--mac-radius-s);
+    background: transparent;
+    color: var(--mac-text-tertiary);
+    font: inherit;
+    line-height: 1;
+    cursor: default;
+}
+
+.mac-breadcrumb__ellipsis:hover {
+    background: var(--mac-bg-hover);
+    color: var(--mac-text);
+}
+
+@media (max-width: 480px) {
+    /* On a narrow view only the tail matters: the ancestors stay reachable
+       through `onExpand` / the ellipsis, but they stop pushing the current
+       location off the edge. */
+    .mac-breadcrumb__item:has(.mac-breadcrumb__link) {
+        max-width: 40%;
+    }
+}

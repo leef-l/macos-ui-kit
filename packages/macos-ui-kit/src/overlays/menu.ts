@@ -26,6 +26,20 @@ export interface MenuOptions {
     placement?: Placement;
     /** Fires with the chosen value. */
     onSelect?: (value: string) => void;
+    /**
+     * Fires after the menu has closed, whatever closed it.
+     *
+     * The one-shot helpers use this to release the instance: a menu registers
+     * document-level listeners for outside clicks and Escape, and a per-click
+     * menu that is never destroyed would pile one pair up per opening.
+     */
+    onClose?: () => void;
+    /**
+     * Gap between the anchor and the panel, in px. Defaults to 6, which suits a
+     * menu hanging off a button; a context menu passes 0 so its corner sits on
+     * the pointer.
+     */
+    offset?: number;
 }
 
 const CHECK_PATH = "M3 7 L5.5 9.5 L11 4";
@@ -44,6 +58,8 @@ export class Menu extends Component<HTMLDivElement> {
 
     private readonly items: MenuItem[];
     private readonly onSelect?: (value: string) => void;
+    private readonly onClose?: () => void;
+    private readonly offset: number;
     private readonly menuItems: HTMLButtonElement[] = [];
 
     private opened = false;
@@ -56,6 +72,8 @@ export class Menu extends Component<HTMLDivElement> {
 
         this.items = options.items;
         this.onSelect = options.onSelect;
+        this.onClose = options.onClose;
+        this.offset = options.offset ?? 6;
 
         this.root = el("div", {
             class: "mac-menu",
@@ -157,6 +175,7 @@ export class Menu extends Component<HTMLDivElement> {
             anchor,
             panel: this.root,
             placement: (this.root.dataset.placement as Placement) ?? "bottom-start",
+            offset: this.offset,
         });
 
         this.opened = true;
@@ -188,6 +207,8 @@ export class Menu extends Component<HTMLDivElement> {
 
         this.restoreFocusTo?.focus?.();
         this.restoreFocusTo = null;
+
+        this.onClose?.();
     }
 
     /** Whether the menu is currently open. */
@@ -277,9 +298,21 @@ export class Menu extends Component<HTMLDivElement> {
     }
 }
 
-/** Convenience: build a menu, open it at an anchor, and release it on close. */
+/**
+ * Convenience: build a menu, open it at an anchor, and release it on close.
+ *
+ * The instance destroys itself when it closes. Without that, each call would
+ * leave a `Menu` holding two document-level listeners forever — invisible until
+ * a list of a few hundred rows had been right-clicked.
+ */
 export function showMenu(anchor: HTMLElement, options: MenuOptions): Menu {
-    const menu = new Menu(options);
+    const menu: Menu = new Menu({
+        ...options,
+        onClose: () => {
+            options.onClose?.();
+            menu.destroy();
+        },
+    });
     menu.open(anchor);
     return menu;
 }

@@ -1,0 +1,122 @@
+/* macOS search field: a pill with a leading magnifier and a trailing clear. */
+
+.mac-searchfield {
+    display: block;
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+}
+
+.mac-searchfield__control {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    height: var(--mac-control-height);
+    padding: 0 var(--mac-space-2) 0 var(--mac-space-2);
+    border: var(--mac-hairline) solid var(--mac-border);
+    /* A pill is half the control height; writing it as 999px keeps the shape
+       correct at every density, including the `--mac-scale` variants. */
+    border-radius: 999px;
+    background: var(--mac-bg-input);
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        border-color var(--mac-duration-fast) var(--mac-ease);
+}
+
+/* The shorter toolbar size. */
+.mac-searchfield--s .mac-searchfield__control {
+    height: var(--mac-control-height-s);
+}
+
+.mac-searchfield--rounded .mac-searchfield__control {
+    border-radius: var(--mac-radius-m);
+}
+
+.mac-searchfield__control:hover {
+    border-color: var(--mac-border-strong);
+}
+
+.mac-searchfield__control:focus-within {
+    border-color: var(--mac-accent);
+}
+
+.mac-searchfield__control:has(:focus-visible) {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 1px;
+}
+
+.mac-searchfield__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--mac-text);
+    font-family: inherit;
+    font-size: var(--mac-text-body);
+    line-height: 1;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.mac-searchfield__input::placeholder {
+    color: var(--mac-text-tertiary);
+}
+
+/* The kit draws its own clear button, so the engine's cancel glyph has to go;
+   otherwise WebKit shows two of them at the same edge. */
+.mac-searchfield__input::-webkit-search-cancel-button,
+.mac-searchfield__input::-webkit-search-decoration {
+    display: none;
+    -webkit-appearance: none;
+}
+
+.mac-searchfield__icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: var(--mac-icon-sm);
+    height: var(--mac-icon-sm);
+    color: var(--mac-text-tertiary);
+}
+
+/* While the field has focus the magnifier picks up the accent, which is how a
+   macOS search field signals that it is the active control. */
+.mac-searchfield__control:focus-within .mac-searchfield__icon {
+    color: var(--mac-accent);
+}
+
+.mac-searchfield__clear {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: var(--mac-icon-md);
+    height: var(--mac-icon-md);
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--mac-bg-active);
+    color: var(--mac-text-secondary);
+    cursor: default;
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        color var(--mac-duration-fast) var(--mac-ease);
+}
+
+.mac-searchfield__clear[hidden] {
+    display: none;
+}
+
+.mac-searchfield__clear:hover {
+    background: var(--mac-bg-hover);
+    color: var(--mac-text);
+}
+
+.mac-searchfield__clear:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 1px;
+}
+
+.mac-searchfield.is-disabled .mac-searchfield__control {
+    opacity: 0.45;
+}

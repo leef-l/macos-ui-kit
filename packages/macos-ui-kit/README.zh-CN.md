@@ -8,7 +8,7 @@ macOS 风格的 UI 组件，纯 TypeScript，零运行时依赖。没有 React�
 
 **English** | 简体中文
 
-- **31 个组件** —— 18 个控件、6 个布局、6 个浮层、1 个移动端外壳
+- **59 个组件** —— 44 个控件、6 个布局、8 个浮层、1 个移动端外壳
 - **零运行时依赖**
 - **只用 Light DOM** —— 没有 Shadow DOM，原生窗口拖拽和读屏软件都能正常工作
 - **运行时主题** —— 四套内置主题，外加自定义 token 覆盖
@@ -55,7 +55,7 @@ npm install @leef-l/macos-ui-kit
 ### 直接从 GitHub Release（不经过任何 registry）
 
 ```sh
-npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.4.4/leef-l-macos-ui-kit-0.4.4.tgz
+npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.5.0/leef-l-macos-ui-kit-0.5.0.tgz
 ```
 
 同样的文件、同样的类型、同样的导出。适合锁定精确构建，或者无法访问 registry 时。

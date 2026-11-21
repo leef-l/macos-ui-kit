@@ -1,0 +1,122 @@
+/* macOS star rating.
+   Two star layers per star — an outline underneath, a filled copy above inside a
+   clipping window — never a lit/unlit flag, because a 3.4 average has to show a
+   third of a star. The clip's width is a percentage of the star box, so the
+   painted fill always meets the outline exactly. */
+
+.mac-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--mac-space-1);
+    font-family: var(--mac-font);
+    /* Size of one star, and therefore the box every percentage in this sheet
+       resolves against. Overridden by the size classes below. */
+    --mac-rating-star: var(--mac-icon-md);
+    color: var(--mac-text-tertiary);
+    cursor: default;
+    user-select: none;
+    /* A drag across the stars previews; a vertical drag still scrolls the pane. */
+    touch-action: pan-y;
+}
+
+/* Shrink-wraps by design: a rating is a short run of glyphs, not a ruler, so
+   rule 16 (width: 100%) is deliberately not applied here. */
+
+.mac-rating--small {
+    --mac-rating-star: var(--mac-icon-sm);
+    gap: calc(var(--mac-space-1) / 2);
+}
+
+.mac-rating--large {
+    --mac-rating-star: calc(var(--mac-icon-md) * 1.5);
+    gap: var(--mac-space-1);
+}
+
+/* --- Stars ---------------------------------------------------------------- */
+
+.mac-rating__star {
+    position: relative;
+    display: block;
+    flex: 0 0 auto;
+    width: var(--mac-rating-star);
+    height: var(--mac-rating-star);
+}
+
+.mac-rating__star svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* The tips come within ~2 units of the viewBox edge, so a heavier stroke
+       than the default would otherwise clip into a polygon (rule 20). */
+    overflow: visible;
+}
+
+/* The outline is the full star at every value: it is what makes a partial fill
+   read as "a bit more than a third of this star" instead of as a missing star. */
+.mac-rating__outline {
+    stroke-width: 1.5;
+    color: var(--mac-text-tertiary);
+}
+
+.mac-rating__fill {
+    stroke-width: 1.5;
+    color: var(--mac-accent);
+}
+
+/* `fill="none"` reaches the path as a presentation attribute, which any CSS
+   declaration outranks — so the filled copy needs no second glyph. */
+.mac-rating__fill path {
+    fill: currentColor;
+}
+
+/* The clipping window. Absolutely positioned inside the star, which is what
+   makes `width: <n>%` mean a share of one star rather than of the row. */
+.mac-rating__clip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: var(--mac-rating-fill, 0%);
+    overflow: hidden;
+    /* Animated decoration, so it degrades: tokens.css drops every duration to
+       0ms under `prefers-reduced-motion: reduce`, which turns this into an
+       instant paint (rule 21). */
+    transition: width var(--mac-duration-fast) var(--mac-ease);
+}
+
+/* The glyph inside the window keeps the star's own width. Without this the
+   inner `<svg>` would size to the clip and the star would squash as it fills. */
+.mac-rating__clip > svg {
+    width: var(--mac-rating-star);
+    height: var(--mac-rating-star);
+}
+
+/* Hover preview: the same geometry in a lighter fill, so the value under the
+   pointer reads as a proposal rather than as the stored rating. */
+.mac-rating__star.is-preview .mac-rating__fill {
+    opacity: 0.55;
+}
+
+/* --- States --------------------------------------------------------------- */
+
+.mac-rating:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--mac-radius-s);
+}
+
+/* Read-only keeps full contrast — the rating is the content, not a broken
+   control — while a disabled one is dimmed like every other control. */
+.mac-rating.is-disabled {
+    opacity: 0.45;
+}
+
+/* --- Coarse pointers ------------------------------------------------------ */
+
+/* 44px is Apple's minimum tap target: a platform constant, not a design step.
+   The stars keep their size; the row grows around them. */
+@media (pointer: coarse) {
+    .mac-rating {
+        min-height: 44px;
+    }
+}

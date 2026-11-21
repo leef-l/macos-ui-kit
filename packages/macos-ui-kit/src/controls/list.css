@@ -1,0 +1,142 @@
+/* macOS list box: rows with an optional leading icon, trailing detail and
+   section headings. Flat inside its pane — no bezel, so it can be dropped into a
+   content area, a popover or the body of a split view without a second frame. */
+
+.mac-list {
+    display: flex;
+    flex-direction: column;
+    /* Both zeroes matter: the root is usually the flex child of a pane, and
+       without them the scroller below cannot shrink and never scrolls. */
+    min-width: 0;
+    min-height: 0;
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    color: var(--mac-text);
+    --wails-draggable: no-drag;
+}
+
+.mac-list__box {
+    display: flex;
+    flex-direction: column;
+    /* 2px between rows: tight enough to read as one list, loose enough that the
+       rounded row highlight does not touch its neighbours. */
+    gap: calc(var(--mac-space-1) / 2);
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: var(--mac-space-1);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
+
+/* --- Section headings ------------------------------------------------------ */
+
+/* Same treatment as a sidebar heading, one step quieter: it labels the rows
+   below it and must not compete with the row labels themselves. */
+.mac-list__section {
+    padding: var(--mac-space-2) var(--mac-space-2) calc(var(--mac-space-1) / 2);
+    font-size: var(--mac-text-small);
+    font-weight: var(--mac-weight-semibold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--mac-text-tertiary);
+    user-select: none;
+}
+
+/* The first heading in the list needs no gap above it; the box padding is
+   already there. */
+.mac-list__section:first-child {
+    padding-top: var(--mac-space-1);
+}
+
+/* --- Rows ------------------------------------------------------------------ */
+
+.mac-list__row {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    /* min-height, not height: a row may hold a single line or a label beside a
+       taller badge, and the box has to follow whichever it got. */
+    min-height: var(--mac-row-height);
+    padding: var(--mac-space-1) var(--mac-space-2);
+    border-radius: var(--mac-radius-m);
+    background: transparent;
+    color: var(--mac-text-secondary);
+    font-weight: var(--mac-weight-medium);
+    text-align: left;
+    cursor: default;
+    user-select: none;
+    transition:
+        background-color var(--mac-duration-fast) var(--mac-ease),
+        color var(--mac-duration-fast) var(--mac-ease);
+}
+
+/* The label takes the free space and truncates; the details and badge keep
+   their intrinsic width so the trailing edge lines up down the list. */
+.mac-list__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.mac-list__detail {
+    flex: 0 0 auto;
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-tertiary);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.mac-list__badge {
+    flex: 0 0 auto;
+    padding: 0 var(--mac-space-1);
+    border-radius: var(--mac-radius-s);
+    background: var(--mac-bg-active);
+    color: var(--mac-text-secondary);
+    font-size: var(--mac-text-2xs);
+    font-weight: var(--mac-weight-semibold);
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.mac-list__row svg {
+    flex: 0 0 auto;
+    width: var(--mac-icon-md);
+    height: var(--mac-icon-md);
+    opacity: 0.9;
+}
+
+.mac-list__row:hover:not(.is-selected):not([aria-disabled="true"]) {
+    background: var(--mac-bg-hover);
+    color: var(--mac-text);
+}
+
+/* Selection is the accent *tint* with normal ink — the same treatment a
+   selectable table row uses. The filled accent (`--mac-bg-selected` plus
+   `--mac-text-on-accent`) belongs to the sidebar, where the highlight reports
+   which pane you are in rather than which rows are picked. */
+.mac-list__row.is-selected {
+    background: var(--mac-accent-soft);
+    color: var(--mac-text);
+}
+
+.mac-list__row.is-selected svg {
+    opacity: 1;
+}
+
+/* Dimmed rather than hidden: a row that cannot be picked is still information. */
+.mac-list__row[aria-disabled="true"] {
+    opacity: 0.4;
+}
+
+/* Rows are focus targets of their own (roving tabindex), so the ring sits on
+   the row. `-1px` keeps it inside the rounded box instead of bleeding into the
+   neighbouring row. */
+.mac-list__row:focus-visible {
+    outline: calc(var(--mac-hairline) * 2) solid var(--mac-focus-ring);
+    outline-offset: -1px;
+}

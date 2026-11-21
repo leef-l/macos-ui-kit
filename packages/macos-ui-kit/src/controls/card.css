@@ -1,0 +1,170 @@
+/* macOS card: a titled container with an optional body and footer.
+   `plain` is grouping without a box; `grouped` is the inset rectangle a settings
+   pane is built from. */
+
+.mac-card {
+    display: flex;
+    flex-direction: column;
+    /* A card is a section, and its parent is almost always a flex column whose
+       items shrink-wrap their content — without these two the card would not
+       take the width it was given (rule 16). */
+    width: 100%;
+    min-width: 0;
+    /* The grouped variant puts a 1px border on this box, so `max-width: 380px`
+       has to mean 380px measured from the outside — otherwise every consumer
+       that sets a width gets 2px more than it asked for. */
+    box-sizing: border-box;
+    border: none;
+    border-radius: var(--mac-radius-m);
+    background: transparent;
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    color: var(--mac-text);
+}
+
+/* --- Header ---------------------------------------------------------------- */
+
+.mac-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--mac-space-3);
+    /* Bottom padding is smaller than the rest: the body brings its own top
+       padding, and the two add up to one paragraph gap rather than two. */
+    padding: var(--mac-space-3) var(--mac-space-3) var(--mac-space-2);
+}
+
+.mac-card__heading {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 2px;
+    /* The heading is the part that may be long; it truncates so the trailing
+       slot keeps its place at the edge. */
+    min-width: 0;
+}
+
+/* An empty wrapper is still a flex item: it would contribute a gap and push
+   nothing. Only remove it from layout, never from the DOM — a later `setTitle`
+   fills it again. */
+.mac-card__heading:empty,
+.mac-card__trailing:empty {
+    display: none;
+}
+
+.mac-card__title {
+    font-size: var(--mac-text-title);
+    font-weight: var(--mac-weight-semibold);
+    line-height: 1.3;
+    color: var(--mac-text);
+    overflow-wrap: anywhere;
+}
+
+.mac-card__subtitle {
+    font-size: var(--mac-text-small);
+    line-height: 1.4;
+    color: var(--mac-text-tertiary);
+    overflow-wrap: anywhere;
+}
+
+.mac-card__trailing {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: var(--mac-space-2);
+}
+
+/* --- Body ------------------------------------------------------------------ */
+
+/* The body is a plain block: its children stack, and for a grouped card each of
+   them can carry a separator. */
+.mac-card__body {
+    display: block;
+    padding: var(--mac-space-2) var(--mac-space-3);
+    min-width: 0;
+}
+
+/* An empty body must not contribute padding. `:empty` rather than a JS flag
+   because a caller appending through `get body()` changes this by itself. */
+.mac-card__body:empty {
+    display: none;
+}
+
+/* Edge to edge: the first body inside a card with no header needs its top
+   padding back, and the last one its bottom. */
+.mac-card__body:first-child {
+    padding-top: var(--mac-space-3);
+}
+
+.mac-card__body:last-child {
+    padding-bottom: var(--mac-space-3);
+}
+
+/* --- Footer ---------------------------------------------------------------- */
+
+.mac-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--mac-space-2);
+    padding: var(--mac-space-2) var(--mac-space-3) var(--mac-space-3);
+    font-size: var(--mac-text-small);
+    color: var(--mac-text-secondary);
+}
+
+/* --- Separators ------------------------------------------------------------ */
+
+/* The hairline belongs to the element *below* the gap. A forward sibling
+   selector is the only way to say "there is a header above me" without `:has`,
+   and `:not(:empty)` is what keeps an empty body from drawing a stray rule under
+   the title. */
+.mac-card__header + .mac-card__body:not(:empty) {
+    border-top: var(--mac-hairline) solid var(--mac-separator);
+}
+
+.mac-card__body:not(:empty) + .mac-card__footer {
+    border-top: var(--mac-hairline) solid var(--mac-separator);
+}
+
+/* --- Grouped variant ------------------------------------------------------- */
+
+.mac-card--grouped {
+    border: var(--mac-hairline) solid var(--mac-border);
+    border-radius: var(--mac-radius-l);
+    background: var(--mac-bg-content);
+}
+
+/* Hairline between direct children of a grouped body, drawn as a pseudo-element
+   instead of a border so it can stop short of the rounded edges: it spans the
+   child's box, which the body's inline padding already insets. */
+.mac-card--grouped .mac-card__body > *:not(:first-child) {
+    /* The one property the card imposes on content it does not own. The
+       alternative — injecting a divider element between the caller's nodes, or a
+       border that cannot be inset — either rewrites their DOM or runs the rule
+       into the corner radius. */
+    position: relative;
+}
+
+.mac-card--grouped .mac-card__body > *:not(:first-child)::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: var(--mac-hairline);
+    background: var(--mac-separator);
+    /* Decoration: it must never swallow a click meant for the row beneath. */
+    pointer-events: none;
+}
+
+/* --- Padding: none --------------------------------------------------------- */
+
+/* For a table or a list that runs edge to edge inside the box. The header and
+   the footer keep their padding, so the title never touches the border. The
+   declarations come after the body padding rules above on purpose: equal
+   specificity, so source order decides. */
+.mac-card--flush .mac-card__body,
+.mac-card--flush .mac-card__body:first-child,
+.mac-card--flush .mac-card__body:last-child {
+    padding: 0;
+}

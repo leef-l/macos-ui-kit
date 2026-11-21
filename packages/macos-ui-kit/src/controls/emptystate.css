@@ -1,0 +1,69 @@
+/* Empty placeholder: outline glyph, one headline, one optional action. */
+
+.mac-emptystate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--mac-space-2);
+    padding: var(--mac-space-8) var(--mac-space-6);
+    text-align: center;
+    font-family: var(--mac-font);
+    color: var(--mac-text);
+    /* Fill the pane it is dropped into: an empty state that shrink-wraps ends
+       up floating in the corner of a split view. */
+    box-sizing: border-box;
+    min-height: 0;
+}
+
+.mac-emptystate.is-compact {
+    gap: var(--mac-space-1);
+    padding: var(--mac-space-4) var(--mac-space-3);
+}
+
+.mac-emptystate__glyph {
+    width: 44px;
+    height: 44px;
+    margin-bottom: var(--mac-space-1);
+    color: var(--mac-text-tertiary);
+    /* Tertiary is already low contrast; the extra opacity keeps the glyph from
+       competing with the title, which is the thing people actually read. */
+    opacity: 0.7;
+}
+
+.mac-emptystate.is-compact .mac-emptystate__glyph {
+    width: 28px;
+    height: 28px;
+}
+
+.mac-emptystate__title {
+    margin: 0;
+    font-size: var(--mac-text-md);
+    font-weight: var(--mac-weight-semibold);
+    line-height: 1.35;
+    color: var(--mac-text);
+}
+
+.mac-emptystate.is-compact .mac-emptystate__title {
+    font-size: var(--mac-text-body);
+}
+
+.mac-emptystate__message {
+    margin: 0;
+    max-width: 34ch;
+    font-size: var(--mac-text-small);
+    line-height: 1.45;
+    color: var(--mac-text-secondary);
+    text-wrap: pretty;
+}
+
+.mac-emptystate__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--mac-space-2);
+    margin-top: var(--mac-space-2);
+}
+
+.mac-emptystate.is-compact .mac-emptystate__actions {
+    margin-top: var(--mac-space-1);
+}

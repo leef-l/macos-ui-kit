@@ -1,0 +1,159 @@
+/* macOS alert panel: a centred card, a tinted glyph, and trailing buttons. */
+
+.mac-alert__scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    display: grid;
+    place-items: center;
+    padding: var(--mac-space-6);
+    background: var(--mac-scrim);
+    /* The scrim is the only node that fades; the card moves with it so the two
+       read as one object arriving. */
+    opacity: 0;
+    transition: opacity var(--mac-duration) var(--mac-ease);
+}
+
+.mac-alert__scrim.is-open {
+    opacity: 1;
+}
+
+.mac-alert {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-4);
+    width: 400px;
+    max-width: 100%;
+    max-height: calc(100vh - var(--mac-space-8) * 2);
+    padding: var(--mac-space-5);
+    border-radius: var(--mac-radius-l);
+    background: var(--mac-bg-elevated);
+    box-shadow: var(--mac-shadow-sheet);
+    font-family: var(--mac-font);
+    font-size: var(--mac-text-body);
+    color: var(--mac-text);
+    outline: none;
+    /* Cards are cut off rather than scrolled when the message is very long;
+       the body scrolls, the shell does not. */
+    overflow: hidden;
+    transform: scale(0.97);
+    transition: transform var(--mac-duration) var(--mac-ease-out);
+    box-sizing: border-box;
+}
+
+.mac-alert__scrim.is-open .mac-alert {
+    transform: scale(1);
+}
+
+.mac-alert__head {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--mac-space-3);
+    min-width: 0;
+}
+
+/* A tinted disc behind the glyph, which is the shape macOS uses for a
+   first-party alert. The tint carries the meaning; the glyph repeats it. */
+.mac-alert__icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--mac-accent-soft);
+    color: var(--mac-accent);
+}
+
+/* The system colours have no soft token, so the tint is mixed from the colour
+   itself. First declaration is the fallback for an engine without color-mix();
+   the second wins wherever it is supported — same pattern as badge.css. */
+.mac-alert__icon--warning {
+    color: var(--mac-warning);
+    background: var(--mac-bg-hover);
+    background: color-mix(in srgb, var(--mac-warning) 22%, transparent);
+}
+
+.mac-alert__icon--error {
+    color: var(--mac-danger);
+    background: var(--mac-bg-hover);
+    background: color-mix(in srgb, var(--mac-danger) 22%, transparent);
+}
+
+.mac-alert__icon--success {
+    color: var(--mac-success);
+    background: var(--mac-bg-hover);
+    background: color-mix(in srgb, var(--mac-success) 22%, transparent);
+}
+
+.mac-alert__icon--question {
+    background: var(--mac-accent-soft);
+    color: var(--mac-accent);
+}
+
+.mac-alert__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mac-space-2);
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.mac-alert__title {
+    margin: 0;
+    font-size: var(--mac-text-title);
+    font-weight: var(--mac-weight-semibold);
+    line-height: 1.25;
+    color: var(--mac-text);
+}
+
+.mac-alert__message {
+    font-size: var(--mac-text-body);
+    line-height: 1.45;
+    color: var(--mac-text-secondary);
+    /* Long messages scroll instead of stretching the card past the viewport. */
+    max-height: 40vh;
+    overflow: auto;
+    word-break: break-word;
+}
+
+.mac-alert__suppress {
+    display: flex;
+    align-items: center;
+}
+
+/* Buttons trail from the right, the way every macOS alert does. */
+.mac-alert__actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--mac-space-2);
+    flex-wrap: wrap;
+}
+
+.mac-alert__actions .mac-button {
+    min-width: 76px;
+    justify-content: center;
+}
+
+/* Narrow windows: the card fills the width and the buttons stack, with the
+   primary action staying closest to the thumb. */
+@media (max-width: 480px) {
+    .mac-alert__scrim {
+        padding: var(--mac-space-4);
+    }
+
+    .mac-alert {
+        width: 100%;
+        padding: var(--mac-space-4);
+    }
+
+    .mac-alert__actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .mac-alert__actions .mac-button {
+        width: 100%;
+    }
+}
