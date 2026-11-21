@@ -124,7 +124,13 @@ export class InlineNotice extends Component<HTMLDivElement> {
         this.root.appendChild(text);
         this.root.appendChild(this.actions);
 
-        this.listen(this.closeButton, "click", () => this.dismiss());
+        // The close button is the user path, so it reports; `dismiss()` itself is a
+        // setter and stays silent — a caller that hides the notice after a retry
+        // must not be told the user dismissed it.
+        this.listen(this.closeButton, "click", () => {
+            this.dismiss();
+            this.onDismiss?.();
+        });
 
         // Tone first (it owns the role and the default glyph), then the caller's
         // glyph if there is one — `customIcon` is already true by now, so the tone
@@ -200,7 +206,6 @@ export class InlineNotice extends Component<HTMLDivElement> {
     dismiss(): void {
         if (this.root.hidden) return;
         this.root.hidden = true;
-        this.onDismiss?.();
     }
 
     /** Keep the action row, and its padding, out of the layout when it is empty. */
