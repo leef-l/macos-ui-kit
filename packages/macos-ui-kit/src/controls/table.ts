@@ -932,7 +932,13 @@ export class Table extends Component<HTMLDivElement> {
         event.preventDefault();
         if (next >= 0) this.focusRow(rows[next]);
     }
-    private makeRow(row: any, index: number): HTMLTableRowElement {        const key = this.rowKey(row, index);
+    private makeRow(row: any, index: number): HTMLTableRowElement {
+        // Duplicate keys would collapse two rows into one selection: both would
+        // answer to the same id, so checking one would mark the other. The index
+        // is appended only when the key is already taken, which keeps the caller's
+        // keys intact for the rows that are unique.
+        let key = this.rowKey(row, index);
+        if (this.rowKeys.includes(key)) key = `${key}#${index}`;
         this.rowKeys.push(key);
 
         const tr = el("tr", {

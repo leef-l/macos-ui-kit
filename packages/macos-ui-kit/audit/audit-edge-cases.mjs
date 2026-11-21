@@ -109,6 +109,7 @@ window.__cases = {
     "Table: duplicate row keys": () => {
         const rows = [{id: 'x', a: 1}, {id: 'x', a: 2}];
         const c = new MacUI.Table({columns: [{key: 'a', title: 'A'}], rows, selectable: true});
+        document.body.appendChild(c.element);
         c.element.querySelectorAll('tbody input[type=checkbox]')[0].click();
         const selected = c.element.querySelectorAll('tbody tr.is-selected').length;
         return {selected};
@@ -267,9 +268,55 @@ for (const r of results ?? []) {
     console.log("    " + JSON.stringify(r.value));
 }
 
-console.log(`\nSUMMARY: ${(results ?? []).length} cases, ${thrown.length} threw`);
+// --- assertions --------------------------------------------------------------
+// Everything above is observation; these are the invariants that must hold, so a
+// regression fails the suite instead of scrolling past in a log.
+let pass = 0, fail = 0;
+const ok = (cond, label, detail) => {
+    if (cond) { pass++; console.log(`OK   ${label}${detail !== undefined ? " — " + JSON.stringify(detail) : ""}`); }
+    else { fail++; console.log(`FAIL ${label}${detail !== undefined ? " — " + JSON.stringify(detail) : ""}`); }
+};
+const at = (name) => (results ?? []).find((r) => r.name === name)?.value ?? {};
+
+ok(thrown.length === 0, "no adversarial input throws", thrown.map((r) => r.name));
+
+// NaN must never reach the UI. Both of these did.
+const pg = at("Pagination: total zero");
+ok(!/NaN/.test(pg.text ?? ""), "an empty page list renders no NaN", pg.text);
+ok(at("Pagination: page beyond range").current === "1",
+    "a page beyond the end clamps to the first", at("Pagination: page beyond range").current);
+ok(at("NumberField: NaN value").value === "0",
+    "a NaN initial value falls back to the minimum", at("NumberField: NaN value").value);
+ok(at("Progress: negative value").now === "0" && at("Progress: value above 100").now === "100",
+    "progress clamps to 0..100 in both directions",
+    [at("Progress: negative value").now, at("Progress: value above 100").now]);
+ok(at("Rating: value above max").now === "5", "rating clamps to its maximum", at("Rating: value above max").now);
+ok(at("RangeSlider: inverted pair").value === "[20,80]",
+    "an inverted range pair is normalised", at("RangeSlider: inverted pair").value);
+
+// Documented behaviour, asserted so it cannot drift: normalising an inverted
+// Stepper range and a zero step is deliberate (see the constructor comment), so
+// these must keep clamping rather than start throwing.
+ok(at("Stepper: inverted range").now === "5" && at("Stepper: value outside range").now === "10",
+    "a stepper normalises its range and clamps its value",
+    [at("Stepper: inverted range").now, at("Stepper: value outside range").now]);
+
+// Duplicate row keys used to make selection ambiguous.
+ok(at("Table: duplicate row keys").selected === 1,
+    "a duplicate row key selects exactly one row", at("Table: duplicate row keys").selected);
+
+ok(at("List: empty items").rows === 0 && at("TreeView: empty nodes").rows === 0,
+    "empty collections render nothing rather than throwing");
+ok(at("TabView: no tabs").selected === '""', "a tab view with no tabs has no selection");
+ok(at("ActionSheet: open twice").count === 1 && at("ActionSheet: open twice").after === 0,
+    "opening twice mounts one sheet, and closing twice leaves none");
+ok(at("CommandPalette: no items, then Enter").stillOpen === true,
+    "Enter with nothing highlighted leaves the palette open");
+
+console.log(`\n${pass} assertions passed, ${fail} failed`);
+console.log(`SUMMARY: ${(results ?? []).length} cases, ${thrown.length} threw, ${fail} assertions failed`);
 try { proc.kill(); } catch {}
 server.close();
 // Exit 0 on purpose: this script reports, it does not gate. The assertions that
 // matter become permanent once the finding is fixed.
-process.exit(0);
+process.exit(fail > 0 || thrown.length > 0 ? 1 : 0);

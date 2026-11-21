@@ -60,7 +60,7 @@ No configuration, no token. This is the channel to use.
 ### Straight from a GitHub release — no registry at all
 
 ```sh
-npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.11.3/leef-l-macos-ui-kit-0.11.3.tgz
+npm install https://github.com/leef-l/macos-ui-kit/releases/download/v0.11.4/leef-l-macos-ui-kit-0.11.4.tgz
 ```
 
 Same files, same types, same exports. Use it to pin an exact build, or when no

@@ -63,7 +63,12 @@ for (const script of scripts) {
     // (N passed out of M run) and the newer ones "N passed, M failed". Both are
     // read here rather than rewriting a script that already reports correctly.
     const pair = result.out.match(/(\d+) passed, (\d+) failed/);
+    // Three shapes: "N/M assertions OK" (N passed out of M run, so failures are the
+    // difference), "N assertions passed, M failed" (M is already the failure count)
+    // and "N passed, M failed". Conflating the first two is how a green run
+    // reported "-13 failed".
     const ratio = result.out.match(/(\d+)\/(\d+) assertions OK/);
+    const counted = result.out.match(/(\d+) assertions passed,\s*(\d+) failed/);
     const failures = result.out.split("\n").filter((line) => /^(FAIL |check FAIL)/.test(line));
     let pass = 0;
     let fail = failures.length;
@@ -73,6 +78,9 @@ for (const script of scripts) {
     } else if (ratio) {
         pass = Number(ratio[1]);
         fail = Number(ratio[2]) - Number(ratio[1]);
+    } else if (counted) {
+        pass = Number(counted[1]);
+        fail = Number(counted[2]);
     }
     console.log(result.out.trimEnd());
     results.push({script, ok: result.code === 0, pass, fail, seconds, failures});
